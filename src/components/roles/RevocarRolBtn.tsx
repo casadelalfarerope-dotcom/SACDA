@@ -9,7 +9,7 @@ export default function RevocarRolBtn({ asignacionId }: { asignacionId: string }
 
   function handle() {
     if (!confirm('¿Revocar este rol?')) return
-    startTransition(() => revocarRol(asignacionId))
+    startTransition(async () => { await revocarRol(asignacionId) })
   }
 
   return (
