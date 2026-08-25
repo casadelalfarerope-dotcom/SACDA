@@ -7,7 +7,6 @@ import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import { crearCeremonia } from '@/app/actions/miembros'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import Select from '@/components/ui/Select'
 
 interface Participante {
   persona_id: string
@@ -78,13 +77,15 @@ export default function NuevaCeremoniaPage() {
           <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
             Tipo <span style={{ color: 'var(--error)' }}>*</span>
           </label>
-          <Select
+          <select
             value={form.tipo}
-            onChange={(e) => setForm((p) => ({ ...p, tipo: e.target.value as typeof form.tipo }))}>
+            onChange={(e) => setForm((p) => ({ ...p, tipo: e.target.value as typeof form.tipo }))}
+            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none border"
+            style={{ background: 'var(--surface-secondary)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
             <option value="bautismo">Bautismo</option>
             <option value="dedicacion">Dedicación</option>
             <option value="boda">Boda</option>
-          </Select>
+          </select>
         </div>
 
         <div>
