@@ -2,10 +2,14 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { TrendingUp, TrendingDown, Plus, ArrowRight } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import GraficosFinanzas from './GraficosFinanzas'
 
 function formatMonto(n: number) {
   return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(n)
 }
+
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+const MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
 export default async function FinanzasPage({
   searchParams,
@@ -20,20 +24,68 @@ export default async function FinanzasPage({
   const desde = `${anio}-${mesStr}-01`
   const hasta = new Date(anio, mes, 0).toISOString().split('T')[0]!
 
+  // Últimos 6 meses (terminando en el mes seleccionado)
+  const meses6 = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(anio, mes - 1 - (5 - i), 1)
+    const m = d.getMonth() + 1
+    const a = d.getFullYear()
+    return {
+      label: MESES_CORTO[m - 1]!,
+      desde: `${a}-${String(m).padStart(2, '0')}-01`,
+      hasta: new Date(a, m, 0).toISOString().split('T')[0]!,
+    }
+  })
+  const desde6 = meses6[0]!.desde
+
   const supabase = await createClient()
 
-  const [{ data: aportes }, { data: gastos }] = await Promise.all([
+  const [{ data: aportes }, { data: gastos }, { data: aportesHist }, { data: gastosHist }] = await Promise.all([
     supabase.from('aportes').select('monto, tipo, fecha, personas(nombre_completo)')
       .gte('fecha', desde).lte('fecha', hasta).order('fecha', { ascending: false }),
     supabase.from('gastos').select('monto, concepto, categoria, fecha')
       .gte('fecha', desde).lte('fecha', hasta).order('fecha', { ascending: false }),
+    supabase.from('aportes').select('monto, fecha')
+      .gte('fecha', desde6).lte('fecha', hasta),
+    supabase.from('gastos').select('monto, fecha')
+      .gte('fecha', desde6).lte('fecha', hasta),
   ])
 
   const totalAportes = (aportes ?? []).reduce((s, a) => s + Number(a.monto), 0)
   const totalGastos = (gastos ?? []).reduce((s, g) => s + Number(g.monto), 0)
   const balance = totalAportes - totalGastos
 
-  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+  // Tendencia 6 meses
+  const tendencia = meses6.map(m => ({
+    mes: m.label,
+    aportes: (aportesHist ?? [])
+      .filter(a => a.fecha >= m.desde && a.fecha <= m.hasta)
+      .reduce((s, a) => s + Number(a.monto), 0),
+    gastos: (gastosHist ?? [])
+      .filter(g => g.fecha >= m.desde && g.fecha <= m.hasta)
+      .reduce((s, g) => s + Number(g.monto), 0),
+  }))
+
+  // Aportes por tipo (mes actual)
+  const tiposMap = new Map<string, number>()
+  for (const a of (aportes ?? [])) {
+    const t = (a.tipo as string) ?? 'otro'
+    tiposMap.set(t, (tiposMap.get(t) ?? 0) + Number(a.monto))
+  }
+  const aportesPorTipo = [...tiposMap.entries()]
+    .map(([label, total]) => ({ label, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5)
+
+  // Gastos por categoría (mes actual)
+  const catMap = new Map<string, number>()
+  for (const g of (gastos ?? [])) {
+    const c = (g.categoria as string) ?? 'otro'
+    catMap.set(c, (catMap.get(c) ?? 0) + Number(g.monto))
+  }
+  const gastosPorCategoria = [...catMap.entries()]
+    .map(([label, total]) => ({ label, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5)
 
   const mesPrev = mes === 1 ? 12 : mes - 1
   const anioPrev = mes === 1 ? anio - 1 : anio
@@ -67,14 +119,13 @@ export default async function FinanzasPage({
         <span className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>
           {MESES[mes - 1]} {anio}
         </span>
-        {(mes !== hoy.getMonth() + 1 || anio !== hoy.getFullYear()) && (
+        {(mes !== hoy.getMonth() + 1 || anio !== hoy.getFullYear()) ? (
           <Link href={`/finanzas?mes=${mesSig}&anio=${anioSig}`}
             className="px-3 py-1.5 rounded-xl text-sm hover:opacity-70 transition-opacity"
             style={{ color: 'var(--muted)' }}>
             {MESES[mesSig - 1]} &gt;
           </Link>
-        )}
-        {mes === hoy.getMonth() + 1 && anio === hoy.getFullYear() && (
+        ) : (
           <span className="px-3 py-1.5 text-sm" style={{ color: 'var(--muted)', opacity: 0.3 }}>
             {MESES[mesSig - 1]} &gt;
           </span>
@@ -105,6 +156,14 @@ export default async function FinanzasPage({
         </div>
       </div>
 
+      {/* Gráficos */}
+      <GraficosFinanzas
+        tendencia={tendencia}
+        aportesPorTipo={aportesPorTipo}
+        gastosPorCategoria={gastosPorCategoria}
+      />
+
+      {/* Listas de transacciones */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Aportes */}
         <div>
@@ -129,7 +188,7 @@ export default async function FinanzasPage({
                 style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
                 <div>
                   <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                    {(a.personas as any)?.nombre_completo ?? '—'}
+                    {(a.personas as unknown as { nombre_completo: string } | null)?.nombre_completo ?? '—'}
                   </p>
                   <p className="text-xs" style={{ color: 'var(--muted)' }}>
                     {a.tipo} · {formatDate(a.fecha)}
