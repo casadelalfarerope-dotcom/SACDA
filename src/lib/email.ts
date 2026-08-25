@@ -1,6 +1,5 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = 'Casa del Alfarero <noreply@casadelalfarero.pe>'
 
 export async function enviarEmail(to: string | string[], subject: string, html: string) {
@@ -8,6 +7,7 @@ export async function enviarEmail(to: string | string[], subject: string, html: 
     console.warn('[email] RESEND_API_KEY no configurada — email no enviado')
     return { ok: false }
   }
+  const resend = new Resend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({ from: FROM, to, subject, html })
   if (error) console.error('[email] Error al enviar:', error)
   return { ok: !error }
