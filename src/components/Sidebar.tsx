@@ -73,7 +73,7 @@ export default function Sidebar({ persona }: SidebarProps) {
   }
 
   return (
-    <aside className="hidden md:flex flex-col w-60 min-h-screen border-r"
+    <aside className="hidden md:flex flex-col w-60 h-screen sticky top-0 border-r"
       style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5 border-b"
@@ -91,7 +91,7 @@ export default function Sidebar({ persona }: SidebarProps) {
       </div>
 
       {/* Navegación */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
           const pending = pendingHref === href && isPending
