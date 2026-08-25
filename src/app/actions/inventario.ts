@@ -40,6 +40,36 @@ export async function crearBien(data: {
   return { success: true, id: bien.id }
 }
 
+export async function editarBien(id: string, data: {
+  nombre: string
+  descripcion?: string
+  categoria: string
+  numero_serie?: string
+  fecha_compra?: string
+  vida_util_anios?: string
+  estado: string
+  proximo_mantenimiento?: string
+  intervalo_mantenimiento_dias?: string
+}) {
+  if (!data.nombre?.trim()) return { error: 'El nombre es obligatorio.' }
+  const supabase = await createClient()
+  const { error } = await supabase.from('bienes').update({
+    nombre: data.nombre.trim(),
+    descripcion: data.descripcion?.trim() || null,
+    categoria: data.categoria,
+    numero_serie: data.numero_serie?.trim() || null,
+    fecha_compra: data.fecha_compra || null,
+    vida_util_anios: data.vida_util_anios ? parseInt(data.vida_util_anios) : null,
+    estado: data.estado,
+    proximo_mantenimiento: data.proximo_mantenimiento || null,
+    intervalo_mantenimiento_dias: data.intervalo_mantenimiento_dias ? parseInt(data.intervalo_mantenimiento_dias) : null,
+  }).eq('id', id)
+  if (error) return { error: 'No se pudo actualizar el bien.' }
+  revalidatePath('/inventario')
+  revalidatePath(`/inventario/${id}`)
+  return { success: true }
+}
+
 export async function actualizarEstadoBien(id: string, estado: string) {
   const supabase = await createClient()
   const { error } = await supabase.from('bienes').update({ estado }).eq('id', id)

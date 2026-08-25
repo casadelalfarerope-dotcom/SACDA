@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Wrench } from 'lucide-react'
+import { ArrowLeft, Wrench, Pencil } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import CambiarEstadoBienBtn from '@/components/inventario/CambiarEstadoBienBtn'
@@ -43,6 +43,11 @@ export default async function BienDetailPage({ params }: { params: Promise<{ id:
         <div className="flex-1">
           <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{bien.nombre}</h1>
         </div>
+        <Link href={`/inventario/${id}/editar`}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border transition-opacity hover:opacity-70"
+          style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
+          <Pencil size={14} /> Editar
+        </Link>
         <Badge variant={estadoVariant[bien.estado] ?? 'muted'}>{bien.estado.replace('_', ' ')}</Badge>
       </div>
 

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, Eye } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Eye, Pencil } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
 import PublicarTutorialBtn from '@/components/servidores/PublicarTutorialBtn'
 import MarcarVistoBtn from '@/components/servidores/MarcarVistoBtn'
@@ -66,6 +66,11 @@ export default async function TutorialPage({ params }: { params: Promise<{ id: s
           )}
         </div>
         <div className="flex items-center gap-2">
+          <Link href={`/capacitacion/${id}/editar`}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border transition-opacity hover:opacity-70"
+            style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
+            <Pencil size={14} /> Editar
+          </Link>
           <Badge variant="default">{destinoLabel[tut.tipo_destino] ?? tut.tipo_destino}</Badge>
           <PublicarTutorialBtn tutorialId={tut.id} publicado={tut.publicado} />
         </div>

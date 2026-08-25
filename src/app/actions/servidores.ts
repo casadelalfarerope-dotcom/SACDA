@@ -188,6 +188,27 @@ export async function confirmarRotacion(
   return { success: true }
 }
 
+export async function editarPrograma(id: string, data: {
+  titulo: string
+  fecha: string
+  notas?: string
+}) {
+  if (!data.titulo?.trim()) return { error: 'El título es obligatorio.' }
+  if (!data.fecha) return { error: 'La fecha es obligatoria.' }
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('programas').update({
+    titulo: data.titulo.trim(),
+    fecha: data.fecha,
+    notas: data.notas?.trim() || null,
+  }).eq('id', id)
+
+  if (error) return { error: 'No se pudo actualizar el programa.' }
+  revalidatePath('/servidores')
+  revalidatePath(`/servidores/${id}`)
+  return { success: true }
+}
+
 export async function aplicarRotacion(programa_id: string, rol_servicio_id: string) {
   const supabase = await createClient()
 

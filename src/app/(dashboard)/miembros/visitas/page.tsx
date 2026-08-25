@@ -3,20 +3,8 @@ import Link from 'next/link'
 import { ArrowLeft, UserPlus, Plus } from 'lucide-react'
 import { formatDateShort } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
-import Badge from '@/components/ui/Badge'
-
-const estadoVariant: Record<string, 'warning' | 'success' | 'default'> = {
-  pendiente: 'warning',
-  contactado: 'default',
-  regular: 'success',
-  inactivo: 'default',
-}
-const estadoLabel: Record<string, string> = {
-  pendiente: 'Pendiente',
-  contactado: 'Contactado',
-  regular: 'Regular',
-  inactivo: 'Inactivo',
-}
+import CambiarEstadoVisita from '@/components/miembros/CambiarEstadoVisita'
+import type { EstadoSeguimiento } from '@/types/database'
 
 export default async function VisitasPage() {
   const supabase = await createClient()
@@ -70,7 +58,11 @@ export default async function VisitasPage() {
                     {v.volvio ? ' · Volvió' : ''}
                   </p>
                 </div>
-                <Badge label={estadoLabel[v.estado] ?? v.estado} variant={estadoVariant[v.estado] ?? 'default'} />
+                <CambiarEstadoVisita
+                  id={v.id}
+                  estadoActual={v.estado as EstadoSeguimiento}
+                  volvio={v.volvio ?? false}
+                />
               </div>
             )
           })}

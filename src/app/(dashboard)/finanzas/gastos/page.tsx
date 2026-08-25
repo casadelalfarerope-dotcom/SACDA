@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { ArrowLeft, Plus, Download } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 function fmt(n: number) {
@@ -48,6 +48,11 @@ export default async function GastosPage({
           <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Gastos</h1>
           <p className="text-sm" style={{ color: 'var(--muted)' }}>Total: {fmt(total)}</p>
         </div>
+        <a href="/api/export/gastos"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70"
+          style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
+          <Download size={15} /> Excel
+        </a>
         <Link href="/finanzas/gastos/nuevo"
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
           style={{ background: 'var(--accent)' }}>

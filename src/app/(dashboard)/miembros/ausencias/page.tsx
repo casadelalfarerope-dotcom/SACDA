@@ -3,18 +3,8 @@ import Link from 'next/link'
 import { ArrowLeft, UserX, Plus } from 'lucide-react'
 import { formatDateShort } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
-import Badge from '@/components/ui/Badge'
-
-const estadoVariant: Record<string, 'warning' | 'success' | 'default'> = {
-  pendiente: 'warning',
-  contactado: 'default',
-  resuelto: 'success',
-}
-const estadoLabel: Record<string, string> = {
-  pendiente: 'Pendiente',
-  contactado: 'Contactado',
-  resuelto: 'Resuelto',
-}
+import CambiarEstadoAusencia from '@/components/miembros/CambiarEstadoAusencia'
+import type { EstadoAusencia } from '@/types/database'
 
 export default async function AusenciasPage() {
   const supabase = await createClient()
@@ -52,6 +42,7 @@ export default async function AusenciasPage() {
         <div className="space-y-2 stagger">
           {ausencias.map((a) => {
             const persona = Array.isArray(a.persona) ? a.persona[0] : a.persona
+            const encargado = Array.isArray(a.encargado) ? a.encargado[0] : a.encargado
             return (
               <div key={a.id}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl border"
@@ -66,9 +57,10 @@ export default async function AusenciasPage() {
                   <p className="text-xs" style={{ color: 'var(--muted)' }}>
                     {formatDateShort(a.fecha)}
                     {a.motivo ? ` · ${a.motivo}` : ''}
+                    {encargado ? ` · Encargado: ${encargado.nombre_completo}` : ''}
                   </p>
                 </div>
-                <Badge label={estadoLabel[a.estado] ?? a.estado} variant={estadoVariant[a.estado] ?? 'default'} />
+                <CambiarEstadoAusencia id={a.id} estadoActual={a.estado as EstadoAusencia} />
               </div>
             )
           })}

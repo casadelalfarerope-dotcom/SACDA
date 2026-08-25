@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Plus, UserCheck } from 'lucide-react'
+import { ArrowLeft, Plus, UserCheck, Pencil } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import AsignarServidorForm from '@/components/servidores/AsignarServidorForm'
@@ -56,6 +56,11 @@ export default async function ProgramaPage({ params }: { params: Promise<{ id: s
           <Badge variant={programa.estado === 'publicado' ? 'success' : 'warning'}>
             {programa.estado === 'publicado' ? 'Publicado' : 'Borrador'}
           </Badge>
+          <Link href={`/servidores/${programa.id}/editar`}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border hover:opacity-80 transition-opacity"
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+            <Pencil size={14} /> Editar
+          </Link>
           {programa.estado === 'borrador' && <PublicarBtn programaId={programa.id} />}
         </div>
       </div>
