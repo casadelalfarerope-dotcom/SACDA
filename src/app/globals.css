@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --surface: #ffffff;
+  --surface-secondary: #f5f5f7;
+  --border: #d2d2d7;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-foreground: #ffffff;
+  --muted: #86868b;
+  --destructive: #ff3b30;
+  --success: #34c759;
+  --warning: #ff9500;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #000000;
+    --foreground: #f5f5f7;
+    --surface: #1c1c1e;
+    --surface-secondary: #2c2c2e;
+    --border: #38383a;
+    --accent: #0a84ff;
+    --accent-hover: #409cff;
+    --accent-foreground: #ffffff;
+    --muted: #98989d;
+    --destructive: #ff453a;
+    --success: #30d158;
+    --warning: #ff9f0a;
+  }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Animaciones de entrada ---- */
+@keyframes ui-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ui-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes ui-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes ui-shimmer {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+@keyframes ui-progress {
+  0%   { transform: translateX(-100%); width: 60%; }
+  50%  { width: 80%; }
+  100% { transform: translateX(200%); width: 60%; }
+}
+
+/* Clases de animación */
+.animate-page  { animation: ui-fade-up  0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade  { animation: ui-fade-in  0.18s ease both; }
+.animate-scale { animation: ui-scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-shimmer { animation: ui-shimmer 1.6s ease-in-out infinite; }
+
+/* Stagger — lista de tarjetas */
+.stagger > * { animation: ui-fade-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.stagger > *:nth-child(1)   { animation-delay:  0ms; }
+.stagger > *:nth-child(2)   { animation-delay: 40ms; }
+.stagger > *:nth-child(3)   { animation-delay: 80ms; }
+.stagger > *:nth-child(4)   { animation-delay: 120ms; }
+.stagger > *:nth-child(5)   { animation-delay: 160ms; }
+.stagger > *:nth-child(6)   { animation-delay: 200ms; }
+.stagger > *:nth-child(7)   { animation-delay: 240ms; }
+.stagger > *:nth-child(8)   { animation-delay: 280ms; }
+.stagger > *:nth-child(n+9) { animation-delay: 300ms; }
+
+/* Scrollbar minimalista */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
