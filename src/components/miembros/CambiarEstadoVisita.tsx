@@ -29,7 +29,7 @@ export default function CambiarEstadoVisita({
       disabled={isPending}
       onChange={(e) => {
         const nuevo = e.target.value as EstadoSeguimiento
-        startTransition(() => actualizarSeguimientoVisita(id, { estado: nuevo, volvio }))
+        startTransition(async () => { await actualizarSeguimientoVisita(id, { estado: nuevo, volvio }) })
       }}
       className="text-xs px-2 py-1 rounded-xl border outline-none disabled:opacity-50 transition-opacity"
       style={{

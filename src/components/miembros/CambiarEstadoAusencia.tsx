@@ -27,7 +27,7 @@ export default function CambiarEstadoAusencia({
       disabled={isPending}
       onChange={(e) => {
         const nuevo = e.target.value as EstadoAusencia
-        startTransition(() => actualizarAusencia(id, nuevo))
+        startTransition(async () => { await actualizarAusencia(id, nuevo) })
       }}
       className="text-xs px-2 py-1 rounded-xl border outline-none disabled:opacity-50 transition-opacity"
       style={{
