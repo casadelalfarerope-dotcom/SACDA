@@ -37,11 +37,13 @@ export default async function FinanzasPage({
         .gte('fecha', desde).lte('fecha', hasta)
         .order('fecha', { ascending: false }),
       supabase.from('aportes')
-        .select('monto, tipo, fecha')
-        .gte('fecha', desde12).lte('fecha', hoy12),
+        .select('monto, tipo, fecha, personas(nombre_completo)')
+        .gte('fecha', desde12).lte('fecha', hoy12)
+        .order('fecha', { ascending: false }),
       supabase.from('gastos')
-        .select('monto, categoria, fecha')
-        .gte('fecha', desde12).lte('fecha', hoy12),
+        .select('monto, concepto, categoria, fecha')
+        .gte('fecha', desde12).lte('fecha', hoy12)
+        .order('fecha', { ascending: false }),
     ])
 
   const aportesMes = (aportesMesRaw ?? []).map(a => ({
@@ -59,13 +61,15 @@ export default async function FinanzasPage({
   }))
 
   const aportesHist = (aportesHistRaw ?? []).map(a => ({
-    monto: Number(a.monto),
-    tipo:  a.tipo as string,
-    fecha: a.fecha as string,
+    monto:  Number(a.monto),
+    tipo:   a.tipo as string,
+    fecha:  a.fecha as string,
+    persona: (a.personas as unknown as { nombre_completo: string } | null)?.nombre_completo ?? null,
   }))
 
   const gastosHist = (gastosHistRaw ?? []).map(g => ({
     monto:     Number(g.monto),
+    concepto:  g.concepto as string,
     categoria: g.categoria as string,
     fecha:     g.fecha as string,
   }))
