@@ -50,6 +50,28 @@ function rangoDesde(periodo: Periodo): string {
   return new Date(hoy.getFullYear(), hoy.getMonth() - (n - 1), 1).toISOString().split('T')[0]!
 }
 
+function rangoLabel(periodo: Periodo): string | null {
+  if (periodo === 'mensual') return null
+  const hoy = new Date()
+  if (periodo === 'semanal') {
+    const inicio = new Date(hoy); inicio.setDate(hoy.getDate() - 6)
+    const fmtDia = (d: Date) =>
+      `${d.getDate()} ${MESES_CORTO[d.getMonth()]}`
+    const mismoAnio = inicio.getFullYear() === hoy.getFullYear()
+    return `${fmtDia(inicio)} – ${fmtDia(hoy)}${mismoAnio ? '' : ` ${hoy.getFullYear()}`} ${hoy.getFullYear()}`
+  }
+  const n = { bimestral: 2, trimestral: 3, semestral: 6, anual: 12 }[periodo as Exclude<Periodo,'semanal'|'mensual'>] ?? 2
+  const inicio = new Date(hoy.getFullYear(), hoy.getMonth() - (n - 1), 1)
+  const fin    = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0)
+  const mismoAnio = inicio.getFullYear() === fin.getFullYear()
+  const fmtMes = (d: Date, conAnio: boolean) =>
+    `${MESES_CORTO[d.getMonth()]}${conAnio ? ` ${d.getFullYear()}` : ''}`
+  if (mismoAnio) {
+    return `${fmtMes(inicio, false)} – ${fmtMes(fin, true)}`
+  }
+  return `${fmtMes(inicio, true)} – ${fmtMes(fin, true)}`
+}
+
 function filtrar<T extends { fecha: string }>(items: T[], periodo: Periodo): T[] {
   if (periodo === 'mensual') return items  // el mensual usa aportesMes / gastosMes directamente
   const desde = rangoDesde(periodo)
@@ -213,20 +235,28 @@ function BarrasH({ datos, color, vacio }: { datos: CategoriaDato[]; color: strin
 function SelectorPeriodo({
   value, onChange, opciones,
 }: { value: Periodo; onChange: (p: Periodo) => void; opciones: typeof PERIODOS }) {
+  const lbl = rangoLabel(value)
   return (
-    <div className="flex flex-wrap gap-2 mb-6">
-      {opciones.map(({ value: v, label }) => (
-        <button key={v} onClick={() => onChange(v)}
-          className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
-          style={{
-            background:  v === value ? 'var(--accent)' : 'var(--surface-secondary)',
-            color:       v === value ? '#fff' : 'var(--muted)',
-            border:      '1px solid',
-            borderColor: v === value ? 'var(--accent)' : 'var(--border)',
-          }}>
-          {label}
-        </button>
-      ))}
+    <div className="mb-6">
+      <div className="flex flex-wrap gap-2">
+        {opciones.map(({ value: v, label }) => (
+          <button key={v} onClick={() => onChange(v)}
+            className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+            style={{
+              background:  v === value ? 'var(--accent)' : 'var(--surface-secondary)',
+              color:       v === value ? '#fff' : 'var(--muted)',
+              border:      '1px solid',
+              borderColor: v === value ? 'var(--accent)' : 'var(--border)',
+            }}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {lbl && (
+        <p className="mt-2 text-xs" style={{ color: 'var(--muted)' }}>
+          Mostrando: <span className="font-medium" style={{ color: 'var(--foreground)' }}>{lbl}</span>
+        </p>
+      )}
     </div>
   )
 }
