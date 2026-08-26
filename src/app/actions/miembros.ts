@@ -45,6 +45,7 @@ export async function crearCeremonia(data: {
   await supabase.from('ceremonia_personas').insert(participantesData)
 
   revalidatePath('/miembros')
+  revalidatePath('/miembros/ceremonias')
   return { success: true }
 }
 
@@ -73,6 +74,7 @@ export async function crearVisita(data: {
 
   if (error) return { error: 'No se pudo registrar la visita.' }
   revalidatePath('/miembros')
+  revalidatePath('/miembros/visitas')
   return { success: true }
 }
 
@@ -92,6 +94,7 @@ export async function actualizarSeguimientoVisita(id: string, data: {
 
   if (error) return { error: 'No se pudo actualizar el seguimiento.' }
   revalidatePath('/miembros')
+  revalidatePath('/miembros/visitas')
   return { success: true }
 }
 
@@ -117,6 +120,7 @@ export async function registrarAusencia(data: {
 
   if (error) return { error: 'No se pudo registrar la ausencia.' }
   revalidatePath('/miembros')
+  revalidatePath('/miembros/ausencias')
   return { success: true }
 }
 
@@ -129,5 +133,6 @@ export async function actualizarAusencia(id: string, estado: EstadoAusencia, seg
 
   if (error) return { error: 'No se pudo actualizar la ausencia.' }
   revalidatePath('/miembros')
+  revalidatePath('/miembros/ausencias')
   return { success: true }
 }
