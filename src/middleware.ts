@@ -31,8 +31,9 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Rutas públicas
-  if (pathname.startsWith('/login')) {
+  if (pathname.startsWith('/auth/')) return supabaseResponse
+
+  if (pathname.startsWith('/login') || pathname.startsWith('/recuperar')) {
     if (user) {
       return NextResponse.redirect(new URL('/', request.url))
     }

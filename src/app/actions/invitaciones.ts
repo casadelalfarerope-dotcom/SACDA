@@ -22,6 +22,9 @@ export async function invitarPersona(personaId: string, email: string) {
   const { data: invite, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email)
   if (inviteError) return { error: inviteError.message }
 
+  // Con el correo en la ficha, el login con Google puede reconocer a la persona.
+  await admin.from('personas').update({ email }).eq('id', personaId).is('email', null)
+
   const { error: cuentaError } = await admin
     .from('cuentas')
     .insert({ id: invite.user.id, persona_id: personaId })

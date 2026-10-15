@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { Settings, Bell, Mail, Globe } from 'lucide-react'
+import Link from 'next/link'
+import { Settings, Bell, Mail, Globe, KeyRound } from 'lucide-react'
 import PreferenciasForm from './PreferenciasForm'
 
 export default async function ConfiguracionPage() {
@@ -39,9 +40,17 @@ export default async function ConfiguracionPage() {
           <span className="text-xs w-32 flex-shrink-0 pt-0.5" style={{ color: 'var(--muted)' }}>Nombre</span>
           <span className="text-sm" style={{ color: 'var(--foreground)' }}>{persona?.nombre_completo ?? '—'}</span>
         </div>
-        <p className="text-xs pt-1" style={{ color: 'var(--muted)' }}>
-          Para cambiar tu correo o contraseña, contacta a un administrador.
-        </p>
+        <div className="flex items-start gap-2">
+          <span className="text-xs w-32 flex-shrink-0 pt-0.5" style={{ color: 'var(--muted)' }}>Acceso</span>
+          <span className="text-sm" style={{ color: 'var(--foreground)' }}>
+            {user?.identities?.some(i => i.provider === 'google') ? 'Google y correo' : 'Correo y contraseña'}
+          </span>
+        </div>
+        <Link href="/cambiar-contrasena"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70"
+          style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface-secondary)' }}>
+          <KeyRound size={14} /> Cambiar contraseña
+        </Link>
       </section>
 
       {/* Notificaciones */}
