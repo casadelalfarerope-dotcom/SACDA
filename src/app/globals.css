@@ -101,14 +101,14 @@ main h2 {
 }
 
 /* Tarjetas: superficie blanca sobre fondo gris, sin borde y con sombra suave. */
-.rounded-2xl.border[style*="border-color: var(--border)"] {
+.rounded-2xl.border:is([style*="border-color:var(--border)"], [style*="border-color: var(--border)"]) {
   border-color: transparent;
   box-shadow: var(--shadow-card);
 }
 
 /* Campos de formularios antiguos (con estilos en línea): mismo estilo relleno de iOS. */
 :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="search"]):is(
-  [style*="background: var(--surface)"], [style*="background: var(--surface-secondary)"]) {
+  [style*="background:var(--surface"], [style*="background: var(--surface"]) {
   background: var(--fill) !important;
   border-color: transparent !important;
   border-radius: 10px;
@@ -234,10 +234,10 @@ main form label.block {
 .volver:hover { opacity: 0.7; }
 
 /* Botones antiguos (enlaces y botones con estilos en línea) → cápsulas al estilo Apple. */
-main :is(a, button)[style*="background: var(--accent)"]:not([role="radio"]) {
+main :is(a, button):is([style*="background:var(--accent)"], [style*="background: var(--accent)"]):not([role="radio"]) {
   border-radius: 999px;
 }
-main :is(a, button).border[style*="background: var(--surface)"][style*="border-color: var(--border)"] {
+main :is(a, button).border:is([style*="background:var(--surface)"], [style*="background: var(--surface)"]):is([style*="border-color:var(--border)"], [style*="border-color: var(--border)"]) {
   border-color: transparent !important;
   background: color-mix(in srgb, var(--accent) 12%, transparent) !important;
   color: var(--accent) !important;
