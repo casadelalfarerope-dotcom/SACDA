@@ -34,6 +34,8 @@ const LABELS: Record<string, string> = {
   editar:         'Editar',
 }
 
+const SIN_LISTADO = new Set(['cursos', 'temas', 'sesiones', 'examenes'])
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function isUUID(s: string) { return UUID_RE.test(s) }
@@ -58,8 +60,11 @@ export default function Breadcrumb() {
     const seg = segments[i]!
     accumulated += `/${seg}`
 
+    // Colecciones de la academia sin página de listado: se muestra "Curso", "Tema"… en el registro.
+    if (SIN_LISTADO.has(seg) && isUUID(segments[i + 1] ?? '')) continue
     if (isUUID(seg)) {
-      crumbs.push({ label: 'Detalle', href: accumulated })
+      const anterior = segments[i - 1] ?? ''
+      crumbs.push({ label: SIN_LISTADO.has(anterior) ? LABELS[anterior]! : 'Detalle', href: accumulated })
     } else {
       const label = LABELS[seg] ?? seg
       crumbs.push({ label, href: accumulated })

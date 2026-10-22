@@ -1,4 +1,5 @@
-import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/service'
 import { personaActual } from '@/lib/academia/servidor'
 import { notaTope } from '@/lib/academia/reglas'
@@ -11,7 +12,27 @@ export default async function RendirPage({ params }: { params: Promise<{ id: str
   const { data: intento } = await admin.from('examen_intentos')
     .select('id, examen_id, persona_id, estado, numero, tipo, factor').eq('id', intentoId).maybeSingle()
   if (!yo || !intento || intento.persona_id !== yo.personaId || intento.examen_id !== id) notFound()
-  if (intento.estado !== 'en_curso') redirect(`/taller/examenes/${id}`)
+  if (intento.estado !== 'en_curso') {
+    const { data: hecho } = await admin.from('examen_intentos').select('nota, factor').eq('id', intentoId).single()
+    return (
+      <div role="status" className="p-6 rounded-2xl border text-center space-y-3" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+        {intento.estado === 'calificado' ? (
+          <>
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>Tu nota en este intento</p>
+            <p className="text-5xl font-bold tabular-nums" style={{ color: 'var(--foreground)' }}>
+              {hecho?.nota}<span className="text-xl" style={{ color: 'var(--muted)' }}>/20</span>
+            </p>
+            <p className="text-xs" style={{ color: 'var(--muted)' }}>Nota máxima posible en este intento: {notaTope(Number(hecho?.factor ?? 1))}/20</p>
+          </>
+        ) : (
+          <p className="text-sm" style={{ color: 'var(--foreground)' }}>
+            Enviado. Tu examen tiene preguntas abiertas: un líder las calificará y te avisaremos tu nota.
+          </p>
+        )}
+        <Link href={`/taller/examenes/${id}`} className="inline-block text-sm font-medium underline" style={{ color: 'var(--accent)' }}>Volver al examen</Link>
+      </div>
+    )
+  }
 
   const [{ data: examen }, { data: preguntas }] = await Promise.all([
     admin.from('examenes').select('titulo').eq('id', id).single(),
