@@ -73,6 +73,7 @@ export async function subirMaterial(id: string, url: string, programa_id: string
     .eq('id', id)
   if (error) return { error: 'No se pudo guardar el enlace.' }
   revalidatePath(`/servidores/${programa_id}`)
+  revalidatePath('/mi', 'layout')
   return { success: true }
 }
 

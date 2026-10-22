@@ -45,7 +45,7 @@ export default async function TallerCursoPage({ params }: { params: Promise<{ id
   const hoy = hoyLima()
 
   return (
-    <Pagina ancho="estrecho" titulo={curso.nombre} subtitulo={curso.descripcion ?? undefined} volver={{ href: '/taller', texto: 'Mi Taller' }}>
+    <Pagina ancho="estrecho" titulo={curso.nombre} subtitulo={curso.descripcion ?? undefined} volver={{ href: '/taller', texto: 'Academia' }}>
       {mia && <PuestoRanking puesto={mia.puesto} promedio={mia.promedio} />}
 
       {!!examenes?.length && (

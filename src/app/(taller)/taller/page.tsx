@@ -10,7 +10,7 @@ import { formatDate, hoyLima } from '@/lib/utils'
 export default async function TallerInicioPage() {
   const yo = await personaActual()
   if (!yo) {
-    return <Pagina ancho="estrecho" titulo="Mi Taller"><Vacio titulo="Cuenta sin ficha" texto="Tu cuenta no está vinculada a una ficha. Contacta a un líder." /></Pagina>
+    return <Pagina ancho="estrecho" titulo="Academia"><Vacio titulo="Cuenta sin ficha" texto="Tu cuenta no está vinculada a una ficha. Contacta a un líder." /></Pagina>
   }
   const supabase = await createClient()
   const { data: inscripciones } = await supabase.from('curso_inscripciones').select('curso_id')
@@ -22,7 +22,7 @@ export default async function TallerInicioPage() {
 
   if (!cursos?.length) {
     return (
-      <Pagina ancho="estrecho" titulo="Mi Taller">
+      <Pagina ancho="estrecho" titulo="Academia">
         <Vacio icono={<School size={44} />} titulo="¡Bienvenido al Taller!" texto="Aún no estás inscrito en ningún curso activo." />
       </Pagina>
     )
@@ -47,7 +47,7 @@ export default async function TallerInicioPage() {
   const pendientes = (examenes ?? []).filter((e) => !rendidos.has(e.id))
 
   return (
-    <Pagina ancho="estrecho" titulo="Mi Taller" subtitulo="El Taller del Alfarero">
+    <Pagina ancho="estrecho" titulo="Academia" subtitulo="El Taller del Alfarero">
 
       {pendientes.length > 0 && (
         <Grupo titulo="Exámenes por rendir">

@@ -49,6 +49,7 @@ export async function marcarTutorialVisto(tutorial_id: string, persona_id: strin
   }, { onConflict: 'persona_id,tutorial_id' })
   if (error) return { error: 'No se pudo registrar.' }
   revalidatePath(`/capacitacion/${tutorial_id}`)
+  revalidatePath('/mi', 'layout')
   return { success: true }
 }
 

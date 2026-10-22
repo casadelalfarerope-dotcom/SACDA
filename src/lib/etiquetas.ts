@@ -30,3 +30,13 @@ export const etiquetaCategoriaGasto = (v: string) =>
   CATEGORIAS_GASTO.find((c) => c.value === v)?.label ?? capitalizar(v)
 export const etiquetaCategoriaBien = (v: string | null) => (v ? CATEGORIA_BIEN[v] ?? capitalizar(v) : 'Sin categoría')
 export const etiquetaEstadoBien = (v: string) => ESTADO_BIEN[v] ?? capitalizar(v)
+
+type VarianteEstado = 'warning' | 'info' | 'success' | 'error' | 'muted'
+const ESTADO_TAREA: Record<string, { label: string; variant: VarianteEstado }> = {
+  pendiente:   { label: 'Pendiente',   variant: 'warning' },
+  en_progreso: { label: 'En progreso', variant: 'info' },
+  entregado:   { label: 'Por revisar', variant: 'info' },
+  aprobado:    { label: 'Aprobada',    variant: 'success' },
+  rechazado:   { label: 'Rechazada',   variant: 'error' },
+}
+export const estadoTarea = (v: string) => ESTADO_TAREA[v] ?? { label: capitalizar(v), variant: 'muted' as const }

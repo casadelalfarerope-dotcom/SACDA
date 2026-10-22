@@ -24,11 +24,15 @@ export default async function DashboardLayout({
 
   const persona = (cuenta?.persona as unknown as Persona | null) ?? null
 
+  // Quien no tiene ningún permiso del panel (servidores y estudiantes) usa Mi espacio.
   if (cuenta) {
     const { data: roles } = await supabase.from('roles_asignados')
-      .select('rol:roles(nombre)').eq('persona_id', cuenta.persona_id).eq('activo', true)
-    const nombres = (roles ?? []).map((r) => (r.rol as unknown as { nombre: string } | null)?.nombre)
-    if (nombres.length > 0 && nombres.every((n) => n === 'estudiante')) redirect('/taller')
+      .select('rol_id').eq('persona_id', cuenta.persona_id).eq('activo', true)
+    const rolIds = (roles ?? []).map((r) => r.rol_id as string)
+    const { count } = rolIds.length
+      ? await supabase.from('permisos_modulo').select('id', { count: 'exact', head: true }).in('rol_id', rolIds).eq('puede_ver', true)
+      : { count: 0 }
+    if (!count) redirect('/mi')
   }
 
   return (

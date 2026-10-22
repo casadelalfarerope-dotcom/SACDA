@@ -86,6 +86,7 @@ export async function entregarTarea(tarea_id: string, url_archivo: string, notas
 
   revalidatePath(`/tareas/${tarea_id}`)
   revalidatePath('/tareas')
+  revalidatePath('/mi', 'layout')
   return { success: true }
 }
 

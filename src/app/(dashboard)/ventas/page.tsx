@@ -19,7 +19,7 @@ export default async function VentasPage({ searchParams }: { searchParams: Promi
 
   let query = supabase
     .from('tareas')
-    .select('*, asignado:personas!tareas_asignado_id_fkey(nombre_completo), solicitante:personas!tareas_solicitante_id_fkey(nombre_completo)')
+    .select('*, asignado:personas!tareas_asignado_id_fkey(nombre_completo), solicitante:cuentas!tareas_solicitante_id_fkey(persona:personas(nombre_completo))')
     .eq('tipo', 'solicitud_venta')
     .order('created_at', { ascending: false })
   if (params.estado) query = query.eq('estado', params.estado)
@@ -28,7 +28,7 @@ export default async function VentasPage({ searchParams }: { searchParams: Promi
   const lista = solicitudes ?? []
   const activas = lista.filter((s) => !['aprobado', 'rechazado'].includes(s.estado))
   const cerradas = lista.filter((s) => ['aprobado', 'rechazado'].includes(s.estado))
-  const solicitante = (s: { solicitante: unknown }) => (s.solicitante as { nombre_completo: string } | null)?.nombre_completo ?? 'Sin solicitante'
+  const solicitante = (s: { solicitante: unknown }) => (s.solicitante as { persona: { nombre_completo: string } | null } | null)?.persona?.nombre_completo ?? 'Sin solicitante'
 
   const filas = (items: typeof lista, apagadas = false) => items.map((s, i) => {
     const est = ESTADO[s.estado] ?? { label: s.estado, variant: 'muted' as const }
