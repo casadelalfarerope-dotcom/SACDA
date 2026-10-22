@@ -234,10 +234,10 @@ main form label.block {
 .volver:hover { opacity: 0.7; }
 
 /* Botones antiguos (enlaces y botones con estilos en línea) → cápsulas al estilo Apple. */
-main :is(a, button):is([style*="background:var(--accent)"], [style*="background: var(--accent)"]):not([role="radio"]) {
+main :is(a, button):is([style*="background:var(--accent)"], [style*="background: var(--accent)"]):not([role="radio"]):not(.rounded-2xl) {
   border-radius: 999px;
 }
-main :is(a, button).border:is([style*="background:var(--surface)"], [style*="background: var(--surface)"]):is([style*="border-color:var(--border)"], [style*="border-color: var(--border)"]) {
+main :is(a, button).border:not(.rounded-2xl):not(.rounded-3xl):is([style*="background:var(--surface)"], [style*="background: var(--surface)"]):is([style*="border-color:var(--border)"], [style*="border-color: var(--border)"]) {
   border-color: transparent !important;
   background: color-mix(in srgb, var(--accent) 12%, transparent) !important;
   color: var(--accent) !important;
