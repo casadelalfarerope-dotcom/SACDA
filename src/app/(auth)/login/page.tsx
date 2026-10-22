@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff, LogIn } from 'lucide-react'
+import { IconoApp } from '@/components/ui/IconoApp'
 
 const ERRORES: Record<string, string> = {
   sin_acceso: 'Este correo no tiene acceso. Pide a un administrador que te invite.',
@@ -80,11 +81,8 @@ export default function LoginPage() {
       style={{ background: 'var(--background)' }}>
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
-          <div className="mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
-            style={{ background: 'var(--accent)' }}>
-            <span className="text-white text-2xl font-bold">CA</span>
-          </div>
-          <h1 className="text-2xl font-semibold" style={{ color: 'var(--foreground)' }}>
+          <IconoApp tamano={76} className="mx-auto mb-5" />
+          <h1 className="text-[28px] font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>
             Casa del Alfarero
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>

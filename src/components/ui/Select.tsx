@@ -16,8 +16,8 @@ export default function Select({ label, error, options, placeholder, className, 
   return (
     <div className="space-y-1.5">
       {label && (
-        <label htmlFor={selectId} className="block text-sm font-medium"
-          style={{ color: 'var(--foreground)' }}>
+        <label htmlFor={selectId} className="block text-[13px] font-medium"
+          style={{ color: 'var(--muted)' }}>
           {label}
         </label>
       )}
@@ -25,11 +25,11 @@ export default function Select({ label, error, options, placeholder, className, 
         <select
           id={selectId}
           className={cn(
-            'w-full appearance-none px-4 py-3 pr-10 rounded-xl text-sm outline-none border transition-all cursor-pointer',
-            error ? 'border-red-500' : 'border-[color:var(--border)] focus:border-[color:var(--accent)]',
+            'w-full h-11 appearance-none px-3.5 pr-10 rounded-[10px] text-[15px] outline-none border transition-shadow cursor-pointer',
+            error ? 'border-[color:var(--error)]' : 'border-transparent',
             className
           )}
-          style={{ background: 'var(--surface)', color: 'var(--foreground)' }}
+          style={{ background: 'var(--fill)', color: 'var(--foreground)' }}
           {...props}
         >
           {placeholder && <option value="">{placeholder}</option>}

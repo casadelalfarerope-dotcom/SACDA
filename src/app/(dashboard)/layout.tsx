@@ -35,13 +35,12 @@ export default async function DashboardLayout({
     <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>
       <Sidebar persona={persona} />
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Barra superior con breadcrumb y campanita */}
-        <header className="flex items-center justify-between px-4 md:px-6 py-3 border-b"
-          style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
+        <header className="material sticky top-0 z-30 flex items-center justify-between gap-3 px-4 md:px-8 h-12 border-b"
+          style={{ borderColor: 'var(--border)' }}>
           <Breadcrumb />
           <NotifBell personaId={cuenta?.persona_id ?? null} />
         </header>
-        <main className="flex-1 pb-20 md:pb-0 animate-page">
+        <main className="flex-1 pb-24 md:pb-10 md:pt-2 animate-page">
           {children}
         </main>
       </div>

@@ -2,12 +2,12 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useTransition, useState, useEffect } from 'react'
-import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import Avatar from './ui/Avatar'
+import { IconoApp, IconoModulo } from './ui/IconoApp'
 import type { Persona } from '@/types/database'
 import { LogOut, Loader2 } from 'lucide-react'
-import { NAV_ITEMS, isActive } from './navItems'
+import { NAV_GRUPOS, isActive } from './navItems'
 
 interface SidebarProps {
   persona: Persona | null
@@ -19,7 +19,6 @@ export default function Sidebar({ persona }: SidebarProps) {
   const [isPending, startTransition] = useTransition()
   const [pendingHref, setPendingHref] = useState<string | null>(null)
 
-  // Limpia el pending cuando la navegación termina
   useEffect(() => {
     if (!isPending) setPendingHref(null)
   }, [isPending])
@@ -40,63 +39,63 @@ export default function Sidebar({ persona }: SidebarProps) {
   }
 
   return (
-    <aside className="hidden md:flex flex-col w-60 h-screen sticky top-0 border-r"
-      style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b"
-        style={{ borderColor: 'var(--border)' }}>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold"
-          style={{ background: 'var(--accent)' }}>
-          CA
-        </div>
-        <div>
-          <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--foreground)' }}>
+    <aside className="material hidden md:flex flex-col w-64 h-screen sticky top-0 border-r"
+      style={{ borderColor: 'var(--border)' }}>
+      <div className="flex items-center gap-3 px-5 pt-5 pb-4">
+        <IconoApp tamano={36} />
+        <div className="min-w-0">
+          <p className="text-[15px] font-semibold leading-tight tracking-tight" style={{ color: 'var(--foreground)' }}>
             Casa del Alfarero
           </p>
           <p className="text-xs" style={{ color: 'var(--muted)' }}>Administración</p>
         </div>
       </div>
 
-      {/* Navegación */}
-      <nav aria-label="Navegación principal" className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = isActive(href, pathname)
-          const pending = pendingHref === href && isPending
-          return (
-            <button
-              key={href}
-              type="button"
-              aria-current={active ? 'page' : undefined}
-              onClick={() => navigate(href)}
-              disabled={pending}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left',
-                active   ? 'text-white' : '',
-                pending  ? 'opacity-80' : 'hover:opacity-70',
-              )}
-              style={active || pending
-                ? { background: 'var(--accent)', color: '#fff' }
-                : { color: 'var(--foreground)' }
-              }>
-              {pending
-                ? <Loader2 size={18} className="animate-spin" />
-                : <Icon size={18} className={active ? 'text-white' : ''} />
-              }
-              {label}
-            </button>
-          )
-        })}
+      <nav aria-label="Navegación principal" className="flex-1 px-3 pb-4 overflow-y-auto space-y-4">
+        {NAV_GRUPOS.map((grupo, gi) => (
+          <div key={gi}>
+            {grupo.titulo && (
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+                {grupo.titulo}
+              </p>
+            )}
+            <ul className="space-y-0.5">
+              {grupo.items.map(({ href, label, icon, color }) => {
+                const active = isActive(href, pathname)
+                const pending = pendingHref === href && isPending
+                return (
+                  <li key={href}>
+                    <button
+                      type="button"
+                      aria-current={active ? 'page' : undefined}
+                      onClick={() => navigate(href)}
+                      disabled={pending}
+                      className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-[10px] text-[14px] text-left transition-colors hover:bg-[color:var(--fill)]"
+                      style={{
+                        background: active ? 'color-mix(in srgb, var(--accent) 14%, transparent)' : undefined,
+                        color: active ? 'var(--accent)' : 'var(--foreground)',
+                        fontWeight: active ? 600 : 450,
+                      }}>
+                      {pending
+                        ? <span className="w-7 h-7 flex items-center justify-center"><Loader2 size={16} className="animate-spin" /></span>
+                        : <IconoModulo icon={icon} color={color} />}
+                      <span className="truncate">{label}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
-      {/* Usuario */}
-      <div className="px-3 pb-4 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+      <div className="px-3 pb-4 pt-3 border-t space-y-1" style={{ borderColor: 'var(--border)' }}>
         {persona && (
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1"
-            style={{ background: 'var(--surface-secondary)' }}>
+          <div className="flex items-center gap-3 px-2.5 py-2">
             <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
-                {persona.nombre_completo.split(' ')[0]}
+                {persona.nombre_completo}
               </p>
               <p className="text-xs truncate" style={{ color: 'var(--muted)' }}>
                 {persona.email ?? 'Sin correo'}
@@ -107,10 +106,10 @@ export default function Sidebar({ persona }: SidebarProps) {
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-opacity hover:opacity-70"
+          className="w-full flex items-center gap-3 px-2.5 py-2 rounded-[10px] text-sm transition-colors hover:bg-[color:var(--fill)]"
           style={{ color: 'var(--muted)' }}>
-          <LogOut size={18} />
-          Salir
+          <LogOut size={17} aria-hidden="true" />
+          Cerrar sesión
         </button>
       </div>
     </aside>

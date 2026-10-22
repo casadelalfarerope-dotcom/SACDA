@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { LayoutDashboard, Users, Calendar, DollarSign, Menu, X, LogOut, Loader2 } from 'lucide-react'
 import { NAV_ITEMS, isActive } from './navItems'
+import { IconoModulo } from './ui/IconoApp'
 
 const PRINCIPALES = [
   { href: '/',             label: 'Inicio',     icon: LayoutDashboard },
@@ -65,8 +66,9 @@ export default function BottomNav() {
             aria-modal="true"
             aria-label="Más secciones"
             onClick={(e) => e.stopPropagation()}
-            className="absolute bottom-0 left-0 right-0 rounded-t-3xl border-t px-4 pt-3 pb-24 max-h-[80vh] overflow-y-auto"
-            style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+            className="material absolute bottom-0 left-0 right-0 rounded-t-[28px] px-4 pt-2 pb-24 max-h-[80vh] overflow-y-auto animate-scale"
+            style={{ boxShadow: 'var(--shadow-float)' }}>
+            <div className="mx-auto mb-2 h-1 w-9 rounded-full" style={{ background: 'var(--border)' }} aria-hidden="true" />
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Más secciones</p>
               <button type="button" onClick={() => setMasAbierto(false)} aria-label="Cerrar"
@@ -75,27 +77,26 @@ export default function BottomNav() {
               </button>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              {SECUNDARIOS.map(({ href, label, icon: Icon }) => {
+              {SECUNDARIOS.map(({ href, label, icon, color }) => {
                 const active = isActive(href, pathname)
                 const pending = pendingHref === href && isPending
                 return (
                   <button key={href} type="button" onClick={() => navigate(href)}
                     aria-current={active ? 'page' : undefined}
-                    className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl text-xs font-medium border"
+                    className="flex flex-col items-center justify-center gap-2 py-3 rounded-2xl text-xs font-medium"
                     style={{
-                      background: active ? 'var(--accent)' : 'var(--surface-secondary)',
-                      borderColor: active ? 'var(--accent)' : 'var(--border)',
-                      color: active ? '#fff' : 'var(--foreground)',
+                      background: active ? 'color-mix(in srgb, var(--accent) 14%, transparent)' : 'transparent',
+                      color: active ? 'var(--accent)' : 'var(--foreground)',
                     }}>
-                    {pending ? <Loader2 size={22} className="animate-spin" /> : <Icon size={22} />}
+                    {pending ? <Loader2 size={22} className="animate-spin" /> : <IconoModulo icon={icon} color={color} tamano={44} />}
                     {label}
                   </button>
                 )
               })}
             </div>
             <button type="button" onClick={handleLogout}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-medium border"
-              style={{ borderColor: 'var(--border)', color: 'var(--destructive)' }}>
+              className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-semibold"
+              style={{ background: 'var(--fill)', color: 'var(--destructive)' }}>
               <LogOut size={18} /> Salir
             </button>
           </div>
@@ -103,13 +104,8 @@ export default function BottomNav() {
       )}
 
       <nav aria-label="Navegación principal"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t pb-safe"
-        style={{
-          background: 'var(--surface)',
-          borderColor: 'var(--border)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        }}>
+        className="material md:hidden fixed bottom-0 left-0 right-0 z-50 border-t pb-[env(safe-area-inset-bottom)]"
+        style={{ borderColor: 'var(--border)' }}>
         {isPending && (
           <div className="absolute top-0 left-0 right-0 h-0.5 overflow-hidden">
             <div className="h-full rounded-full"
@@ -124,8 +120,8 @@ export default function BottomNav() {
               <button key={href} type="button" onClick={() => navigate(href)} disabled={pending}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-all',
-                  active || pending ? '' : 'opacity-60'
+                  'flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 text-[10.5px] font-medium transition-all',
+                  active || pending ? '' : 'opacity-55'
                 )}
                 style={{ color: active || pending ? 'var(--accent)' : 'var(--foreground)' }}>
                 {pending
@@ -138,8 +134,8 @@ export default function BottomNav() {
           <button type="button" onClick={() => setMasAbierto((v) => !v)}
             aria-expanded={masAbierto}
             className={cn(
-              'flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-xs font-medium transition-all',
-              masAbierto || masActivo ? '' : 'opacity-60'
+              'flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 text-[10.5px] font-medium transition-all',
+              masAbierto || masActivo ? '' : 'opacity-55'
             )}
             style={{ color: masAbierto || masActivo ? 'var(--accent)' : 'var(--foreground)' }}>
             <Menu size={22} strokeWidth={masAbierto || masActivo ? 2.5 : 2} />

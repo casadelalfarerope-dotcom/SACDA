@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import Avatar from '@/components/ui/Avatar'
+import { IconoApp } from '@/components/ui/IconoApp'
 import BotonSalir from '@/components/academia/BotonSalir'
 
 export default async function TallerLayout({ children }: { children: React.ReactNode }) {
@@ -21,11 +22,10 @@ export default async function TallerLayout({ children }: { children: React.React
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      <header className="sticky top-0 z-30 border-b" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+      <header className="material sticky top-0 z-30 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           <Link href="/taller" className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-              style={{ background: 'var(--accent)' }} aria-hidden="true">TA</span>
+            <IconoApp texto="TA" tamano={34} />
             <span className="min-w-0">
               <span className="block text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>El Taller del Alfarero</span>
               {persona && <span className="block text-xs truncate" style={{ color: 'var(--muted)' }}>{persona.nombre_completo}</span>}
