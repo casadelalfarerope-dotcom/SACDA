@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { personaActual } from '@/lib/academia/servidor'
 import { notaTope } from '@/lib/academia/reglas'
 import RendirExamen, { type PreguntaAlumno } from '@/components/academia/RendirExamen'
+import { Pagina } from '@/components/ui/ios'
 
 export default async function RendirPage({ params }: { params: Promise<{ id: string; intentoId: string }> }) {
   const { id, intentoId } = await params
@@ -15,6 +16,7 @@ export default async function RendirPage({ params }: { params: Promise<{ id: str
   if (intento.estado !== 'en_curso') {
     const { data: hecho } = await admin.from('examen_intentos').select('nota, factor').eq('id', intentoId).single()
     return (
+      <Pagina ancho="estrecho" titulo="Resultado" volver={{ href: `/taller/examenes/${id}`, texto: 'Examen' }}>
       <div role="status" className="p-6 rounded-2xl border text-center space-y-3" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
         {intento.estado === 'calificado' ? (
           <>
@@ -31,6 +33,7 @@ export default async function RendirPage({ params }: { params: Promise<{ id: str
         )}
         <Link href={`/taller/examenes/${id}`} className="inline-block text-sm font-medium underline" style={{ color: 'var(--accent)' }}>Volver al examen</Link>
       </div>
+      </Pagina>
     )
   }
 
@@ -50,14 +53,9 @@ export default async function RendirPage({ params }: { params: Promise<{ id: str
   const tope = notaTope(Number(intento.factor))
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{examen?.titulo}</h1>
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          {intento.tipo === 'recuperacion' ? 'Examen de recuperación' : `Intento ${intento.numero}`} · Nota máxima: {tope}/20
-        </p>
-      </div>
+    <Pagina ancho="estrecho" titulo={examen?.titulo}
+      subtitulo={`${intento.tipo === 'recuperacion' ? 'Examen de recuperación' : `Intento ${intento.numero}`} · Nota máxima: ${tope}/20`}>
       <RendirExamen examenId={id} intentoId={intentoId} preguntas={lista} tope={tope} />
-    </div>
+    </Pagina>
   )
 }

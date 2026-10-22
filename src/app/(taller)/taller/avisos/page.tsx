@@ -1,8 +1,10 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { personaActual } from '@/lib/academia/servidor'
 import MarcarLeidasBtn from '@/components/MarcarLeidasBtn'
 import { formatDate } from '@/lib/utils'
+import { Bell } from 'lucide-react'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Pagina, Grupo, Fila, Vacio } from '@/components/ui/ios'
 
 export default async function AvisosPage() {
   const yo = await personaActual()
@@ -13,36 +15,24 @@ export default async function AvisosPage() {
   const sinLeer = (avisos ?? []).filter((a) => !a.leida).length
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Avisos</h1>
-        {sinLeer > 0 && <MarcarLeidasBtn personaId={yo.personaId} />}
-      </div>
-      {!avisos?.length && <p className="text-sm py-10 text-center" style={{ color: 'var(--muted)' }}>No tienes avisos.</p>}
-      <ul className="space-y-2">
-        {avisos?.map((a) => {
-          const contenido = (
-            <>
-              <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                {!a.leida && <span className="sr-only">Sin leer: </span>}{a.titulo}
-              </p>
-              {a.cuerpo && <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{a.cuerpo}</p>}
-              <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>{formatDate(a.created_at, { time: true })}</p>
-            </>
-          )
-          const estilo = {
-            background: a.leida ? 'var(--surface)' : 'color-mix(in srgb, var(--accent) 6%, var(--surface))',
-            borderColor: a.leida ? 'var(--border)' : 'color-mix(in srgb, var(--accent) 30%, var(--border))',
-          }
-          return (
-            <li key={a.id}>
-              {a.url?.startsWith('/taller')
-                ? <Link href={a.url} className="block p-4 rounded-2xl border hover:opacity-80" style={estilo}>{contenido}</Link>
-                : <div className="p-4 rounded-2xl border" style={estilo}>{contenido}</div>}
-            </li>
-          )
-        })}
-      </ul>
-    </div>
+    <Pagina ancho="estrecho" titulo="Avisos" subtitulo={sinLeer > 0 ? `${sinLeer} sin leer` : 'Estás al día'} volver={{ href: '/taller', texto: 'Mi Taller' }}
+      acciones={sinLeer > 0 ? <MarcarLeidasBtn personaId={yo.personaId} /> : undefined}>
+      {!avisos?.length ? (
+        <Vacio icono={<Bell size={44} />} titulo="No tienes avisos" />
+      ) : (
+        <Grupo>
+          {avisos.map((a, i) => (
+            <Fila key={a.id} primero={i === 0} href={a.url?.startsWith('/taller') ? a.url : undefined}
+              inicio={<IconoModulo icon={Bell} color={a.leida ? '#8e8e93' : '#af52de'} tamano={36} />}
+              titulo={<span style={{ fontWeight: a.leida ? 450 : 650 }}>{!a.leida && <span className="sr-only">Sin leer: </span>}{a.titulo}</span>}
+              subtitulo={a.cuerpo ?? undefined}
+              detalle={<span className="flex items-center gap-2 text-[13px]">
+                {formatDate(a.created_at)}
+                {!a.leida && <span className="w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: 'var(--accent)' }} />}
+              </span>} />
+          ))}
+        </Grupo>
+      )}
+    </Pagina>
   )
 }

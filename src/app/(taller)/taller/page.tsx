@@ -1,6 +1,6 @@
 import { CalendarClock, ClipboardCheck, School } from 'lucide-react'
 import { IconoModulo } from '@/components/ui/IconoApp'
-import { Grupo, Fila } from '@/components/ui/ios'
+import { Pagina, Grupo, Fila, Vacio } from '@/components/ui/ios'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { calcularRanking, personaActual } from '@/lib/academia/servidor'
@@ -10,7 +10,7 @@ import { formatDate, hoyLima } from '@/lib/utils'
 export default async function TallerInicioPage() {
   const yo = await personaActual()
   if (!yo) {
-    return <p className="text-sm" style={{ color: 'var(--muted)' }}>Tu cuenta no está vinculada a una ficha. Contacta a un líder.</p>
+    return <Pagina ancho="estrecho" titulo="Mi Taller"><Vacio titulo="Cuenta sin ficha" texto="Tu cuenta no está vinculada a una ficha. Contacta a un líder." /></Pagina>
   }
   const supabase = await createClient()
   const { data: inscripciones } = await supabase.from('curso_inscripciones').select('curso_id')
@@ -22,10 +22,9 @@ export default async function TallerInicioPage() {
 
   if (!cursos?.length) {
     return (
-      <div className="text-center py-16 space-y-2">
-        <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>¡Bienvenido al Taller!</h1>
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>Aún no estás inscrito en ningún curso activo.</p>
-      </div>
+      <Pagina ancho="estrecho" titulo="Mi Taller">
+        <Vacio icono={<School size={44} />} titulo="¡Bienvenido al Taller!" texto="Aún no estás inscrito en ningún curso activo." />
+      </Pagina>
     )
   }
 
@@ -48,8 +47,7 @@ export default async function TallerInicioPage() {
   const pendientes = (examenes ?? []).filter((e) => !rendidos.has(e.id))
 
   return (
-    <div className="space-y-7">
-      <h1 style={{ color: 'var(--foreground)' }}>Mi Taller</h1>
+    <Pagina ancho="estrecho" titulo="Mi Taller" subtitulo="El Taller del Alfarero">
 
       {pendientes.length > 0 && (
         <Grupo titulo="Exámenes por rendir">
@@ -84,6 +82,6 @@ export default async function TallerInicioPage() {
           )
         })}
       </Grupo>
-    </div>
+    </Pagina>
   )
 }

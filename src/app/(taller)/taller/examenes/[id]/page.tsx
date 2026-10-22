@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/service'
 import { cerrarIntentosVencidos, estaInscrito, personaActual } from '@/lib/academia/servidor'
@@ -7,6 +6,7 @@ import ReglasExamen from '@/components/academia/ReglasExamen'
 import IniciarExamen from '@/components/academia/IniciarExamen'
 import Badge from '@/components/ui/Badge'
 import { formatDate } from '@/lib/utils'
+import { Pagina, Grupo, Fila } from '@/components/ui/ios'
 
 export default async function TallerExamenPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -32,39 +32,31 @@ export default async function TallerExamenPage({ params }: { params: Promise<{ i
   const curso = examen.curso as unknown as { nombre: string }
 
   return (
-    <div className="space-y-5">
-      <div>
-        <Link href={`/taller/cursos/${examen.curso_id}`} className="volver">{curso.nombre}</Link>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{examen.titulo}</h1>
-        <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          {preguntas} preguntas{examen.fecha_limite ? ` · Plazo: ${formatDate(examen.fecha_limite, { time: true })}` : ''}
-        </p>
-        {examen.descripcion && <p className="text-sm mt-2 whitespace-pre-line" style={{ color: 'var(--foreground)' }}>{examen.descripcion}</p>}
-      </div>
+    <Pagina ancho="estrecho" titulo={examen.titulo}
+      subtitulo={`${preguntas} preguntas${examen.fecha_limite ? ` · Plazo: ${formatDate(examen.fecha_limite, { time: true })}` : ''}`}
+      volver={{ href: `/taller/cursos/${examen.curso_id}`, texto: curso.nombre }}>
+      {examen.descripcion && <p className="text-[15px] whitespace-pre-line" style={{ color: 'var(--foreground)' }}>{examen.descripcion}</p>}
 
       {mejor != null && (
-        <div className="p-4 rounded-2xl border text-center" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="text-xs" style={{ color: 'var(--muted)' }}>Tu nota (mejor intento)</p>
-          <p className="text-4xl font-bold tabular-nums" style={{ color: 'var(--foreground)' }}>{mejor}<span className="text-lg" style={{ color: 'var(--muted)' }}>/20</span></p>
-        </div>
+        <section aria-label="Tu nota" className="rounded-2xl border p-5 text-center" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="text-[13px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Tu nota · mejor intento</p>
+          <p className="text-[48px] leading-none font-bold tabular-nums tracking-tight mt-2" style={{ color: 'var(--foreground)' }}>
+            {mejor}<span className="text-[22px]" style={{ color: 'var(--muted)' }}>/20</span>
+          </p>
+        </section>
       )}
 
       <ReglasExamen conRecuperacion={examen.permite_recuperacion} />
 
       {lista.length > 0 && (
-        <section aria-labelledby="int-t" className="p-4 rounded-2xl border space-y-2" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <h2 id="int-t" className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Mis intentos</h2>
-          <ul className="space-y-1.5">
-            {lista.map((i) => (
-              <li key={i.id} className="flex items-center justify-between text-sm" style={{ color: 'var(--foreground)' }}>
-                <span>{i.tipo === 'recuperacion' ? 'Recuperación' : `Intento ${i.numero}`}</span>
-                {i.estado === 'calificado' ? <Badge variant="default">{i.nota}/20</Badge>
-                  : i.estado === 'en_revision' ? <Badge variant="warning">En revisión</Badge>
-                  : <Badge variant="muted">Sin enviar</Badge>}
-              </li>
-            ))}
-          </ul>
-        </section>
+        <Grupo titulo="Mis intentos">
+          {lista.map((i, k) => (
+            <Fila key={i.id} primero={k === 0} titulo={i.tipo === 'recuperacion' ? 'Recuperación' : `Intento ${i.numero}`}
+              detalle={i.estado === 'calificado' ? <span className="font-semibold tabular-nums" style={{ color: 'var(--foreground)' }}>{i.nota}/20</span>
+                : i.estado === 'en_revision' ? <Badge variant="warning">En revisión</Badge>
+                : <Badge variant="muted">Sin enviar</Badge>} />
+          ))}
+        </Grupo>
       )}
 
       {disp.tipo === 'continuar' && <IniciarExamen examenId={id} texto="Continuar mi intento" />}
@@ -76,8 +68,8 @@ export default async function TallerExamenPage({ params }: { params: Promise<{ i
           confirmar={`Vas a empezar ${disp.intento === 'recuperacion' ? 'tu examen de recuperación' : `tu intento ${disp.numero}`}. Tu nota máxima será ${notaTope(disp.factor)}/20 y el intento contará aunque no lo envíes. ¿Continuar?`} />
       )}
       {disp.tipo === 'bloqueado' && (
-        <p className="text-sm p-4 rounded-xl text-center" style={{ background: 'var(--surface-secondary)', color: 'var(--muted)' }}>{disp.motivo}</p>
+        <p className="text-[15px] p-4 rounded-2xl text-center" style={{ background: 'var(--fill)', color: 'var(--muted)' }}>{disp.motivo}</p>
       )}
-    </div>
+    </Pagina>
   )
 }
