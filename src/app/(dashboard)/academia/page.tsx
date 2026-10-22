@@ -1,4 +1,4 @@
-import { School } from 'lucide-react'
+import { School, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { crearCurso } from '@/app/actions/academia'
 import FormAccion from '@/components/academia/FormAccion'
@@ -7,7 +7,7 @@ import Select from '@/components/ui/Select'
 import Textarea from '@/components/ui/Textarea'
 import Badge from '@/components/ui/Badge'
 import { IconoModulo } from '@/components/ui/IconoApp'
-import { Pagina, Grupo, Fila, Tarjeta, Vacio } from '@/components/ui/ios'
+import { Pagina, Grupo, Fila, Tarjeta, Vacio, BotonEnlace } from '@/components/ui/ios'
 
 const ESTADO: Record<string, { label: string; variant: 'muted' | 'success' | 'default' }> = {
   borrador: { label: 'Borrador', variant: 'muted' },
@@ -25,7 +25,8 @@ export default async function AcademiaPage() {
   ])
 
   return (
-    <Pagina titulo="Academia" subtitulo="El Taller del Alfarero">
+    <Pagina titulo="Academia" subtitulo="El Taller del Alfarero"
+      acciones={<BotonEnlace href="/taller" variante="tintado"><Eye size={16} /> Ver como estudiante</BotonEnlace>}>
       {!cursos?.length ? (
         <Vacio icono={<School size={44} />} titulo="Aún no hay cursos" texto="Crea el primero con el formulario de abajo." />
       ) : (
