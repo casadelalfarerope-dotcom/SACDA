@@ -148,6 +148,15 @@ main a[aria-label="Volver"] {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
+/* Lista desplegable nativa: el fondo de los selects es translúcido y Chrome pintaba
+   las opciones sobre blanco con texto claro. Colores sólidos del tema para que se lean. */
+select { color-scheme: inherit; }
+select option, select optgroup {
+  background-color: var(--surface-secondary);
+  color: var(--foreground);
+}
+select option:disabled { color: var(--muted); }
+
 summary { list-style: none; }
 summary::-webkit-details-marker { display: none; }
 
