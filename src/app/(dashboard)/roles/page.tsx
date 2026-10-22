@@ -29,7 +29,8 @@ export default async function RolesPage() {
 
   const conMiembros = (roles ?? []).filter((r) => (porRol[r.nombre] ?? []).length > 0)
   const vacios = (roles ?? []).filter((r) => !(porRol[r.nombre] ?? []).length)
-  const nombreRol = (n: string) => n.charAt(0).toUpperCase() + n.slice(1).replace(/_/g, ' ')
+  const NOMBRES: Record<string, string> = { diseniador: 'Diseñador', lider: 'Líder', academico: 'Académico' }
+  const nombreRol = (n: string) => NOMBRES[n] ?? n.charAt(0).toUpperCase() + n.slice(1).replace(/_/g, ' ')
 
   return (
     <Pagina titulo="Roles" subtitulo={`${roles?.length ?? 0} roles · ${asignaciones?.length ?? 0} asignaciones`}>

@@ -22,7 +22,7 @@ const LABELS: Record<string, string> = {
   inventario:     'Inventario',
   ventas:         'Ventas',
   notificaciones: 'Notificaciones',
-  roles:          'Roles y Permisos',
+  roles:          'Roles',
   configuracion:  'Configuración',
   academia:       'Academia',
   cursos:         'Curso',
