@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, UserCheck, Settings, Shield, BookOpen, Calendar, Bell,
-  Mic2, GraduationCap, ClipboardList, DollarSign, Package, ShoppingBag,
+  Mic2, GraduationCap, ClipboardList, DollarSign, Package, ShoppingBag, School,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -13,6 +13,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/ministerios',    label: 'Ministerios',    icon: BookOpen },
   { href: '/calendario',     label: 'Calendario',     icon: Calendar },
   { href: '/servidores',     label: 'Servidores',     icon: Mic2 },
+  { href: '/academia',       label: 'Academia',       icon: School },
   { href: '/capacitacion',   label: 'Capacitación',   icon: GraduationCap },
   { href: '/tareas',         label: 'Tareas',         icon: ClipboardList },
   { href: '/finanzas',       label: 'Finanzas',       icon: DollarSign },

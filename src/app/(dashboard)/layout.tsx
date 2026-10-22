@@ -24,6 +24,13 @@ export default async function DashboardLayout({
 
   const persona = (cuenta?.persona as unknown as Persona | null) ?? null
 
+  if (cuenta) {
+    const { data: roles } = await supabase.from('roles_asignados')
+      .select('rol:roles(nombre)').eq('persona_id', cuenta.persona_id).eq('activo', true)
+    const nombres = (roles ?? []).map((r) => (r.rol as unknown as { nombre: string } | null)?.nombre)
+    if (nombres.length > 0 && nombres.every((n) => n === 'estudiante')) redirect('/taller')
+  }
+
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>
       <Sidebar persona={persona} />
