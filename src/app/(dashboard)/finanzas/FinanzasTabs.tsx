@@ -241,7 +241,7 @@ function SelectorPeriodo({
   const lbl = rangoLabel(value)
   return (
     <div className="space-y-2">
-      <Segmentado etiqueta="Período" valor={value} onChange={onChange}
+      <Segmentado etiqueta="Período" valor={value} onChange={onChange} ancho
         opciones={opciones.map((o) => ({ valor: o.value, texto: o.label }))} />
       {lbl && <p className="text-[13px] px-1" style={{ color: 'var(--muted)' }}>{lbl}</p>}
     </div>
