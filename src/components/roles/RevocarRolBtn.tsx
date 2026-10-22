@@ -1,7 +1,6 @@
 'use client'
 
 import { useTransition } from 'react'
-import { X } from 'lucide-react'
 import { revocarRol } from '@/app/actions/roles'
 
 export default function RevocarRolBtn({ asignacionId }: { asignacionId: string }) {
@@ -13,10 +12,10 @@ export default function RevocarRolBtn({ asignacionId }: { asignacionId: string }
   }
 
   return (
-    <button onClick={handle} disabled={isPending}
-      title="Revocar rol"
-      className="p-0.5 rounded-full hover:opacity-70 transition-opacity disabled:opacity-30">
-      <X size={12} style={{ color: 'var(--error)' }} />
+    <button type="button" onClick={handle} disabled={isPending} aria-label="Quitar rol"
+      className="text-[15px] font-medium hover:opacity-70 transition-opacity disabled:opacity-30"
+      style={{ color: 'var(--error)' }}>
+      Quitar
     </button>
   )
 }

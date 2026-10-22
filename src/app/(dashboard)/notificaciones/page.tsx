@@ -1,24 +1,25 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Bell, CheckCheck } from 'lucide-react'
+import { Bell, Mic2, Cake, ClipboardList, CheckCircle2, Undo2, Image, UserX, Users, Palette, Wrench, ShoppingBag, type LucideIcon } from 'lucide-react'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Pagina, Grupo, Fila, Vacio } from '@/components/ui/ios'
 import { formatDate } from '@/lib/utils'
 import MarcarLeidasBtn from '@/components/MarcarLeidasBtn'
 
-const TIPO_ICONO: Record<string, string> = {
-  turno_asignado: '📋',
-  cumpleanios: '🎂',
-  cumpleanios_proximo: '🎂',
-  tarea_asignada: '📝',
-  tarea_aprobada: '✅',
-  tarea_rechazada: '↩️',
-  arte_distribuido: '🖼️',
-  ausencia: '⚠️',
-  reunion_grupo: '👥',
-  tarea_diseno: '🎨',
-  mantenimiento: '🔧',
-  solicitud_venta: '🛍️',
-  general: '🔔',
+const TIPO: Record<string, { icon: LucideIcon; color: string }> = {
+  turno_asignado:      { icon: Mic2,          color: '#ff2d55' },
+  cumpleanios:         { icon: Cake,          color: '#ff9500' },
+  cumpleanios_proximo: { icon: Cake,          color: '#ff9500' },
+  tarea_asignada:      { icon: ClipboardList, color: '#007aff' },
+  tarea_aprobada:      { icon: CheckCircle2,  color: '#34c759' },
+  tarea_rechazada:     { icon: Undo2,         color: '#ff3b30' },
+  arte_distribuido:    { icon: Image,         color: '#af52de' },
+  ausencia:            { icon: UserX,         color: '#ff3b30' },
+  reunion_grupo:       { icon: Users,         color: '#5856d6' },
+  tarea_diseno:        { icon: Palette,       color: '#ff2d55' },
+  mantenimiento:       { icon: Wrench,        color: '#8e8e93' },
+  solicitud_venta:     { icon: ShoppingBag,   color: '#00c7be' },
+  general:             { icon: Bell,          color: '#007aff' },
 }
 
 export default async function NotificacionesPage() {
@@ -42,69 +43,27 @@ export default async function NotificacionesPage() {
   const sinLeer = (notifs ?? []).filter((n) => !n.leida).length
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Bell size={22} style={{ color: 'var(--accent)' }} />
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
-              Notificaciones
-            </h1>
-            {sinLeer > 0 && (
-              <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                {sinLeer} sin leer
-              </p>
-            )}
-          </div>
-        </div>
-        {sinLeer > 0 && (
-          <MarcarLeidasBtn personaId={cuenta.persona_id} />
-        )}
-      </div>
-
-      {!notifs || notifs.length === 0 ? (
-        <div className="rounded-2xl border p-12 text-center"
-          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <Bell size={32} className="mx-auto mb-3" style={{ color: 'var(--muted)' }} />
-          <p className="font-medium" style={{ color: 'var(--foreground)' }}>Sin notificaciones</p>
-          <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-            Aquí aparecerán tus avisos del sistema.
-          </p>
-        </div>
+    <Pagina ancho="estrecho" titulo="Notificaciones" subtitulo={sinLeer > 0 ? `${sinLeer} sin leer` : 'Estás al día'}
+      acciones={sinLeer > 0 ? <MarcarLeidasBtn personaId={cuenta.persona_id} /> : undefined}>
+      {!notifs?.length ? (
+        <Vacio icono={<Bell size={44} />} titulo="Sin notificaciones" texto="Aquí aparecerán tus avisos del sistema." />
       ) : (
-        <div className="space-y-2">
-          {notifs.map((n) => {
-            const Contenedor = n.url ? Link : 'div'
+        <Grupo>
+          {notifs.map((n, i) => {
+            const t = TIPO[n.tipo] ?? TIPO.general!
             return (
-            <Contenedor key={n.id} href={n.url ?? ''}
-              className="flex items-start gap-4 px-4 py-4 rounded-2xl border transition-all hover:opacity-80"
-              style={{
-                background: n.leida ? 'var(--surface)' : 'color-mix(in srgb, var(--accent) 6%, var(--surface))',
-                borderColor: n.leida ? 'var(--border)' : 'color-mix(in srgb, var(--accent) 30%, var(--border))',
-              }}>
-              <span className="text-xl flex-shrink-0 mt-0.5" aria-hidden="true">
-                {TIPO_ICONO[n.tipo] ?? '🔔'}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                  {n.titulo}
-                </p>
-                {n.cuerpo && (
-                  <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>{n.cuerpo}</p>
-                )}
-                <p className="text-xs mt-1.5" style={{ color: 'var(--muted)' }}>
+              <Fila key={n.id} href={n.url ?? undefined} primero={i === 0}
+                inicio={<IconoModulo icon={t.icon} color={t.color} tamano={36} />}
+                titulo={<span style={{ fontWeight: n.leida ? 450 : 650 }}>{!n.leida && <span className="sr-only">Sin leer: </span>}{n.titulo}</span>}
+                subtitulo={n.cuerpo ?? undefined}
+                detalle={<span className="flex items-center gap-2 text-[13px]">
                   {formatDate(n.created_at)}
-                </p>
-              </div>
-              {!n.leida && (
-                <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" aria-label="Sin leer"
-                  style={{ background: 'var(--accent)' }} />
-              )}
-            </Contenedor>
+                  {!n.leida && <span className="w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: 'var(--accent)' }} />}
+                </span>} />
             )
           })}
-        </div>
+        </Grupo>
       )}
-    </div>
+    </Pagina>
   )
 }

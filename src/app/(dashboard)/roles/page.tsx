@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import Avatar from '@/components/ui/Avatar'
 import { formatDateShort } from '@/lib/utils'
-import { Shield, Users } from 'lucide-react'
+import { Shield } from 'lucide-react'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Pagina, Grupo, Fila } from '@/components/ui/ios'
 import AsignarRolForm from '@/components/roles/AsignarRolForm'
 import RevocarRolBtn from '@/components/roles/RevocarRolBtn'
 
@@ -25,70 +27,37 @@ export default async function RolesPage() {
     porRol[nombre]!.push(a)
   }
 
+  const conMiembros = (roles ?? []).filter((r) => (porRol[r.nombre] ?? []).length > 0)
+  const vacios = (roles ?? []).filter((r) => !(porRol[r.nombre] ?? []).length)
+  const nombreRol = (n: string) => n.charAt(0).toUpperCase() + n.slice(1).replace(/_/g, ' ')
+
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-3">
-          <Shield size={22} style={{ color: 'var(--accent)' }} />
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Roles y Permisos</h1>
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>{roles?.length ?? 0} roles configurados</p>
-          </div>
-        </div>
-        <AsignarRolForm personas={personas ?? []} roles={roles ?? []} />
-      </div>
+    <Pagina titulo="Roles" subtitulo={`${roles?.length ?? 0} roles · ${asignaciones?.length ?? 0} asignaciones`}>
+      <AsignarRolForm personas={personas ?? []} roles={roles ?? []} />
 
-      <section>
-        <h2 className="font-semibold mb-3" style={{ color: 'var(--foreground)' }}>Miembros por rol</h2>
-        <div className="space-y-3 stagger">
-          {roles?.map((rol) => {
-            const miembros = porRol[rol.nombre] ?? []
+      {conMiembros.map((rol) => (
+        <Grupo key={rol.id} titulo={`${nombreRol(rol.nombre)} · ${(porRol[rol.nombre] ?? []).length}`} pie={rol.descripcion ?? undefined}>
+          {(porRol[rol.nombre] ?? []).map((a, i) => {
+            const persona = (Array.isArray(a.persona) ? a.persona[0] : a.persona) as { nombre_completo: string; foto_url?: string | null } | null
             return (
-              <div key={rol.id} className="rounded-2xl border px-5 py-4"
-                style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="font-semibold capitalize" style={{ color: 'var(--foreground)' }}>
-                      {rol.nombre.replace(/_/g, ' ')}
-                    </p>
-                    {rol.descripcion && (
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{rol.descripcion}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--muted)' }}>
-                    <Users size={14} />
-                    {miembros.length}
-                  </div>
-                </div>
-
-                {miembros.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {miembros.map((a) => {
-                      const persona = Array.isArray(a.persona) ? a.persona[0] : a.persona as { nombre_completo: string; foto_url?: string } | null
-                      return (
-                        <div key={a.id}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium"
-                          style={{ background: 'var(--surface-secondary)', color: 'var(--foreground)' }}>
-                          {persona && (
-                            <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url ?? null} size="sm" />
-                          )}
-                          <span>{persona?.nombre_completo.split(' ').slice(0, 2).join(' ')}</span>
-                          <span style={{ color: 'var(--muted)' }}>
-                            desde {formatDateShort(a.fecha_inicio)}
-                          </span>
-                          <RevocarRolBtn asignacionId={a.id} />
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-xs" style={{ color: 'var(--muted)' }}>Sin miembros asignados</p>
-                )}
-              </div>
+              <Fila key={a.id} primero={i === 0}
+                inicio={persona ? <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url ?? null} size="sm" /> : undefined}
+                titulo={persona?.nombre_completo ?? '—'}
+                subtitulo={`Desde ${formatDateShort(a.fecha_inicio)}`}
+                detalle={<RevocarRolBtn asignacionId={a.id} />} />
             )
           })}
-        </div>
-      </section>
-    </div>
+        </Grupo>
+      ))}
+
+      {vacios.length > 0 && (
+        <Grupo titulo="Sin miembros asignados">
+          {vacios.map((rol, i) => (
+            <Fila key={rol.id} primero={i === 0} inicio={<IconoModulo icon={Shield} color="#8e8e93" />}
+              titulo={nombreRol(rol.nombre)} subtitulo={rol.descripcion ?? undefined} />
+          ))}
+        </Grupo>
+      )}
+    </Pagina>
   )
 }

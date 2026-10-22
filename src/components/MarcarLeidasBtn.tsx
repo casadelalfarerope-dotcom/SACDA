@@ -17,10 +17,10 @@ export default function MarcarLeidasBtn({ personaId }: { personaId: string }) {
   }
 
   return (
-    <button onClick={handle} disabled={loading}
-      className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70 disabled:opacity-40"
-      style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-      <CheckCheck size={15} />
+    <button type="button" onClick={handle} disabled={loading}
+      className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[14px] font-semibold transition-[filter] hover:brightness-95 disabled:opacity-40"
+      style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>
+      <CheckCheck size={15} aria-hidden="true" />
       Marcar todas
     </button>
   )

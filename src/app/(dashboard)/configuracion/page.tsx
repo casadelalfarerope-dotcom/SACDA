@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { Settings, Bell, Mail, Globe, KeyRound } from 'lucide-react'
+import { Bell, Mail, KeyRound, LogIn, Moon } from 'lucide-react'
+import Avatar from '@/components/ui/Avatar'
+import Badge from '@/components/ui/Badge'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Pagina, Grupo, Fila } from '@/components/ui/ios'
 import PreferenciasForm from './PreferenciasForm'
 
 export default async function ConfiguracionPage() {
@@ -8,102 +11,41 @@ export default async function ConfiguracionPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: cuenta } = user
-    ? await supabase.from('cuentas').select('*, persona:personas(nombre_completo, email)').eq('id', user.id).single()
+    ? await supabase.from('cuentas').select('persona_id, persona:personas(nombre_completo, email, foto_url)').eq('id', user.id).maybeSingle()
     : { data: null }
-
-  const persona = cuenta?.persona as { nombre_completo: string; email: string | null } | null
+  const persona = cuenta?.persona as unknown as { nombre_completo: string; email: string | null; foto_url: string | null } | null
+  const conGoogle = user?.identities?.some((i) => i.provider === 'google')
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-3 mb-2">
-        <Settings size={22} style={{ color: 'var(--accent)' }} />
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Configuración</h1>
-          {persona && (
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>{persona.nombre_completo}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Cuenta */}
-      <section className="p-5 rounded-2xl border space-y-3"
+    <Pagina ancho="estrecho" titulo="Configuración">
+      <section aria-label="Tu perfil" className="rounded-2xl border p-4 flex items-center gap-4"
         style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-2 mb-1">
-          <Globe size={16} style={{ color: 'var(--accent)' }} />
-          <h2 className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>Cuenta</h2>
-        </div>
-        <div className="flex items-start gap-2">
-          <span className="text-xs w-32 flex-shrink-0 pt-0.5" style={{ color: 'var(--muted)' }}>Correo</span>
-          <span className="text-sm" style={{ color: 'var(--foreground)' }}>{user?.email ?? '—'}</span>
-        </div>
-        <div className="flex items-start gap-2">
-          <span className="text-xs w-32 flex-shrink-0 pt-0.5" style={{ color: 'var(--muted)' }}>Nombre</span>
-          <span className="text-sm" style={{ color: 'var(--foreground)' }}>{persona?.nombre_completo ?? '—'}</span>
-        </div>
-        <div className="flex items-start gap-2">
-          <span className="text-xs w-32 flex-shrink-0 pt-0.5" style={{ color: 'var(--muted)' }}>Acceso</span>
-          <span className="text-sm" style={{ color: 'var(--foreground)' }}>
-            {user?.identities?.some(i => i.provider === 'google') ? 'Google y correo' : 'Correo y contraseña'}
-          </span>
-        </div>
-        <Link href="/cambiar-contrasena"
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70"
-          style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface-secondary)' }}>
-          <KeyRound size={14} /> Cambiar contraseña
-        </Link>
-      </section>
-
-      {/* Notificaciones */}
-      <section className="p-5 rounded-2xl border space-y-4"
-        style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-2 mb-1">
-          <Bell size={16} style={{ color: 'var(--accent)' }} />
-          <h2 className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>Notificaciones</h2>
-        </div>
-        <p className="text-xs" style={{ color: 'var(--muted)' }}>
-          Las notificaciones in-app están siempre activas. El canal de email se activa cuando configures un correo.
-        </p>
-
-        <div className="rounded-xl p-3 flex items-center gap-3"
-          style={{ background: 'var(--surface-secondary)', border: '1px solid var(--border)' }}>
-          <Bell size={16} style={{ color: 'var(--accent)' }} />
-          <div className="flex-1">
-            <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>In-app</p>
-            <p className="text-xs" style={{ color: 'var(--muted)' }}>Campana en la barra superior</p>
-          </div>
-          <span className="text-xs px-2 py-1 rounded-full font-medium"
-            style={{ background: '#34c75920', color: '#16a34a' }}>Activo</span>
-        </div>
-
-        <div className="rounded-xl p-3 flex items-center gap-3"
-          style={{ background: 'var(--surface-secondary)', border: '1px solid var(--border)' }}>
-          <Mail size={16} style={{ color: 'var(--muted)' }} />
-          <div className="flex-1">
-            <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Email</p>
-            <p className="text-xs" style={{ color: 'var(--muted)' }}>
-              {persona?.email ?? 'Sin correo configurado en tu ficha de congregante'}
-            </p>
-          </div>
-          <span className="text-xs px-2 py-1 rounded-full font-medium"
-            style={{
-              background: persona?.email ? '#34c75920' : 'var(--surface)',
-              color: persona?.email ? '#16a34a' : 'var(--muted)',
-              border: persona?.email ? 'none' : '1px solid var(--border)',
-            }}>
-            {persona?.email ? 'Activo' : 'Inactivo'}
-          </span>
+        <Avatar nombre={persona?.nombre_completo ?? user?.email ?? '?'} fotoUrl={persona?.foto_url} size="lg" />
+        <div className="min-w-0">
+          <p className="text-[20px] font-semibold truncate" style={{ color: 'var(--foreground)' }}>{persona?.nombre_completo ?? 'Sin ficha vinculada'}</p>
+          <p className="text-[15px] truncate" style={{ color: 'var(--muted)' }}>{user?.email}</p>
         </div>
       </section>
 
-      {/* Preferencias de visualización */}
-      <section className="p-5 rounded-2xl border"
-        style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <Settings size={16} style={{ color: 'var(--accent)' }} />
-          <h2 className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>Apariencia</h2>
-        </div>
-        <PreferenciasForm />
-      </section>
-    </div>
+      <Grupo titulo="Cuenta">
+        <Fila primero inicio={<IconoModulo icon={LogIn} color="#007aff" />} titulo="Inicio de sesión"
+          detalle={conGoogle ? 'Google y correo' : 'Correo y contraseña'} />
+        <Fila href="/cambiar-contrasena" inicio={<IconoModulo icon={KeyRound} color="#8e8e93" />} titulo="Cambiar contraseña" />
+      </Grupo>
+
+      <Grupo titulo="Notificaciones" pie="Las notificaciones dentro de la app están siempre activas. El correo se usa cuando tu ficha tiene uno registrado.">
+        <Fila primero inicio={<IconoModulo icon={Bell} color="#ff3b30" />} titulo="En la app" subtitulo="Campana en la barra superior"
+          detalle={<Badge variant="success">Activo</Badge>} />
+        <Fila inicio={<IconoModulo icon={Mail} color="#007aff" />} titulo="Correo"
+          subtitulo={persona?.email ?? 'Sin correo en tu ficha'}
+          detalle={<Badge variant={persona?.email ? 'success' : 'muted'}>{persona?.email ? 'Activo' : 'Inactivo'}</Badge>} />
+      </Grupo>
+
+      <Grupo titulo="Apariencia">
+        <Fila primero inicio={<IconoModulo icon={Moon} color="#5856d6" />}>
+          <span className="block py-1"><PreferenciasForm /></span>
+        </Fila>
+      </Grupo>
+    </Pagina>
   )
 }

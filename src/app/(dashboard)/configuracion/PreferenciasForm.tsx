@@ -1,51 +1,33 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Moon, Sun } from 'lucide-react'
+import { Segmentado } from '@/components/ui/ios'
+
+type Tema = 'light' | 'system' | 'dark'
 
 export default function PreferenciasForm() {
-  const [tema, setTema] = useState<'light' | 'dark' | 'system'>('system')
+  const [tema, setTema] = useState<Tema>('system')
 
   useEffect(() => {
-    const saved = localStorage.getItem('tema') as typeof tema | null
-    if (saved) setTema(saved)
+    try {
+      const guardado = localStorage.getItem('tema') as Tema | null
+      if (guardado) setTema(guardado)
+    } catch { /* almacenamiento no disponible */ }
   }, [])
 
-  function cambiarTema(t: typeof tema) {
+  function cambiarTema(t: Tema) {
     setTema(t)
-    localStorage.setItem('tema', t)
+    try { localStorage.setItem('tema', t) } catch { /* almacenamiento no disponible */ }
     const root = document.documentElement
-    if (t === 'dark') root.setAttribute('data-theme', 'dark')
-    else if (t === 'light') root.setAttribute('data-theme', 'light')
-    else root.removeAttribute('data-theme')
+    if (t === 'system') root.removeAttribute('data-theme')
+    else root.setAttribute('data-theme', t)
   }
 
-  const opciones: { value: typeof tema; label: string; icon: React.ReactNode }[] = [
-    { value: 'light', label: 'Claro', icon: <Sun size={14} /> },
-    { value: 'system', label: 'Sistema', icon: <span className="text-xs font-bold">A</span> },
-    { value: 'dark', label: 'Oscuro', icon: <Moon size={14} /> },
-  ]
-
   return (
-    <div className="space-y-3">
-      <p className="text-xs" style={{ color: 'var(--muted)' }}>Tema de la interfaz</p>
-      <div className="flex gap-2">
-        {opciones.map((op) => (
-          <button key={op.value} onClick={() => cambiarTema(op.value)}
-            className="flex-1 flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-medium transition-all"
-            style={{
-              background: tema === op.value ? 'var(--accent)' : 'var(--surface-secondary)',
-              borderColor: tema === op.value ? 'var(--accent)' : 'var(--border)',
-              color: tema === op.value ? '#fff' : 'var(--foreground)',
-            }}>
-            {op.icon}
-            {op.label}
-          </button>
-        ))}
-      </div>
-      <p className="text-xs" style={{ color: 'var(--muted)' }}>
-        "Sistema" sigue la preferencia de tu dispositivo automáticamente.
-      </p>
+    <div className="space-y-2">
+      <Segmentado etiqueta="Tema de la interfaz" valor={tema} onChange={cambiarTema} ancho
+        opciones={[{ valor: 'light', texto: 'Claro' }, { valor: 'system', texto: 'Automático' }, { valor: 'dark', texto: 'Oscuro' }]} />
+      <p className="text-[13px] px-1" style={{ color: 'var(--muted)' }}>“Automático” sigue la configuración de tu dispositivo.</p>
     </div>
   )
 }

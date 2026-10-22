@@ -38,10 +38,10 @@ export default function AsignarRolForm({ personas, roles }: { personas: Persona[
 
   if (!abierto) {
     return (
-      <button onClick={() => setAbierto(true)}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-80"
+      <button type="button" onClick={() => setAbierto(true)}
+        className="inline-flex items-center gap-2 h-10 px-5 rounded-full text-[14px] font-semibold text-white transition-[filter] hover:brightness-105"
         style={{ background: 'var(--accent)' }}>
-        <UserPlus size={15} /> Asignar rol
+        <UserPlus size={16} aria-hidden="true" /> Asignar rol
       </button>
     )
   }
