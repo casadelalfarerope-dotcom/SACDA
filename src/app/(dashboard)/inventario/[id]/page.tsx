@@ -1,8 +1,9 @@
 import { etiquetaCategoriaBien, etiquetaEstadoBien } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Wrench, Pencil } from 'lucide-react'
+import { Wrench, Pencil } from 'lucide-react'
+import { Pagina, Grupo, Fila, Tarjeta, BotonEnlace } from '@/components/ui/ios'
+import { IconoModulo } from '@/components/ui/IconoApp'
 import { formatDate } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import CambiarEstadoBienBtn from '@/components/inventario/CambiarEstadoBienBtn'
@@ -34,78 +35,36 @@ export default async function BienDetailPage({ params }: { params: Promise<{ id:
   ].filter((c) => c.value)
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/inventario"
-          className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
-          <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{bien.nombre}</h1>
-        </div>
-        <Link href={`/inventario/${id}/editar`}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border transition-opacity hover:opacity-70"
-          style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-          <Pencil size={14} /> Editar
-        </Link>
+    <Pagina ancho="estrecho" titulo={bien.nombre} volver={{ href: '/inventario', texto: 'Inventario' }}
+      acciones={<>
         <Badge variant={estadoVariant[bien.estado] ?? 'muted'}>{etiquetaEstadoBien(bien.estado)}</Badge>
-      </div>
+        <BotonEnlace href={`/inventario/${id}/editar`} variante="tintado"><Pencil size={14} aria-hidden="true" /> Editar</BotonEnlace>
+      </>}>
 
-      {/* Info */}
-      <div className="p-4 rounded-2xl border mb-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="space-y-2">
-          {campos.map((c) => (
-            <div key={c.label} className="flex items-start gap-2">
-              <span className="text-xs w-40 flex-shrink-0 pt-0.5" style={{ color: 'var(--muted)' }}>{c.label}</span>
-              <span className="text-sm" style={{ color: 'var(--foreground)' }}>{c.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Cambiar estado */}
-      <div className="p-4 rounded-2xl border mb-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <p className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>Cambiar estado</p>
-        <CambiarEstadoBienBtn bienId={id} estadoActual={bien.estado} />
-      </div>
-
-      {/* Registrar mantenimiento */}
-      <div className="p-4 rounded-2xl border mb-6" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <Wrench size={15} style={{ color: 'var(--muted)' }} />
-          <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Registrar mantenimiento</p>
-        </div>
-        <RegistrarMantenimientoForm bienId={id} />
-      </div>
-
-      {/* Historial */}
-      <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--foreground)' }}>
-        Historial ({(historial ?? []).length})
-      </h2>
-      <div className="space-y-2">
-        {(historial ?? []).map((h) => (
-          <div key={h.id} className="p-4 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="font-medium text-sm" style={{ color: 'var(--foreground)' }}>{h.descripcion}</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                  {formatDate(h.fecha)}
-                  {h.realizado_por ? ` · ${h.realizado_por}` : ''}
-                </p>
-              </div>
-              {h.costo && (
-                <span className="text-sm font-semibold" style={{ color: 'var(--error)' }}>
-                  S/ {Number(h.costo).toFixed(2)}
-                </span>
-              )}
-            </div>
-          </div>
+      <Grupo titulo="Información">
+        {campos.map((c, i) => (
+          <Fila key={c.label} primero={i === 0} titulo={<span className="text-[15px]" style={{ color: 'var(--muted)' }}>{c.label}</span>}
+            detalle={<span style={{ color: 'var(--foreground)' }}>{c.value}</span>} />
         ))}
-        {(!historial || historial.length === 0) && (
-          <p className="text-center py-8 text-sm" style={{ color: 'var(--muted)' }}>Sin historial de mantenimiento</p>
-        )}
-      </div>
-    </div>
+      </Grupo>
+
+      <Tarjeta titulo="Estado">
+        <CambiarEstadoBienBtn bienId={id} estadoActual={bien.estado} />
+      </Tarjeta>
+
+      <Tarjeta titulo="Registrar mantenimiento">
+        <RegistrarMantenimientoForm bienId={id} />
+      </Tarjeta>
+
+      <Grupo titulo={`Historial (${(historial ?? []).length})`}>
+        {(historial ?? []).map((h, i) => (
+          <Fila key={h.id} primero={i === 0} inicio={<IconoModulo icon={Wrench} color="#8e8e93" />}
+            titulo={h.descripcion}
+            subtitulo={`${formatDate(h.fecha)}${h.realizado_por ? ` · ${h.realizado_por}` : ''}`}
+            detalle={h.costo ? <span className="tabular-nums">S/ {Number(h.costo).toFixed(2)}</span> : undefined} />
+        ))}
+        {(!historial || historial.length === 0) && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Sin historial de mantenimiento</span>} />}
+      </Grupo>
+    </Pagina>
   )
 }

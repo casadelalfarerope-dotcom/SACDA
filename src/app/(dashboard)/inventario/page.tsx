@@ -1,19 +1,23 @@
 import { etiquetaCategoriaBien, etiquetaEstadoBien } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { Plus, AlertTriangle, Package } from 'lucide-react'
-import { formatDate , hoyLima } from '@/lib/utils'
+import { Plus, AlertTriangle, Package, Guitar, Speaker, Video, Armchair, type LucideIcon } from 'lucide-react'
+import { formatDate, hoyLima } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Pagina, Grupo, Fila, SegmentadoEnlaces, BotonEnlace, Vacio } from '@/components/ui/ios'
 
 const estadoVariant: Record<string, 'success' | 'warning' | 'error' | 'muted'> = {
   bueno: 'success', regular: 'warning', malo: 'error', baja: 'muted',
 }
 
-export default async function InventarioPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ estado?: string }>
-}) {
+const CATEGORIA: Record<string, { icon: LucideIcon; color: string }> = {
+  instrumento:  { icon: Guitar,   color: '#ff9500' },
+  equipo_audio: { icon: Speaker,  color: '#5856d6' },
+  equipo_video: { icon: Video,    color: '#ff2d55' },
+  mobiliario:   { icon: Armchair, color: '#a2845e' },
+}
+
+export default async function InventarioPage({ searchParams }: { searchParams: Promise<{ estado?: string }> }) {
   const params = await searchParams
   const supabase = await createClient()
   const hoy = hoyLima()
@@ -24,93 +28,45 @@ export default async function InventarioPage({
 
   const [{ data: bienes }, { data: proximos }] = await Promise.all([
     query,
-    supabase.from('bienes')
-      .select('id, nombre, proximo_mantenimiento')
-      .lte('proximo_mantenimiento', en30dias)
-      .gte('proximo_mantenimiento', hoy)
-      .order('proximo_mantenimiento'),
+    supabase.from('bienes').select('id, nombre, proximo_mantenimiento')
+      .lte('proximo_mantenimiento', en30dias).gte('proximo_mantenimiento', hoy).order('proximo_mantenimiento'),
   ])
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Inventario</h1>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>{(bienes ?? []).length} bienes registrados</p>
-        </div>
-        <Link href="/inventario/nuevo"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: 'var(--accent)' }}>
-          <Plus size={15} /> Agregar
-        </Link>
-      </div>
+    <Pagina titulo="Inventario" subtitulo={`${(bienes ?? []).length} bienes registrados`}
+      acciones={<BotonEnlace href="/inventario/nuevo" etiqueta="Agregar bien"><Plus size={17} aria-hidden="true" /><span className="hidden sm:inline">Agregar</span></BotonEnlace>}>
 
-      {/* Alertas de mantenimiento */}
       {(proximos ?? []).length > 0 && (
-        <div className="p-4 rounded-2xl border mb-6" style={{ background: '#fef9c3', borderColor: '#fde047' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle size={16} color="#ca8a04" />
-            <p className="font-semibold text-sm" style={{ color: '#854d0e' }}>
-              Mantenimientos en los próximos 30 días
-            </p>
-          </div>
-          <ul className="space-y-1">
-            {proximos!.map((b) => (
-              <li key={b.id}>
-                <Link href={`/inventario/${b.id}`} className="text-sm hover:underline" style={{ color: '#92400e' }}>
-                  {b.nombre} — {formatDate(b.proximo_mantenimiento)}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <Grupo titulo="Mantenimiento en los próximos 30 días">
+          {proximos!.map((b, i) => (
+            <Fila key={b.id} href={`/inventario/${b.id}`} primero={i === 0}
+              inicio={<IconoModulo icon={AlertTriangle} color="#ff9500" />}
+              titulo={b.nombre} detalle={formatDate(b.proximo_mantenimiento)} />
+          ))}
+        </Grupo>
       )}
 
-      {/* Filtros estado */}
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
-        {['bueno','regular','malo','baja'].map((e) => (
-          <Link key={e} href={params.estado === e ? '/inventario' : `/inventario?estado=${e}`}
-            className="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border capitalize"
-            style={{
-              background: params.estado === e ? 'var(--accent)' : 'var(--surface)',
-              borderColor: params.estado === e ? 'var(--accent)' : 'var(--border)',
-              color: params.estado === e ? '#fff' : 'var(--foreground)',
-            }}>
-            {e === 'baja' ? 'de baja' : e}
-          </Link>
-        ))}
-      </div>
+      <SegmentadoEnlaces etiqueta="Filtrar por estado" actual={params.estado ?? ''}
+        opciones={[{ valor: '', texto: 'Todos', href: '/inventario' },
+          ...['bueno', 'regular', 'malo', 'baja'].map((e) => ({ valor: e, texto: etiquetaEstadoBien(e), href: `/inventario?estado=${e}` }))]} />
 
-      <div className="space-y-2">
-        {(bienes ?? []).map((b) => (
-          <Link key={b.id} href={`/inventario/${b.id}`}
-            className="flex items-center gap-4 p-4 rounded-2xl border transition-opacity hover:opacity-80"
-            style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--surface-secondary)' }}>
-              <Package size={18} style={{ color: 'var(--muted)' }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>{b.nombre}</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                {etiquetaCategoriaBien(b.categoria)}
-                {b.numero_serie ? ` · ${b.numero_serie}` : ''}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <Badge variant={estadoVariant[b.estado] ?? 'muted'}>{etiquetaEstadoBien(b.estado)}</Badge>
-              {b.proximo_mantenimiento && (
-                <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                  Mant. {formatDate(b.proximo_mantenimiento)}
-                </span>
-              )}
-            </div>
-          </Link>
-        ))}
-        {(!bienes || bienes.length === 0) && (
-          <p className="text-center py-12 text-sm" style={{ color: 'var(--muted)' }}>Sin bienes registrados</p>
-        )}
-      </div>
-    </div>
+      {!bienes?.length ? (
+        <Vacio icono={<Package size={44} />} titulo="Sin bienes" texto="No hay bienes registrados con este filtro." />
+      ) : (
+        <Grupo>
+          {bienes.map((b, i) => {
+            const cat = (b.categoria && CATEGORIA[b.categoria]) || { icon: Package, color: '#8e8e93' }
+            return (
+              <Fila key={b.id} href={`/inventario/${b.id}`} primero={i === 0}
+                inicio={<IconoModulo icon={cat.icon} color={cat.color} tamano={36} />}
+                titulo={b.nombre}
+                subtitulo={[etiquetaCategoriaBien(b.categoria), b.numero_serie,
+                  b.proximo_mantenimiento ? `Mant. ${formatDate(b.proximo_mantenimiento)}` : null].filter(Boolean).join(' · ')}
+                detalle={<Badge variant={estadoVariant[b.estado] ?? 'muted'}>{etiquetaEstadoBien(b.estado)}</Badge>} />
+            )
+          })}
+        </Grupo>
+      )}
+    </Pagina>
   )
 }

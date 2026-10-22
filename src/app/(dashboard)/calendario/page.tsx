@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Plus, Clock, MapPin, AlertCircle } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Pagina, Grupo, Fila, BotonEnlace, Vacio } from '@/components/ui/ios'
 import { generarInstancias } from '@/lib/calendario'
-import Badge from '@/components/ui/Badge'
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
@@ -62,143 +62,94 @@ export default async function CalendarioPage({
   const primerDia = new Date(anio, mes, 1).getDay()
   const diasEnMes = new Date(anio, mes + 1, 0).getDate()
 
-  return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
-      {/* Cabecera */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Link href={`/calendario?mes=${mesPrev}&anio=${anioPrev}`} aria-label="Mes anterior"
-            className="w-10 h-10 flex items-center justify-center rounded-xl border text-sm font-medium transition-opacity hover:opacity-70"
-            style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-            ‹
-          </Link>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
-            {MESES[mes]} {anio}
-          </h1>
-          <Link href={`/calendario?mes=${mesSig}&anio=${aniuoSig}`} aria-label="Mes siguiente"
-            className="w-10 h-10 flex items-center justify-center rounded-xl border text-sm font-medium transition-opacity hover:opacity-70"
-            style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-            ›
-          </Link>
-        </div>
-        <Link href="/calendario/nuevo"
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
-          style={{ background: 'var(--accent)' }} aria-label="Nuevo evento">
-          <Plus size={16} />
-          <span className="hidden sm:inline">Nuevo evento</span>
-        </Link>
-      </div>
+  const DIAS_LETRA = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
+  const fechasConEventos = Object.keys(porFecha).sort()
+  const navBtn = 'w-9 h-9 flex items-center justify-center rounded-full transition-[filter] hover:brightness-95'
+  const navEstilo = { background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }
 
-      {/* Cuadrícula del mes */}
-      <div className="rounded-2xl border overflow-hidden mb-6"
+  return (
+    <Pagina titulo={<>{MESES[mes]} <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{anio}</span></>}
+      acciones={<>
+        <Link href={`/calendario?mes=${mesPrev}&anio=${anioPrev}`} aria-label="Mes anterior" className={navBtn} style={navEstilo}>
+          <ChevronLeft size={18} aria-hidden="true" />
+        </Link>
+        <Link href="/calendario" className="h-9 px-3.5 inline-flex items-center rounded-full text-[14px] font-semibold" style={navEstilo}>Hoy</Link>
+        <Link href={`/calendario?mes=${mesSig}&anio=${aniuoSig}`} aria-label="Mes siguiente" className={navBtn} style={navEstilo}>
+          <ChevronRight size={18} aria-hidden="true" />
+        </Link>
+        <BotonEnlace href="/calendario/nuevo" etiqueta="Nuevo evento"><Plus size={17} aria-hidden="true" /></BotonEnlace>
+      </>}>
+
+      <section aria-label={`Calendario de ${MESES[mes]} ${anio}`} className="rounded-2xl border p-3 md:p-4"
         style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        {/* Días de la semana */}
-        <div className="grid grid-cols-7 border-b" style={{ borderColor: 'var(--border)' }}>
-          {DIAS_SEMANA.map((d) => (
-            <div key={d} className="text-center py-2 text-xs font-semibold"
-              style={{ color: 'var(--muted)' }}>
-              {d}
-            </div>
+        <div className="grid grid-cols-7 mb-1" aria-hidden="true">
+          {DIAS_LETRA.map((d, i) => (
+            <div key={i} className="text-center text-[12px] font-semibold py-1" style={{ color: 'var(--muted)' }}>{d}</div>
           ))}
         </div>
-        {/* Días */}
-        <div className="grid grid-cols-7">
-          {Array.from({ length: primerDia }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-16 md:h-20 border-b border-r"
-              style={{ borderColor: 'var(--border)', background: 'var(--surface-secondary)' }} />
-          ))}
+        <div className="grid grid-cols-7 gap-y-1">
+          {Array.from({ length: primerDia }).map((_, i) => <div key={`v-${i}`} aria-hidden="true" />)}
           {Array.from({ length: diasEnMes }).map((_, i) => {
             const dia = i + 1
             const fechaStr = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
             const instDia = porFecha[fechaStr] ?? []
             const esHoy = hoy.getDate() === dia && hoy.getMonth() === mes && hoy.getFullYear() === anio
-            const col = (primerDia + i) % 7
-
+            const finDeSemana = (primerDia + i) % 7 === 0 || (primerDia + i) % 7 === 6
             return (
-              <div key={dia}
-                className={`h-16 md:h-20 p-1 border-b text-xs overflow-hidden ${col < 6 ? 'border-r' : ''}`}
-                style={{ borderColor: 'var(--border)' }}>
-                <span className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-medium mb-0.5 ${esHoy ? 'text-white' : ''}`}
-                  style={esHoy ? { background: 'var(--accent)' } : { color: 'var(--foreground)' }}>
+              <div key={dia} className="flex flex-col items-center min-h-[52px] md:min-h-[76px] px-0.5"
+                aria-label={`${dia} de ${MESES[mes]}${instDia.length ? `, ${instDia.length} evento${instDia.length > 1 ? 's' : ''}` : ''}`}>
+                <span className="w-8 h-8 flex items-center justify-center rounded-full text-[15px] tabular-nums"
+                  style={esHoy
+                    ? { background: '#ff3b30', color: '#fff', fontWeight: 700 }
+                    : { color: finDeSemana ? 'var(--muted)' : 'var(--foreground)', fontWeight: 500 }}>
                   {dia}
                 </span>
                 {instDia.length > 0 && (
-                  <div className="flex md:hidden flex-wrap gap-0.5 px-0.5" aria-label={`${instDia.length} evento${instDia.length > 1 ? 's' : ''}`}>
-                    {instDia.slice(0, 3).map((inst, idx) => (
-                      <span key={idx} className="w-1.5 h-1.5 rounded-full"
-                        style={{ background: inst.excepcion ? 'var(--warning)' : 'var(--accent)' }} />
+                  <span className="flex md:hidden gap-0.5 mt-1" aria-hidden="true">
+                    {instDia.slice(0, 3).map((inst, k) => (
+                      <span key={k} className="w-1.5 h-1.5 rounded-full" style={{ background: inst.excepcion ? 'var(--warning)' : 'var(--muted)' }} />
                     ))}
-                  </div>
+                  </span>
                 )}
-                {instDia.slice(0, 2).map((inst, idx) => (
-                  <div key={idx}
-                    className="hidden md:block truncate px-1 py-0.5 rounded text-xs mb-0.5"
-                    style={{
-                      background: inst.excepcion ? '#ff950020' : 'color-mix(in srgb, var(--accent) 9%, transparent)',
-                      color: inst.excepcion ? 'var(--warning)' : 'var(--accent)',
-                    }}>
-                    {inst.titulo}
-                  </div>
-                ))}
-                {instDia.length > 2 && (
-                  <p className="hidden md:block text-xs" style={{ color: 'var(--muted)' }}>+{instDia.length - 2}</p>
-                )}
+                <span className="hidden md:block w-full mt-0.5 space-y-0.5">
+                  {instDia.slice(0, 2).map((inst, k) => (
+                    <span key={k} className="block truncate px-1.5 py-px rounded-md text-[11px] font-medium"
+                      style={{
+                        background: inst.excepcion ? 'color-mix(in srgb, var(--warning) 16%, transparent)' : 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                        color: inst.excepcion ? 'var(--warning)' : 'var(--accent)',
+                      }}>
+                      {inst.titulo}
+                    </span>
+                  ))}
+                  {instDia.length > 2 && <span className="block text-[11px] px-1.5" style={{ color: 'var(--muted)' }}>+{instDia.length - 2} más</span>}
+                </span>
               </div>
             )
           })}
         </div>
-      </div>
+      </section>
 
-      {/* Lista de eventos del mes */}
-      <h2 className="font-semibold mb-3" style={{ color: 'var(--foreground)' }}>
-        Eventos de {MESES[mes]}
-      </h2>
-      {todasInstancias.length === 0 ? (
-        <div className="rounded-2xl border p-8 text-center"
-          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>Sin eventos para este mes.</p>
-        </div>
+      {fechasConEventos.length === 0 ? (
+        <Vacio titulo="Sin eventos este mes" texto="Crea un evento con el botón +." />
       ) : (
-        <div className="space-y-2">
-          {todasInstancias.map((inst, idx) => (
-            <div key={idx}
-              className="flex items-center gap-4 px-4 py-3 rounded-2xl border"
-              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              {/* Fecha */}
-              <div className="w-12 text-center flex-shrink-0">
-                <p className="text-lg font-bold leading-none" style={{ color: 'var(--accent)' }}>
-                  {inst.fecha.getDate()}
-                </p>
-                <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                  {DIAS_SEMANA[inst.fecha.getDay()]}
-                </p>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate" style={{ color: 'var(--foreground)' }}>
-                  {inst.titulo}
-                </p>
-                <div className="flex items-center gap-3 mt-0.5">
-                  {inst.hora_inicio && (
-                    <span className="text-xs flex items-center gap-1" style={{ color: 'var(--muted)' }}>
-                      <Clock size={11} />
-                      {inst.hora_inicio.slice(0, 5)}
-                    </span>
-                  )}
-                  {inst.lugar && (
-                    <span className="text-xs flex items-center gap-1" style={{ color: 'var(--muted)' }}>
-                      <MapPin size={11} />
-                      {inst.lugar}
-                    </span>
-                  )}
-                </div>
-              </div>
-              {inst.excepcion && (
-                <AlertCircle size={16} style={{ color: 'var(--warning)' }} />
-              )}
-            </div>
-          ))}
+        <div className="space-y-5">
+          {fechasConEventos.map((f) => {
+            const d = new Date(`${f}T12:00:00`)
+            return (
+              <Grupo key={f} titulo={`${DIAS_SEMANA[d.getDay()]} ${d.getDate()} de ${MESES[mes]}`}>
+                {porFecha[f]!.map((inst, k) => (
+                  <Fila key={k} primero={k === 0}
+                    inicio={<span className="block w-1 h-9 rounded-full" aria-hidden="true"
+                      style={{ background: inst.excepcion ? 'var(--warning)' : 'var(--accent)' }} />}
+                    titulo={inst.titulo}
+                    subtitulo={[inst.lugar, inst.excepcion ? 'Modificado' : null].filter(Boolean).join(' · ') || undefined}
+                    detalle={inst.hora_inicio ? <span className="tabular-nums">{inst.hora_inicio.slice(0, 5)}</span> : 'Todo el día'} />
+                ))}
+              </Grupo>
+            )
+          })}
         </div>
       )}
-    </div>
+    </Pagina>
   )
 }
