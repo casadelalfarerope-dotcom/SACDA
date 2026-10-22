@@ -15,7 +15,7 @@ export default async function AusenciasPage() {
     .order('fecha', { ascending: false })
 
   return (
-    <Pagina titulo="Ausencias" subtitulo={`${ausencias?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Miembros' }}
+    <Pagina titulo="Ausencias" subtitulo={`${ausencias?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Seguimiento' }}
       acciones={<BotonEnlace href="/miembros/ausencias/nueva" etiqueta="Registrar ausencia"><Plus size={17} aria-hidden="true" /><span className="hidden sm:inline">Nueva</span></BotonEnlace>}>
       {!ausencias?.length ? (
         <Vacio icono={<UserX size={44} />} titulo="Sin ausencias registradas" texto="Registra una ausencia con el botón +." />

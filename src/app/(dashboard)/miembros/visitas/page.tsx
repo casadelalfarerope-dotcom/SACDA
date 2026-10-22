@@ -15,7 +15,7 @@ export default async function VisitasPage() {
     .order('fecha_primera_visita', { ascending: false })
 
   return (
-    <Pagina titulo="Visitas" subtitulo={`${visitas?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Miembros' }}
+    <Pagina titulo="Visitas" subtitulo={`${visitas?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Seguimiento' }}
       acciones={<BotonEnlace href="/miembros/visitas/nueva" etiqueta="Registrar visita"><Plus size={17} aria-hidden="true" /><span className="hidden sm:inline">Nueva</span></BotonEnlace>}>
       {!visitas?.length ? (
         <Vacio icono={<UserPlus size={44} />} titulo="Sin visitas registradas" texto="Registra la primera visita con el botón +." />

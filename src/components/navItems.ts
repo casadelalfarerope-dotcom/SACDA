@@ -14,7 +14,7 @@ export const NAV_GRUPOS: NavGrupo[] = [
   ] },
   { titulo: 'Personas', items: [
     { href: '/congregantes', label: 'Congregantes', icon: Users,           color: '#ff9500' },
-    { href: '/miembros',     label: 'Miembros',     icon: UserCheck,       color: '#30b0c7' },
+    { href: '/miembros',     label: 'Seguimiento',  icon: UserCheck,       color: '#30b0c7' },
     { href: '/ministerios',  label: 'Ministerios',  icon: BookOpen,        color: '#5856d6' },
   ] },
   { titulo: 'Actividades', items: [

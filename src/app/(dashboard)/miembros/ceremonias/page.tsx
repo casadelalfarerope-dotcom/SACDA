@@ -25,7 +25,7 @@ export default async function CeremoniasPage() {
     .order('fecha', { ascending: false })
 
   return (
-    <Pagina titulo="Ceremonias" subtitulo={`${ceremonias?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Miembros' }}
+    <Pagina titulo="Ceremonias" subtitulo={`${ceremonias?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Seguimiento' }}
       acciones={<BotonEnlace href="/miembros/ceremonias/nueva" etiqueta="Registrar ceremonia"><Plus size={17} aria-hidden="true" /><span className="hidden sm:inline">Nueva</span></BotonEnlace>}>
       {!ceremonias?.length ? (
         <Vacio icono={<Church size={44} />} titulo="Sin ceremonias registradas" texto="Registra bautismos, dedicaciones o bodas con el botón +." />

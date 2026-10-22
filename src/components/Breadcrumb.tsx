@@ -6,7 +6,7 @@ import { ChevronRight, Home } from 'lucide-react'
 
 const LABELS: Record<string, string> = {
   congregantes:   'Congregantes',
-  miembros:       'Miembros',
+  miembros:       'Seguimiento',
   ausencias:      'Ausencias',
   visitas:        'Visitas',
   ceremonias:     'Ceremonias',

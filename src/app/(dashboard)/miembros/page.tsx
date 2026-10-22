@@ -51,7 +51,7 @@ export default async function MiembrosPage() {
   const ver = (href: string) => <Link href={href} className="text-[15px] normal-case" style={{ color: 'var(--accent)' }}>Ver todas</Link>
 
   return (
-    <Pagina titulo="Miembros" subtitulo="Cumpleaños, visitas, ausencias y ceremonias"
+    <Pagina titulo="Seguimiento" subtitulo="Cumpleaños, visitas, ausencias y ceremonias"
       acciones={<>
         <BotonEnlace href="/miembros/ceremonias/nueva" variante="tintado"><Church size={15} aria-hidden="true" /> Ceremonia</BotonEnlace>
         <BotonEnlace href="/miembros/ausencias/nueva" variante="tintado"><UserX size={15} aria-hidden="true" /> Ausencia</BotonEnlace>
