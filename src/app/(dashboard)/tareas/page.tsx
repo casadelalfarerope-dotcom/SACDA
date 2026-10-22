@@ -23,7 +23,7 @@ const FILTROS = [
   { valor: 'diseno', texto: 'Diseño', href: '/tareas?tipo=diseno' },
   { valor: 'solicitud_venta', texto: 'Ventas', href: '/tareas?tipo=solicitud_venta' },
   { valor: 'pendiente', texto: 'Pendientes', href: '/tareas?estado=pendiente' },
-  { valor: 'entregado', texto: 'Por revisar', href: '/tareas?estado=entregado' },
+  { valor: 'entregado', texto: 'Revisar', href: '/tareas?estado=entregado' },
 ]
 
 export default async function TareasPage({ searchParams }: { searchParams: Promise<{ tipo?: string; estado?: string }> }) {
