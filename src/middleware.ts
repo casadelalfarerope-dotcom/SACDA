@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  if (pathname.startsWith('/auth/')) return supabaseResponse
+  if (pathname.startsWith('/auth/') || pathname === '/privacidad') return supabaseResponse
 
   if (pathname.startsWith('/login') || pathname.startsWith('/recuperar')) {
     if (user) {
