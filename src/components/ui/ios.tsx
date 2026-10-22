@@ -21,12 +21,12 @@ export function Pagina({ titulo, subtitulo, volver, acciones, children, ancho = 
             <ChevronLeft size={20} aria-hidden="true" />{volver.texto}
           </Link>
         )}
-        <div className="flex items-end justify-between gap-4">
-          <div className="min-w-0">
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+          <div className="min-w-0 max-w-full">
             {titulo && <h1 className="truncate" style={{ color: 'var(--foreground)' }}>{titulo}</h1>}
             {subtitulo && <p className="text-[15px] mt-1" style={{ color: 'var(--muted)' }}>{subtitulo}</p>}
           </div>
-          {acciones && <div className="flex items-center gap-2 flex-shrink-0">{acciones}</div>}
+          {acciones && <div className="flex items-center gap-2 flex-shrink-0 ml-auto">{acciones}</div>}
         </div>
       </header>
       {children}
