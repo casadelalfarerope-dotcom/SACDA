@@ -6,6 +6,7 @@ import { crearTarea } from '@/app/actions/tareas'
 import { createClient } from '@/lib/supabase/client'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { Pagina } from '@/components/ui/ios'
 
 export default function NuevaTareaPage() {
   const router = useRouter()
@@ -43,8 +44,7 @@ export default function NuevaTareaPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--foreground)' }}>Nueva tarea</h1>
+    <Pagina ancho="estrecho" titulo="Nueva tarea" volver={{ href: '/tareas', texto: 'Tareas' }}>
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <div>
@@ -88,6 +88,6 @@ export default function NuevaTareaPage() {
           <Button type="submit" className="flex-1" loading={loading}>Crear tarea</Button>
         </div>
       </form>
-    </div>
+    </Pagina>
   )
 }

@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { editarPrograma } from '@/app/actions/servidores'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { Pagina } from '@/components/ui/ios'
 
 interface Programa {
   id: string
@@ -35,16 +34,7 @@ export default function EditarProgramaForm({ programa }: { programa: Programa })
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href={`/servidores/${programa.id}`}
-          className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
-          <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
-        </Link>
-        <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Editar programa</h1>
-      </div>
-
+    <Pagina ancho="estrecho" titulo="Editar programa" volver={{ href: `/servidores/${programa.id}`, texto: 'Programa' }}>
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4"
           style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
@@ -63,6 +53,6 @@ export default function EditarProgramaForm({ programa }: { programa: Programa })
           <Button type="submit" className="flex-1" loading={loading}>Guardar cambios</Button>
         </div>
       </form>
-    </div>
+    </Pagina>
   )
 }

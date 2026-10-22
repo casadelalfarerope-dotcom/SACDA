@@ -6,6 +6,7 @@ import { crearTutorial } from '@/app/actions/tutoriales'
 import { createClient } from '@/lib/supabase/client'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { Pagina } from '@/components/ui/ios'
 
 export default function NuevoTutorialPage() {
   const router = useRouter()
@@ -41,8 +42,7 @@ export default function NuevoTutorialPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--foreground)' }}>Nuevo tutorial</h1>
+    <Pagina ancho="estrecho" titulo="Nuevo tutorial" volver={{ href: '/capacitacion', texto: 'Capacitación' }}>
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="titulo" label="Título" placeholder="Cómo operar el software de presentación" required />
@@ -79,6 +79,6 @@ export default function NuevoTutorialPage() {
           <Button type="submit" className="flex-1" loading={loading}>Crear tutorial</Button>
         </div>
       </form>
-    </div>
+    </Pagina>
   )
 }

@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { editarBien } from '@/app/actions/inventario'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { Pagina } from '@/components/ui/ios'
 
 const CATEGORIAS = [
   { value: 'instrumento',  label: 'Instrumento' },
@@ -44,16 +43,7 @@ export default function EditarBienForm({ bien }: { bien: Record<string, unknown>
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href={`/inventario/${id}`}
-          className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
-          <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
-        </Link>
-        <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Editar bien</h1>
-      </div>
-
+    <Pagina ancho="estrecho" titulo="Editar bien" volver={{ href: `/inventario/${id}`, texto: 'Bien' }}>
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="nombre" label="Nombre" defaultValue={bien.nombre as string} required />
@@ -117,6 +107,6 @@ export default function EditarBienForm({ bien }: { bien: Record<string, unknown>
           <Button type="submit" className="flex-1" loading={loading}>Guardar cambios</Button>
         </div>
       </form>
-    </div>
+    </Pagina>
   )
 }

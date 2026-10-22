@@ -4,10 +4,10 @@ import { hoyLima } from '@/lib/utils'
 import { useState, useTransition, useId } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { crearVisita } from '@/app/actions/miembros'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { Pagina } from '@/components/ui/ios'
 
 interface Persona { id: string; nombre_completo: string }
 
@@ -69,16 +69,7 @@ export default function NuevaVisitaForm({ personas }: { personas: Persona[] }) {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/miembros/visitas"
-          className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
-          <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
-        </Link>
-        <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Registrar visita</h1>
-      </div>
-
+    <Pagina ancho="estrecho" titulo="Registrar visita" volver={{ href: '/miembros/visitas', texto: 'Visitas' }}>
       <form onSubmit={handleSubmit} className="space-y-4 p-5 rounded-2xl border"
         style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
 
@@ -149,6 +140,6 @@ export default function NuevaVisitaForm({ personas }: { personas: Persona[] }) {
           Registrar visita
         </Button>
       </form>
-    </div>
+    </Pagina>
   )
 }

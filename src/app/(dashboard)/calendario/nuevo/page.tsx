@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { crearEvento } from '@/app/actions/calendario'
+import { Pagina } from '@/components/ui/ios'
 
 const DIAS_OPCIONES = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo']
 const DIAS_LABEL: Record<string, string> = {
@@ -68,14 +67,7 @@ export default function NuevoEventoPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/calendario" className="p-2 rounded-xl" style={{ color: 'var(--muted)' }} aria-label="Volver">
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Nuevo evento</h1>
-      </div>
-
+    <Pagina ancho="estrecho" titulo="Nuevo evento" volver={{ href: '/calendario', texto: 'Calendario' }}>
       <form onSubmit={handleSubmit}
         className="rounded-2xl border p-5 md:p-6 space-y-5"
         style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
@@ -199,6 +191,6 @@ export default function NuevoEventoPage() {
           <Button type="submit" loading={loading} className="flex-1 sm:flex-none sm:min-w-32">Crear evento</Button>
         </div>
       </form>
-    </div>
+    </Pagina>
   )
 }

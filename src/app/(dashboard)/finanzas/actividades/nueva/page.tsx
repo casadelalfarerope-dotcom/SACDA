@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { crearActividad } from '@/app/actions/finanzas'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { Pagina } from '@/components/ui/ios'
 
 export default function NuevaActividadPage() {
   const router = useRouter()
@@ -28,8 +29,7 @@ export default function NuevaActividadPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--foreground)' }}>Nueva actividad</h1>
+    <Pagina ancho="estrecho" titulo="Nueva actividad" volver={{ href: '/finanzas/actividades', texto: 'Actividades' }}>
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="nombre" label="Nombre" placeholder="Pollada, Bazar, Bingo..." required />
@@ -54,6 +54,6 @@ export default function NuevaActividadPage() {
           <Button type="submit" className="flex-1" loading={loading}>Crear</Button>
         </div>
       </form>
-    </div>
+    </Pagina>
   )
 }

@@ -1,9 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import GrupoForm from '@/components/ministerios/GrupoForm'
 import { editarGrupo } from '@/app/actions/ministerios'
+import { Pagina } from '@/components/ui/ios'
 
 export default async function EditarGrupoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -17,16 +16,7 @@ export default async function EditarGrupoPage({ params }: { params: Promise<{ id
   if (!grupo) notFound()
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href={`/ministerios/${id}`} className="p-2 rounded-xl" style={{ color: 'var(--muted)' }} aria-label="Volver">
-          <ArrowLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Editar grupo</h1>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>{grupo.nombre}</p>
-        </div>
-      </div>
+    <Pagina ancho="estrecho" titulo="Editar grupo" subtitulo={grupo.nombre} volver={{ href: `/ministerios/${id}`, texto: 'Grupo' }}>
       <div className="rounded-2xl border p-5 md:p-6"
         style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
         <GrupoForm
@@ -35,6 +25,6 @@ export default async function EditarGrupoPage({ params }: { params: Promise<{ id
           onSubmit={editarGrupo.bind(null, id)}
         />
       </div>
-    </div>
+    </Pagina>
   )
 }

@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 
 import { CATEGORIAS_GASTO } from '@/lib/etiquetas'
+import { Pagina } from '@/components/ui/ios'
 
 export default function NuevoGastoPage() {
   const router = useRouter()
@@ -34,8 +35,7 @@ export default function NuevoGastoPage() {
   const hoy = hoyLima()
 
   return (
-    <div className="p-4 md:p-8 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--foreground)' }}>Registrar gasto</h1>
+    <Pagina ancho="estrecho" titulo="Registrar gasto" volver={{ href: '/finanzas/gastos', texto: 'Gastos' }}>
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="concepto" label="Concepto" placeholder="Pago de luz, compra de cables..." required />
@@ -68,6 +68,6 @@ export default function NuevoGastoPage() {
           <Button type="submit" className="flex-1" loading={loading}>Registrar</Button>
         </div>
       </form>
-    </div>
+    </Pagina>
   )
 }

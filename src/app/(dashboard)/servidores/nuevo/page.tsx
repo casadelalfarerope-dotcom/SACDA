@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { crearPrograma } from '@/app/actions/servidores'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { Pagina } from '@/components/ui/ios'
 
 export default function NuevoProgramaPage() {
   const router = useRouter()
@@ -29,8 +30,7 @@ export default function NuevoProgramaPage() {
   const hoy = hoyLima()
 
   return (
-    <div className="p-4 md:p-8 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--foreground)' }}>Nuevo programa</h1>
+    <Pagina ancho="estrecho" titulo="Nuevo programa" volver={{ href: '/servidores', texto: 'Servidores' }}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="titulo" label="Título" placeholder="Culto Domingo 25 de agosto" required />
@@ -61,6 +61,6 @@ export default function NuevoProgramaPage() {
           <Button type="submit" className="flex-1" loading={loading}>Crear programa</Button>
         </div>
       </form>
-    </div>
+    </Pagina>
   )
 }

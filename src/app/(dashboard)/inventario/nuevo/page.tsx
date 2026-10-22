@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { crearBien } from '@/app/actions/inventario'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { Pagina } from '@/components/ui/ios'
 
 const CATEGORIAS = [
   { value: 'instrumento',   label: 'Instrumento' },
@@ -43,8 +44,7 @@ export default function NuevoBienPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--foreground)' }}>Agregar bien</h1>
+    <Pagina ancho="estrecho" titulo="Agregar bien" volver={{ href: '/inventario', texto: 'Inventario' }}>
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="nombre" label="Nombre" placeholder="Parlante JBL, Guitarra, Cámara..." required />
@@ -106,6 +106,6 @@ export default function NuevoBienPage() {
           <Button type="submit" className="flex-1" loading={loading}>Guardar</Button>
         </div>
       </form>
-    </div>
+    </Pagina>
   )
 }
