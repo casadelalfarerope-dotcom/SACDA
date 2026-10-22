@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, ExternalLink, Eye, Pencil } from 'lucide-react'
-import Badge from '@/components/ui/Badge'
+import { ExternalLink, Eye, Pencil } from 'lucide-react'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Pagina, Grupo, Fila, BotonEnlace, Vacio } from '@/components/ui/ios'
 import PublicarTutorialBtn from '@/components/servidores/PublicarTutorialBtn'
 import MarcarVistoBtn from '@/components/servidores/MarcarVistoBtn'
 
@@ -48,70 +48,42 @@ export default async function TutorialPage({ params }: { params: Promise<{ id: s
 
   const embedUrl = tut.url_contenido ? getEmbedUrl(tut.url_contenido) : null
 
+  const area = tut.roles_servicio as { nombre: string; color: string } | null
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/capacitacion"
-          className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
-          <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
-        </Link>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{tut.titulo}</h1>
-          {tut.roles_servicio && (
-            <span className="text-xs px-2 py-0.5 rounded-full text-white"
-              style={{ background: (tut.roles_servicio as any).color }}>
-              {(tut.roles_servicio as any).nombre}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href={`/capacitacion/${id}/editar`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border transition-opacity hover:opacity-70"
-            style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-            <Pencil size={14} /> Editar
-          </Link>
-          <Badge variant="default">{destinoLabel[tut.tipo_destino] ?? tut.tipo_destino}</Badge>
-          <PublicarTutorialBtn tutorialId={tut.id} publicado={tut.publicado} />
-        </div>
-      </div>
+    <Pagina titulo={tut.titulo} subtitulo={[area?.nombre, destinoLabel[tut.tipo_destino] ?? tut.tipo_destino].filter(Boolean).join(' · ')}
+      volver={{ href: '/capacitacion', texto: 'Capacitación' }}
+      acciones={<>
+        <BotonEnlace href={`/capacitacion/${id}/editar`} variante="tintado"><Pencil size={14} aria-hidden="true" /> Editar</BotonEnlace>
+        <PublicarTutorialBtn tutorialId={tut.id} publicado={tut.publicado} />
+      </>}>
 
       {tut.descripcion && (
-        <p className="mb-6 text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>{tut.descripcion}</p>
+        <p className="text-[15px] leading-relaxed" style={{ color: 'var(--foreground)' }}>{tut.descripcion}</p>
       )}
 
       {embedUrl ? (
-        <div className="mb-6 rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
+        <div className="rounded-2xl overflow-hidden bg-black" style={{ boxShadow: 'var(--shadow-card)' }}>
           <iframe src={embedUrl} className="w-full aspect-video" allowFullScreen title={tut.titulo} />
         </div>
       ) : tut.url_contenido ? (
-        <a href={tut.url_contenido} target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-3 p-4 rounded-2xl border mb-6 transition-opacity hover:opacity-80"
-          style={{ background: 'var(--surface)', borderColor: 'var(--accent)', color: 'var(--accent)' }}>
-          <ExternalLink size={18} />
-          <span className="text-sm font-medium">Abrir contenido</span>
-        </a>
+        <Grupo>
+          <Fila primero inicio={<IconoModulo icon={ExternalLink} color="#007aff" />}>
+            <a href={tut.url_contenido} target="_blank" rel="noopener noreferrer" className="block text-[15px] font-medium" style={{ color: 'var(--accent)' }}>
+              Abrir contenido
+            </a>
+          </Fila>
+        </Grupo>
       ) : (
-        <div className="p-4 rounded-2xl border mb-6 text-center" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>Sin enlace de contenido</p>
-        </div>
+        <Vacio titulo="Sin enlace de contenido" texto="Edita el tutorial para agregar un video o documento." />
       )}
 
-      <div className="flex items-center justify-between p-4 rounded-2xl border"
-        style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-2">
-          <Eye size={16} style={{ color: 'var(--muted)' }} />
-          <span className="text-sm" style={{ color: 'var(--muted)' }}>
-            {totalVistos} {totalVistos === 1 ? 'persona lo vio' : 'personas lo vieron'}
-          </span>
-        </div>
-        {cuenta?.persona_id && !yaVisto && (
-          <MarcarVistoBtn tutorialId={tut.id} personaId={cuenta.persona_id} />
-        )}
-        {yaVisto && (
-          <span className="text-sm font-medium" style={{ color: '#16a34a' }}>Ya lo viste</span>
-        )}
-      </div>
-    </div>
+      <Grupo>
+        <Fila primero inicio={<IconoModulo icon={Eye} color="#34c759" />}
+          titulo={`${totalVistos} ${totalVistos === 1 ? 'persona lo vio' : 'personas lo vieron'}`}
+          detalle={yaVisto
+            ? <span className="font-medium" style={{ color: 'var(--success)' }}>Ya lo viste</span>
+            : cuenta?.persona_id ? <MarcarVistoBtn tutorialId={tut.id} personaId={cuenta.persona_id} /> : undefined} />
+      </Grupo>
+    </Pagina>
   )
 }
