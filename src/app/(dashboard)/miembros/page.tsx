@@ -4,6 +4,8 @@ import { Cake, Church, UserX, UserPlus } from 'lucide-react'
 import { diasParaCumpleanios, formatDateShort } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Pagina, Grupo, Fila, BotonEnlace } from '@/components/ui/ios'
 
 export default async function MiembrosPage() {
   const supabase = await createClient()
@@ -45,225 +47,71 @@ export default async function MiembrosPage() {
     .order('fecha', { ascending: false })
     .limit(5)
 
+  const TIPO_CER = { bautismo: 'Bautismo', dedicacion: 'Dedicación', boda: 'Boda' } as const
+  const ver = (href: string) => <Link href={href} className="text-[15px] normal-case" style={{ color: 'var(--accent)' }}>Ver todas</Link>
+
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
-          Gestión de Miembros
-        </h1>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/miembros/ceremonias/nueva"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70"
-            style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-            <Church size={15} />
-            Ceremonia
-          </Link>
-          <Link href="/miembros/ausencias/nueva"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70"
-            style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-            <UserX size={15} />
-            Ausencia
-          </Link>
-          <Link href="/miembros/visitas/nueva"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-80"
-            style={{ background: 'var(--accent)' }}>
-            <UserPlus size={15} />
-            Visita
-          </Link>
-        </div>
+    <Pagina titulo="Miembros" subtitulo="Cumpleaños, visitas, ausencias y ceremonias"
+      acciones={<>
+        <BotonEnlace href="/miembros/ceremonias/nueva" variante="tintado"><Church size={15} aria-hidden="true" /> Ceremonia</BotonEnlace>
+        <BotonEnlace href="/miembros/ausencias/nueva" variante="tintado"><UserX size={15} aria-hidden="true" /> Ausencia</BotonEnlace>
+        <BotonEnlace href="/miembros/visitas/nueva"><UserPlus size={15} aria-hidden="true" /> Visita</BotonEnlace>
+      </>}>
+
+      <Grupo titulo="Cumpleaños · próximos 30 días">
+        {cumpleProximos.map((p, i) => (
+          <Fila key={p.id} href={`/congregantes/${p.id}`} primero={i === 0}
+            inicio={<Avatar nombre={p.nombre_completo} fotoUrl={p.foto_url} size="sm" />}
+            titulo={p.nombre_completo} subtitulo={p.ministerio ?? 'Sin ministerio'}
+            detalle={p.diasFaltan === 0
+              ? <span className="inline-flex items-center gap-1 font-semibold" style={{ color: 'var(--warning)' }}><Cake size={15} aria-hidden="true" /> Hoy</span>
+              : p.diasFaltan === 1 ? 'Mañana' : `En ${p.diasFaltan} días`} />
+        ))}
+        {!cumpleProximos.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Sin cumpleaños en los próximos 30 días</span>} />}
+      </Grupo>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <Grupo titulo="Visitas por seguir" accion={ver('/miembros/visitas')}>
+          {(visitas ?? []).map((v, i) => {
+            const persona = Array.isArray(v.persona) ? v.persona[0] : v.persona
+            return (
+              <Fila key={v.id} href="/miembros/visitas" primero={i === 0}
+                inicio={persona ? <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" /> : undefined}
+                titulo={persona?.nombre_completo ?? '—'} subtitulo={`Primera visita: ${formatDateShort(v.fecha_primera_visita)}`}
+                detalle={<Badge variant="warning">Pendiente</Badge>} />
+            )
+          })}
+          {!visitas?.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Sin visitas pendientes</span>} />}
+        </Grupo>
+
+        <Grupo titulo="Ausencias por atender" accion={ver('/miembros/ausencias')}>
+          {(ausencias ?? []).map((a, i) => {
+            const persona = Array.isArray(a.persona) ? a.persona[0] : a.persona
+            return (
+              <Fila key={a.id} href="/miembros/ausencias" primero={i === 0}
+                inicio={persona ? <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" /> : undefined}
+                titulo={persona?.nombre_completo ?? '—'} subtitulo={[formatDateShort(a.fecha), a.motivo].filter(Boolean).join(' · ')}
+                detalle={<Badge variant="warning">Pendiente</Badge>} />
+            )
+          })}
+          {!ausencias?.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Sin ausencias pendientes</span>} />}
+        </Grupo>
       </div>
 
-      {/* Cumpleaños próximos */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Cake size={18} style={{ color: 'var(--accent)' }} />
-          <h2 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-            Cumpleaños próximos
-          </h2>
-          <span className="text-xs px-2 py-0.5 rounded-full"
-            style={{ background: 'var(--surface-secondary)', color: 'var(--muted)' }}>
-            30 días
-          </span>
-        </div>
-
-        {cumpleProximos.length === 0 ? (
-          <p className="text-sm py-4 text-center" style={{ color: 'var(--muted)' }}>
-            Sin cumpleaños en los próximos 30 días.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {cumpleProximos.map((p) => (
-              <Link key={p.id} href={`/congregantes/${p.id}`}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all hover:shadow-sm"
-                style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                <Avatar nombre={p.nombre_completo} fotoUrl={p.foto_url} size="sm" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
-                    {p.nombre_completo}
-                  </p>
-                  <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                    {p.ministerio ?? 'Sin ministerio'}
-                  </p>
-                </div>
-                <span className="text-xs font-semibold px-2 py-1 rounded-lg"
-                  style={{
-                    background: p.diasFaltan === 0 ? '#34c75920' : p.diasFaltan <= 7 ? '#ff950020' : 'var(--surface-secondary)',
-                    color: p.diasFaltan === 0 ? 'var(--success)' : p.diasFaltan <= 7 ? 'var(--warning)' : 'var(--muted)',
-                  }}>
-                  {p.diasFaltan === 0 ? 'Hoy' : `${p.diasFaltan}d`}
-                </span>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Visitas pendientes */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <UserPlus size={18} style={{ color: 'var(--accent)' }} />
-              <h2 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                Visitas · seguimiento
-              </h2>
-            </div>
-            <Link href="/miembros/visitas" className="text-xs"
-              style={{ color: 'var(--accent)' }}>
-              Ver todas
-            </Link>
-          </div>
-
-          {!visitas || visitas.length === 0 ? (
-            <div className="rounded-2xl border p-4 text-center"
-              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <p className="text-sm" style={{ color: 'var(--muted)' }}>Sin visitas pendientes</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {visitas.map((v) => {
-                const persona = Array.isArray(v.persona) ? v.persona[0] : v.persona
-                return (
-                  <Link key={v.id} href="/miembros/visitas"
-                    className="flex items-center gap-3 px-4 py-3 rounded-2xl border"
-                    style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                    {persona && (
-                      <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
-                        {persona?.nombre_completo ?? '—'}
-                      </p>
-                      <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                        Primera visita: {formatDateShort(v.fecha_primera_visita)}
-                      </p>
-                    </div>
-                    <Badge label="Pendiente" variant="warning" />
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* Ausencias pendientes */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <UserX size={18} style={{ color: 'var(--destructive)' }} />
-              <h2 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                Ausencias · seguimiento
-              </h2>
-            </div>
-            <Link href="/miembros/ausencias" className="text-xs"
-              style={{ color: 'var(--accent)' }}>
-              Ver todas
-            </Link>
-          </div>
-
-          {!ausencias || ausencias.length === 0 ? (
-            <div className="rounded-2xl border p-4 text-center"
-              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <p className="text-sm" style={{ color: 'var(--muted)' }}>Sin ausencias pendientes</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {ausencias.map((a) => {
-                const persona = Array.isArray(a.persona) ? a.persona[0] : a.persona
-                return (
-                  <div key={a.id}
-                    className="flex items-center gap-3 px-4 py-3 rounded-2xl border"
-                    style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                    {persona && (
-                      <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
-                        {persona?.nombre_completo ?? '—'}
-                      </p>
-                      <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                        {formatDateShort(a.fecha)}
-                        {a.motivo ? ` · ${a.motivo}` : ''}
-                      </p>
-                    </div>
-                    <Badge label="Pendiente" variant="warning" />
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </section>
-      </div>
-
-      {/* Ceremonias recientes */}
-      {ceremonias && ceremonias.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Church size={18} style={{ color: 'var(--accent)' }} />
-              <h2 className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                Ceremonias recientes
-              </h2>
-            </div>
-            <Link href="/miembros/ceremonias" className="text-xs"
-              style={{ color: 'var(--accent)' }}>
-              Ver todas
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {ceremonias.map((c) => {
-              const tipoMap = { bautismo: 'Bautismo', dedicacion: 'Dedicación', boda: 'Boda' } as const
-              const tipoLabel = tipoMap[c.tipo as keyof typeof tipoMap] ?? c.tipo
-              const nombres = (c.ceremonia_personas ?? [])
-                .map((cp: { nombre_externo?: string | null; persona?: { nombre_completo: string } | null }) =>
-                  cp.persona?.nombre_completo ?? cp.nombre_externo ?? ''
-                )
-                .filter(Boolean)
-                .join(', ')
-              return (
-                <div key={c.id}
-                  className="flex items-center gap-4 px-4 py-3 rounded-2xl border"
-                  style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                      {tipoLabel}
-                      {nombres ? ` — ${nombres}` : ''}
-                    </p>
-                    <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                      {formatDateShort(c.fecha)}
-                      {c.officiante ? ` · Oficia: ${c.officiante}` : ''}
-                    </p>
-                  </div>
-                  <Badge
-                    label={tipoLabel}
-                    variant={c.tipo === 'bautismo' ? 'default' : c.tipo === 'boda' ? 'success' : 'warning'}
-                  />
-                </div>
-              )
-            })}
-          </div>
-        </section>
+      {!!ceremonias?.length && (
+        <Grupo titulo="Ceremonias recientes" accion={ver('/miembros/ceremonias')}>
+          {ceremonias.map((c, i) => {
+            const nombres = (c.ceremonia_personas ?? [])
+              .map((cp: { nombre_externo?: string | null; persona?: { nombre_completo: string } | null }) => cp.persona?.nombre_completo ?? cp.nombre_externo ?? '')
+              .filter(Boolean).join(', ')
+            return (
+              <Fila key={c.id} primero={i === 0} inicio={<IconoModulo icon={Church} color="#5856d6" />}
+                titulo={nombres || (TIPO_CER[c.tipo as keyof typeof TIPO_CER] ?? c.tipo)}
+                subtitulo={[TIPO_CER[c.tipo as keyof typeof TIPO_CER] ?? c.tipo, formatDateShort(c.fecha), c.officiante && `Oficia: ${c.officiante}`].filter(Boolean).join(' · ')} />
+            )
+          })}
+        </Grupo>
       )}
-    </div>
+    </Pagina>
   )
 }
