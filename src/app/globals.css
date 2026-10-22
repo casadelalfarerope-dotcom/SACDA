@@ -114,6 +114,21 @@ main h2 {
   border-radius: 10px;
 }
 
+/* Botón "volver" de las páginas: círculo gris con flecha azul, como en iOS. */
+main a[aria-label="Volver"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 999px;
+  background: var(--fill) !important;
+  color: var(--accent) !important;
+}
+
 /* Barras translúcidas con desenfoque (material). */
 .material {
   background: var(--material);
@@ -192,4 +207,40 @@ summary::-webkit-details-marker { display: none; }
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 3px;
+}
+
+/* Etiquetas de formularios antiguos: mismo estilo que los campos nuevos. */
+main form label.block {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted) !important;
+}
+
+/* Enlace al nivel anterior (‹ Atrás) sobre el título. */
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: -4px;
+  font-size: 15px;
+  color: var(--accent);
+}
+.volver::before {
+  content: "‹";
+  font-size: 26px;
+  line-height: 1;
+  margin-top: -3px;
+}
+.volver:hover { opacity: 0.7; }
+
+/* Botones antiguos (enlaces y botones con estilos en línea) → cápsulas al estilo Apple. */
+main :is(a, button)[style*="background: var(--accent)"]:not([role="radio"]) {
+  border-radius: 999px;
+}
+main :is(a, button).border[style*="background: var(--surface)"][style*="border-color: var(--border)"] {
+  border-color: transparent !important;
+  background: color-mix(in srgb, var(--accent) 12%, transparent) !important;
+  color: var(--accent) !important;
+  border-radius: 999px;
+  font-weight: 600;
 }

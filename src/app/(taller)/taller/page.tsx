@@ -1,5 +1,6 @@
-import Link from 'next/link'
-import { CalendarClock, ChevronRight, ClipboardCheck } from 'lucide-react'
+import { CalendarClock, ClipboardCheck, School } from 'lucide-react'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Grupo, Fila } from '@/components/ui/ios'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { calcularRanking, personaActual } from '@/lib/academia/servidor'
@@ -47,63 +48,42 @@ export default async function TallerInicioPage() {
   const pendientes = (examenes ?? []).filter((e) => !rendidos.has(e.id))
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Mi Taller</h1>
+    <div className="space-y-7">
+      <h1 style={{ color: 'var(--foreground)' }}>Mi Taller</h1>
 
       {pendientes.length > 0 && (
-        <section aria-labelledby="ex-pend" className="space-y-2">
-          <h2 id="ex-pend" className="font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-            <ClipboardCheck size={18} aria-hidden="true" style={{ color: 'var(--accent)' }} /> Exámenes por rendir
-          </h2>
-          {pendientes.map((e) => (
-            <Link key={e.id} href={`/taller/examenes/${e.id}`} className="flex items-center gap-3 p-4 rounded-2xl border hover:opacity-80"
-              style={{ background: 'var(--surface)', borderColor: 'var(--accent)' }}>
-              <span className="flex-1">
-                <span className="block text-sm font-medium" style={{ color: 'var(--foreground)' }}>{e.titulo}</span>
-                <span className="block text-xs" style={{ color: 'var(--muted)' }}>Hasta el {formatDate(e.fecha_limite!, { time: true })}</span>
-              </span>
-              <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--muted)' }} />
-            </Link>
+        <Grupo titulo="Exámenes por rendir">
+          {pendientes.map((e, i) => (
+            <Fila key={e.id} href={`/taller/examenes/${e.id}`} primero={i === 0}
+              inicio={<IconoModulo icon={ClipboardCheck} color="#5856d6" />}
+              titulo={e.titulo} subtitulo={`Hasta el ${formatDate(e.fecha_limite!, { time: true })}`} />
           ))}
-        </section>
+        </Grupo>
       )}
 
       {!!proximas?.length && (
-        <section aria-labelledby="prox" className="space-y-2">
-          <h2 id="prox" className="font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
-            <CalendarClock size={18} aria-hidden="true" style={{ color: 'var(--accent)' }} /> Próximas clases
-          </h2>
-          {proximas.map((s) => (
-            <Link key={s.id} href={`/taller/sesiones/${s.id}`} className="flex items-center gap-3 p-4 rounded-2xl border hover:opacity-80"
-              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <span className="flex-1">
-                <span className="block text-sm font-medium" style={{ color: 'var(--foreground)' }}>{tituloTema.get(s.tema_id)}</span>
-                <span className="block text-xs" style={{ color: 'var(--muted)' }}>
-                  {formatDate(s.fecha)}{s.hora_inicio ? ` · ${String(s.hora_inicio).slice(0, 5)}` : ''}
-                </span>
-              </span>
-              <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--muted)' }} />
-            </Link>
+        <Grupo titulo="Próximas clases">
+          {proximas.map((s, i) => (
+            <Fila key={s.id} href={`/taller/sesiones/${s.id}`} primero={i === 0}
+              inicio={<IconoModulo icon={CalendarClock} color="#ff3b30" />}
+              titulo={tituloTema.get(s.tema_id)}
+              subtitulo={`${formatDate(s.fecha)}${s.hora_inicio ? ` · ${String(s.hora_inicio).slice(0, 5)}` : ''}`} />
           ))}
-        </section>
+        </Grupo>
       )}
 
-      <section aria-labelledby="mis-cursos" className="space-y-3">
-        <h2 id="mis-cursos" className="font-semibold" style={{ color: 'var(--foreground)' }}>Mis cursos</h2>
+      <Grupo titulo="Mis cursos">
         {cursos.map((c, i) => {
           const mia = rankings[i]!.find((f) => f.personaId === yo.personaId)
           return (
-            <Link key={c.id} href={`/taller/cursos/${c.id}`} className="block p-4 rounded-2xl border hover:opacity-90 space-y-3"
-              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <div className="flex items-center gap-3">
-                <span className="flex-1 font-semibold" style={{ color: 'var(--foreground)' }}>{c.nombre}</span>
-                <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--muted)' }} />
-              </div>
-              {mia && <PuestoRanking puesto={mia.puesto} promedio={mia.promedio} />}
-            </Link>
+            <Fila key={c.id} href={`/taller/cursos/${c.id}`} primero={i === 0}
+              inicio={<IconoModulo icon={School} color="#af52de" tamano={36} />}
+              titulo={c.nombre}>
+              {mia && <span className="block mt-2"><PuestoRanking puesto={mia.puesto} promedio={mia.promedio} /></span>}
+            </Fila>
           )
         })}
-      </section>
+      </Grupo>
     </div>
   )
 }

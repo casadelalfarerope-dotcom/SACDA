@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { TrendingUp, TrendingDown, Plus, ArrowRight } from 'lucide-react'
+import { TrendingUp, TrendingDown, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Grupo, Fila, Tarjeta, Segmentado } from '@/components/ui/ios'
 import { formatDateShort } from '@/lib/utils'
 import { etiquetaTipoAporte, etiquetaCategoriaGasto } from '@/lib/etiquetas'
 
@@ -239,54 +240,57 @@ function SelectorPeriodo({
 }: { value: Periodo; onChange: (p: Periodo) => void; opciones: typeof PERIODOS }) {
   const lbl = rangoLabel(value)
   return (
-    <div className="mb-6">
-      <div className="flex flex-wrap gap-2">
-        {opciones.map(({ value: v, label }) => (
-          <button key={v} onClick={() => onChange(v)}
-            className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
-            style={{
-              background:  v === value ? 'var(--accent)' : 'var(--surface-secondary)',
-              color:       v === value ? '#fff' : 'var(--muted)',
-              border:      '1px solid',
-              borderColor: v === value ? 'var(--accent)' : 'var(--border)',
-            }}>
-            {label}
-          </button>
-        ))}
-      </div>
-      {lbl && (
-        <p className="mt-2 text-xs" style={{ color: 'var(--muted)' }}>
-          Mostrando: <span className="font-medium" style={{ color: 'var(--foreground)' }}>{lbl}</span>
-        </p>
-      )}
+    <div className="space-y-2">
+      <Segmentado etiqueta="Período" valor={value} onChange={onChange}
+        opciones={opciones.map((o) => ({ valor: o.value, texto: o.label }))} />
+      {lbl && <p className="text-[13px] px-1" style={{ color: 'var(--muted)' }}>{lbl}</p>}
     </div>
   )
 }
 
-// ── Stat tiles ────────────────────────────────────────────────────────────────
+// ── Resumen de balance ─────────────────────────────────────────────────────────
 
-function StatTiles({ totalAportes, totalGastos, balance }: { totalAportes: number; totalGastos: number; balance: number }) {
+function Balance({ totalAportes, totalGastos, balance }: { totalAportes: number; totalGastos: number; balance: number }) {
   return (
-    <div className="grid grid-cols-3 gap-3 mb-6">
-      <div className="p-4 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-2 mb-1">
-          <TrendingUp size={14} style={{ color: '#16a34a' }} />
-          <span className="text-xs" style={{ color: 'var(--muted)' }}>Aportes</span>
+    <section aria-label="Balance" className="rounded-2xl border p-5" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+      <p className="text-[13px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Balance</p>
+      <p className="text-[34px] leading-tight font-bold tabular-nums tracking-tight mt-1"
+        style={{ color: balance >= 0 ? 'var(--foreground)' : 'var(--error)' }}>
+        {fmt(balance)}
+      </p>
+      <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'color-mix(in srgb, var(--success) 14%, transparent)' }}>
+            <TrendingUp size={16} aria-hidden="true" style={{ color: 'var(--success)' }} />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[12px]" style={{ color: 'var(--muted)' }}>Aportes</span>
+            <span className="block text-[15px] font-semibold tabular-nums truncate" style={{ color: 'var(--foreground)' }}>{fmt(totalAportes)}</span>
+          </span>
         </div>
-        <p className="text-base sm:text-lg font-bold break-words" style={{ color: '#16a34a' }}>{fmt(totalAportes)}</p>
-      </div>
-      <div className="p-4 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-2 mb-1">
-          <TrendingDown size={14} style={{ color: 'var(--error)' }} />
-          <span className="text-xs" style={{ color: 'var(--muted)' }}>Gastos</span>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'color-mix(in srgb, var(--error) 14%, transparent)' }}>
+            <TrendingDown size={16} aria-hidden="true" style={{ color: 'var(--error)' }} />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[12px]" style={{ color: 'var(--muted)' }}>Gastos</span>
+            <span className="block text-[15px] font-semibold tabular-nums truncate" style={{ color: 'var(--foreground)' }}>{fmt(totalGastos)}</span>
+          </span>
         </div>
-        <p className="text-base sm:text-lg font-bold break-words" style={{ color: 'var(--error)' }}>{fmt(totalGastos)}</p>
       </div>
-      <div className="p-4 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Balance</p>
-        <p className="text-base sm:text-lg font-bold break-words" style={{ color: balance >= 0 ? '#16a34a' : 'var(--error)' }}>{fmt(balance)}</p>
-      </div>
-    </div>
+    </section>
+  )
+}
+
+function AccionesLista({ verHref, nuevoHref, nuevoEtiqueta }: { verHref: string; nuevoHref: string; nuevoEtiqueta: string }) {
+  return (
+    <span className="flex items-center gap-3 normal-case">
+      <Link href={verHref} className="text-[15px]" style={{ color: 'var(--accent)' }}>Ver todos</Link>
+      <Link href={nuevoHref} aria-label={nuevoEtiqueta} className="w-7 h-7 rounded-full flex items-center justify-center"
+        style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>
+        <Plus size={16} aria-hidden="true" />
+      </Link>
+    </span>
   )
 }
 
@@ -312,7 +316,6 @@ export default function FinanzasTabs(props: FinanzasTabsProps) {
   const [periodoResumen, setPeriodoResumen] = useState<Periodo>('mensual')
   const [periodoEst,     setPeriodoEst]     = useState<Periodo>('semestral')
 
-  // ── Datos para Resumen según período ──
   const usaMensual = periodoResumen === 'mensual'
   const aportesFiltR = usaMensual ? props.aportesMes : filtrar(props.aportesHist, periodoResumen)
   const gastosFiltR  = usaMensual ? props.gastosMes  : filtrar(props.gastosHist,  periodoResumen)
@@ -320,7 +323,6 @@ export default function FinanzasTabs(props: FinanzasTabsProps) {
   const totalGR  = usaMensual ? props.totalGastos  : gastosFiltR.reduce((s, g) => s + g.monto, 0)
   const balanceR = totalAR - totalGR
 
-  // ── Datos para Estadísticas según período ──
   const tendencia     = agregarTendencia(filtrar(props.aportesHist, periodoEst), filtrar(props.gastosHist, periodoEst), periodoEst)
   const aportesPorTipo = topPorCategoria(props.aportesHist, 'tipo', periodoEst).map(d => ({ ...d, label: etiquetaTipoAporte(d.label) }))
   const gastosPorCat   = topPorCategoria(props.gastosHist, 'categoria', periodoEst).map(d => ({ ...d, label: etiquetaCategoriaGasto(d.label) }))
@@ -328,158 +330,74 @@ export default function FinanzasTabs(props: FinanzasTabsProps) {
   const totalGE  = filtrar(props.gastosHist,  periodoEst).reduce((s, g) => s + g.monto, 0)
   const balanceE = totalAE - totalGE
 
-  const tabStyle = (t: Tab) => ({
-    borderBottom: t === tab ? '2px solid var(--accent)' : '2px solid transparent',
-    color:        t === tab ? 'var(--accent)' : 'var(--muted)',
-    fontWeight:   t === tab ? 600 : 400,
-  } as React.CSSProperties)
-
   return (
-    <>
-      {/* Tab bar */}
-      <div className="flex border-b mb-6" style={{ borderColor: 'var(--border)' }}>
-        {([['resumen', 'Resumen'], ['estadisticas', 'Estadísticas']] as [Tab, string][]).map(([t, label]) => (
-          <button key={t} onClick={() => setTab(t)}
-            className="px-5 py-3 text-sm transition-colors"
-            style={tabStyle(t)}>
-            {label}
-          </button>
-        ))}
-      </div>
+    <div className="space-y-6">
+      <Segmentado etiqueta="Vista" valor={tab} onChange={setTab} ancho
+        opciones={[{ valor: 'resumen', texto: 'Resumen' }, { valor: 'estadisticas', texto: 'Estadísticas' }]} />
 
-      {/* ── TAB RESUMEN ── */}
       {tab === 'resumen' && (
         <>
-          {/* Selector de período */}
           <SelectorPeriodo value={periodoResumen} onChange={setPeriodoResumen} opciones={PERIODOS} />
 
-          {/* Navegación por mes — solo si "Mensual" */}
           {usaMensual && (
-            <div className="flex items-center justify-between mb-6 p-3 rounded-2xl border"
-              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <Link href={props.mesPrevHref}
-                className="px-3 py-1.5 rounded-xl text-sm hover:opacity-70 transition-opacity"
-                style={{ color: 'var(--muted)' }}>
-                &lt; {props.mesPrevLabel}
+            <div className="flex items-center justify-between">
+              <Link href={props.mesPrevHref} aria-label={`Mes anterior: ${props.mesPrevLabel}`}
+                className="inline-flex items-center gap-0.5 text-[15px] hover:opacity-70" style={{ color: 'var(--accent)' }}>
+                <ChevronLeft size={18} aria-hidden="true" /> {props.mesPrevLabel}
               </Link>
-              <span className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>
-                {props.mesLabel}
-              </span>
+              <span className="text-[17px] font-semibold" style={{ color: 'var(--foreground)' }}>{props.mesLabel}</span>
               {props.mesSigHref ? (
-                <Link href={props.mesSigHref}
-                  className="px-3 py-1.5 rounded-xl text-sm hover:opacity-70 transition-opacity"
-                  style={{ color: 'var(--muted)' }}>
-                  {props.mesSigLabel} &gt;
+                <Link href={props.mesSigHref} aria-label={`Mes siguiente: ${props.mesSigLabel}`}
+                  className="inline-flex items-center gap-0.5 text-[15px] hover:opacity-70" style={{ color: 'var(--accent)' }}>
+                  {props.mesSigLabel} <ChevronRight size={18} aria-hidden="true" />
                 </Link>
-              ) : (
-                <span className="px-3 py-1.5 text-sm" style={{ color: 'var(--muted)', opacity: 0.3 }}>
-                  {props.mesSigLabel} &gt;
-                </span>
-              )}
+              ) : <span className="w-16" aria-hidden="true" />}
             </div>
           )}
 
-          <StatTiles totalAportes={totalAR} totalGastos={totalGR} balance={balanceR} />
+          <Balance totalAportes={totalAR} totalGastos={totalGR} balance={balanceR} />
 
-          {/* Listas */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>
-                  Aportes ({aportesFiltR.length})
-                </p>
-                <div className="flex gap-2">
-                  <Link href="/finanzas/aportes" className="text-xs flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--accent)' }}>
-                    Ver todos <ArrowRight size={11} />
-                  </Link>
-                  <Link href="/finanzas/aportes/nuevo"
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-white"
-                    style={{ background: 'var(--accent)' }}>
-                    <Plus size={11} /> Nuevo
-                  </Link>
-                </div>
-              </div>
-              <div className="space-y-2">
-                {aportesFiltR.slice(0, 10).map((a, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-xl border"
-                    style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                    <div>
-                      <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{a.persona ?? '—'}</p>
-                      <p className="text-xs" style={{ color: 'var(--muted)' }}>{etiquetaTipoAporte(a.tipo)} · {formatDateShort(a.fecha)}</p>
-                    </div>
-                    <p className="font-semibold text-sm" style={{ color: '#16a34a' }}>{fmt(a.monto)}</p>
-                  </div>
-                ))}
-                {aportesFiltR.length === 0 && (
-                  <p className="text-sm text-center py-4" style={{ color: 'var(--muted)' }}>Sin aportes</p>
-                )}
-              </div>
-            </div>
+          <div className="grid md:grid-cols-2 gap-6 items-start">
+            <Grupo titulo={`Aportes (${aportesFiltR.length})`}
+              accion={<AccionesLista verHref="/finanzas/aportes" nuevoHref="/finanzas/aportes/nuevo" nuevoEtiqueta="Registrar aporte" />}>
+              {aportesFiltR.slice(0, 10).map((a, i) => (
+                <Fila key={i} primero={i === 0} titulo={a.persona ?? 'Anónimo'}
+                  subtitulo={`${etiquetaTipoAporte(a.tipo)} · ${formatDateShort(a.fecha)}`}
+                  detalle={<span className="font-semibold tabular-nums" style={{ color: 'var(--success)' }}>+{fmt(a.monto)}</span>} />
+              ))}
+              {aportesFiltR.length === 0 && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Sin aportes en este período</span>} />}
+            </Grupo>
 
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>
-                  Gastos ({gastosFiltR.length})
-                </p>
-                <div className="flex gap-2">
-                  <Link href="/finanzas/gastos" className="text-xs flex items-center gap-1 hover:opacity-70" style={{ color: 'var(--accent)' }}>
-                    Ver todos <ArrowRight size={11} />
-                  </Link>
-                  <Link href="/finanzas/gastos/nuevo"
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-white"
-                    style={{ background: 'var(--accent)' }}>
-                    <Plus size={11} /> Nuevo
-                  </Link>
-                </div>
-              </div>
-              <div className="space-y-2">
-                {gastosFiltR.slice(0, 10).map((g, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-xl border"
-                    style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                    <div>
-                      <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{g.concepto}</p>
-                      <p className="text-xs" style={{ color: 'var(--muted)' }}>{etiquetaCategoriaGasto(g.categoria)} · {formatDateShort(g.fecha)}</p>
-                    </div>
-                    <p className="font-semibold text-sm" style={{ color: 'var(--error)' }}>{fmt(g.monto)}</p>
-                  </div>
-                ))}
-                {gastosFiltR.length === 0 && (
-                  <p className="text-sm text-center py-4" style={{ color: 'var(--muted)' }}>Sin gastos</p>
-                )}
-              </div>
-            </div>
+            <Grupo titulo={`Gastos (${gastosFiltR.length})`}
+              accion={<AccionesLista verHref="/finanzas/gastos" nuevoHref="/finanzas/gastos/nuevo" nuevoEtiqueta="Registrar gasto" />}>
+              {gastosFiltR.slice(0, 10).map((g, i) => (
+                <Fila key={i} primero={i === 0} titulo={g.concepto}
+                  subtitulo={`${etiquetaCategoriaGasto(g.categoria)} · ${formatDateShort(g.fecha)}`}
+                  detalle={<span className="font-semibold tabular-nums" style={{ color: 'var(--foreground)' }}>−{fmt(g.monto)}</span>} />
+              ))}
+              {gastosFiltR.length === 0 && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Sin gastos en este período</span>} />}
+            </Grupo>
           </div>
         </>
       )}
 
-      {/* ── TAB ESTADÍSTICAS ── */}
       {tab === 'estadisticas' && (
         <>
-          <SelectorPeriodo value={periodoEst} onChange={setPeriodoEst}
-            opciones={PERIODOS.filter(p => p.value !== 'mensual')} />
-
-          <StatTiles totalAportes={totalAE} totalGastos={totalGE} balance={balanceE} />
-
-          <div className="space-y-4">
-            <div className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <p className="text-sm font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
-                Tendencia — {PERIODOS.find(p => p.value === periodoEst)?.label}
-              </p>
-              <TendenciaChart datos={tendencia} />
-            </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                <p className="text-sm font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Aportes por tipo</p>
-                <BarrasH datos={aportesPorTipo} color={AZUL} vacio="Sin aportes en este período" />
-              </div>
-              <div className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-                <p className="text-sm font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Gastos por categoría</p>
-                <BarrasH datos={gastosPorCat} color={NARANJA} vacio="Sin gastos en este período" />
-              </div>
-            </div>
+          <SelectorPeriodo value={periodoEst} onChange={setPeriodoEst} opciones={PERIODOS.filter(p => p.value !== 'mensual')} />
+          <Balance totalAportes={totalAE} totalGastos={totalGE} balance={balanceE} />
+          <Tarjeta titulo={`Tendencia · ${PERIODOS.find(p => p.value === periodoEst)?.label}`}>
+            <TendenciaChart datos={tendencia} />
+          </Tarjeta>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Tarjeta titulo="Aportes por tipo">
+              <BarrasH datos={aportesPorTipo} color={AZUL} vacio="Sin aportes en este período" />
+            </Tarjeta>
+            <Tarjeta titulo="Gastos por categoría">
+              <BarrasH datos={gastosPorCat} color={NARANJA} vacio="Sin gastos en este período" />
+            </Tarjeta>
           </div>
         </>
       )}
-    </>
+    </div>
   )
 }

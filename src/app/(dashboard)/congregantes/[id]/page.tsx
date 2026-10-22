@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, Pencil, Phone, Mail, MapPin, Calendar, Hash, ShieldCheck } from 'lucide-react'
+import { Pencil, Phone, Mail, MessageCircle } from 'lucide-react'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
-import { formatDateShort, calcularEdad } from '@/lib/utils'
+import { Pagina, Grupo, Fila, Tarjeta, BotonEnlace } from '@/components/ui/ios'
+import { formatDate, formatDateShort, calcularEdad } from '@/lib/utils'
 import type { EstadoPersona } from '@/types/database'
 import DarAccesoForm from '@/components/personas/DarAccesoForm'
 
@@ -14,157 +14,92 @@ const estadoLabel: Record<EstadoPersona, { label: string; variant: 'success' | '
   visita:   { label: 'Visita',   variant: 'warning' },
 }
 
-function Campo({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: string | null }) {
-  if (!value) return null
+function AccionContacto({ href, icon: Icon, texto }: { href: string; icon: React.ElementType; texto: string }) {
   return (
-    <div className="flex items-start gap-3 py-3 border-b last:border-0"
-      style={{ borderColor: 'var(--border)' }}>
-      <Icon size={16} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--muted)' }} />
-      <div>
-        <p className="text-xs mb-0.5" style={{ color: 'var(--muted)' }}>{label}</p>
-        <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{value}</p>
-      </div>
-    </div>
+    <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer"
+      className="flex-1 max-w-[110px] flex flex-col items-center gap-1 py-2.5 rounded-2xl transition-[filter] hover:brightness-95"
+      style={{ background: 'var(--surface)', boxShadow: 'var(--shadow-card)', color: 'var(--accent)' }}>
+      <Icon size={20} aria-hidden="true" />
+      <span className="text-[12px] font-medium">{texto}</span>
+    </a>
   )
 }
 
-export default async function DetalleCongregantePage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function DetalleCongregantePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-
-  const { data: persona } = await supabase
-    .from('personas')
-    .select('*')
-    .eq('id', id)
-    .single()
-
+  const { data: persona } = await supabase.from('personas').select('*').eq('id', id).single()
   if (!persona) notFound()
 
-  // Roles activos de esta persona
   const [{ data: roles }, { data: cuenta }] = await Promise.all([
-    supabase
-      .from('roles_asignados')
-      .select('*, rol:roles(nombre, descripcion)')
-      .eq('persona_id', id)
-      .eq('activo', true),
-    supabase
-      .from('cuentas')
-      .select('id')
-      .eq('persona_id', id)
-      .maybeSingle(),
+    supabase.from('roles_asignados').select('id, rol:roles(nombre)').eq('persona_id', id).eq('activo', true),
+    supabase.from('cuentas').select('id').eq('persona_id', id).maybeSingle(),
   ])
 
+  const estado = estadoLabel[persona.estado as EstadoPersona]
+  const telefono = persona.telefono?.replace(/[^\d+]/g, '')
+  const whatsapp = telefono ? (telefono.startsWith('+') ? telefono.slice(1) : telefono.length === 9 ? `51${telefono}` : telefono) : null
+
+  const datos = [
+    { t: 'DNI', v: persona.dni },
+    { t: 'Nacimiento', v: persona.fecha_nacimiento ? `${formatDate(persona.fecha_nacimiento)} · ${calcularEdad(persona.fecha_nacimiento)} años` : null },
+    { t: 'Teléfono', v: persona.telefono },
+    { t: 'Correo', v: persona.email },
+    { t: 'Dirección', v: persona.direccion },
+  ].filter((d) => d.v)
+
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto stagger">
-      {/* Navegación */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/congregantes"
-          className="p-2 rounded-xl transition-opacity hover:opacity-70"
-          style={{ color: 'var(--muted)' }} aria-label="Volver">
-          <ArrowLeft size={20} />
-        </Link>
-        <h1 className="text-xl font-bold flex-1 truncate" style={{ color: 'var(--foreground)' }}>
-          Detalle
-        </h1>
-        <Link href={`/congregantes/${id}/editar`}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70"
-          style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-          <Pencil size={14} />
-          Editar
-        </Link>
-      </div>
+    <Pagina ancho="estrecho" volver={{ href: '/congregantes', texto: 'Congregantes' }}
+      acciones={<BotonEnlace href={`/congregantes/${id}/editar`} variante="tintado"><Pencil size={15} aria-hidden="true" /> Editar</BotonEnlace>}>
 
-      {/* Encabezado de perfil */}
-      <div className="rounded-2xl border p-5 mb-4 flex items-center gap-4"
-        style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="lg" />
-        <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-semibold truncate" style={{ color: 'var(--foreground)' }}>
-            {persona.nombre_completo}
-          </h2>
-          {persona.ministerio && (
-            <p className="text-sm" style={{ color: 'var(--muted)' }}>{persona.ministerio}</p>
-          )}
-          <div className="mt-2">
-            <Badge
-              label={estadoLabel[persona.estado as keyof typeof estadoLabel].label}
-              variant={estadoLabel[persona.estado as keyof typeof estadoLabel].variant}
-            />
-          </div>
+      <div className="flex flex-col items-center text-center gap-2 -mt-4">
+        <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="lg" className="w-24! h-24! text-3xl!" />
+        <h1 className="mt-1 text-center" style={{ color: 'var(--foreground)' }}>{persona.nombre_completo}</h1>
+        <div className="flex items-center gap-2">
+          {persona.ministerio && <span className="text-[15px]" style={{ color: 'var(--muted)' }}>{persona.ministerio}</span>}
+          <Badge variant={estado.variant}>{estado.label}</Badge>
         </div>
       </div>
 
-      {/* Datos personales */}
-      <div className="rounded-2xl border p-5 mb-4"
-        style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--muted)' }}>
-          DATOS PERSONALES
-        </h3>
-        <Campo icon={Hash} label="DNI" value={persona.dni} />
-        <Campo
-          icon={Calendar}
-          label="Fecha de nacimiento"
-          value={persona.fecha_nacimiento
-            ? `${formatDateShort(persona.fecha_nacimiento)} (${calcularEdad(persona.fecha_nacimiento)} años)`
-            : null}
-        />
-        <Campo icon={Phone} label="Teléfono / WhatsApp" value={persona.telefono} />
-        <Campo icon={Mail} label="Correo electrónico" value={persona.email} />
-        <Campo icon={MapPin} label="Dirección" value={persona.direccion} />
-      </div>
-
-      {/* Roles */}
-      {roles && roles.length > 0 && (
-        <div className="rounded-2xl border p-5 mb-4"
-          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--muted)' }}>
-            ROLES ASIGNADOS
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {roles.map((ra) => (
-              <Badge key={ra.id} label={ra.rol?.nombre ?? ''} variant="default" />
-            ))}
-          </div>
+      {(telefono || persona.email) && (
+        <div className="flex justify-center gap-3">
+          {telefono && <AccionContacto href={`tel:${telefono}`} icon={Phone} texto="Llamar" />}
+          {whatsapp && <AccionContacto href={`https://wa.me/${whatsapp}`} icon={MessageCircle} texto="WhatsApp" />}
+          {persona.email && <AccionContacto href={`mailto:${persona.email}`} icon={Mail} texto="Correo" />}
         </div>
       )}
 
-      {/* Notas */}
+      {datos.length > 0 && (
+        <Grupo titulo="Datos personales">
+          {datos.map((d, i) => (
+            <Fila key={d.t} primero={i === 0} titulo={<span className="text-[13px]" style={{ color: 'var(--muted)' }}>{d.t}</span>}>
+              <span className="block text-[15px] break-words" style={{ color: 'var(--foreground)' }}>{d.v}</span>
+            </Fila>
+          ))}
+        </Grupo>
+      )}
+
+      {!!roles?.length && (
+        <Grupo titulo="Roles">
+          <Fila primero>
+            <span className="flex flex-wrap gap-1.5">
+              {roles.map((r) => <Badge key={r.id} variant="default">{(r.rol as unknown as { nombre: string } | null)?.nombre}</Badge>)}
+            </span>
+          </Fila>
+        </Grupo>
+      )}
+
       {persona.notas && (
-        <div className="rounded-2xl border p-5"
-          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--muted)' }}>
-            NOTAS INTERNAS
-          </h3>
-          <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--foreground)' }}>
-            {persona.notas}
-          </p>
-        </div>
+        <Grupo titulo="Notas internas">
+          <Fila primero><span className="block text-[15px] whitespace-pre-wrap" style={{ color: 'var(--foreground)' }}>{persona.notas}</span></Fila>
+        </Grupo>
       )}
 
-      {/* Acceso al sistema */}
-      <div className="rounded-2xl border p-5"
-        style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <ShieldCheck size={15} style={{ color: 'var(--muted)' }} />
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--muted)' }}>
-            ACCESO AL SISTEMA
-          </h3>
-        </div>
-        <DarAccesoForm
-          personaId={id}
-          emailSugerido={persona.email}
-          tieneAcceso={!!cuenta}
-        />
-      </div>
+      <Tarjeta titulo="Acceso al sistema">
+        <DarAccesoForm personaId={id} emailSugerido={persona.email} tieneAcceso={!!cuenta} />
+      </Tarjeta>
 
-      {/* Metadata */}
-      <p className="text-xs text-center mt-4" style={{ color: 'var(--muted)' }}>
-        Registrado el {formatDateShort(persona.created_at)}
-      </p>
-    </div>
+      <p className="text-[13px] text-center" style={{ color: 'var(--muted)' }}>Registrado el {formatDateShort(persona.created_at)}</p>
+    </Pagina>
   )
 }

@@ -31,7 +31,7 @@ export default async function ExamenLiderPage({ params }: { params: Promise<{ id
 
   const encabezado = (
     <div>
-      <Link href={`/academia/cursos/${curso.id}`} className="text-sm hover:underline" style={{ color: 'var(--muted)' }}>{curso.nombre}</Link>
+      <Link href={`/academia/cursos/${curso.id}`} className="volver">{curso.nombre}</Link>
       <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{examen.titulo}</h1>
     </div>
   )
@@ -46,7 +46,7 @@ export default async function ExamenLiderPage({ params }: { params: Promise<{ id
       })),
     }
     return (
-      <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
+      <div className="px-4 md:px-8 py-6 max-w-3xl mx-auto space-y-7">
         {encabezado}
         <div className="p-4 rounded-2xl border flex flex-wrap items-center gap-3" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Badge variant="muted">Borrador</Badge>
@@ -86,7 +86,7 @@ export default async function ExamenLiderPage({ params }: { params: Promise<{ id
   const estiloTarjeta = { background: 'var(--surface)', borderColor: 'var(--border)' }
 
   return (
-    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
+    <div className="px-4 md:px-8 py-6 max-w-3xl mx-auto space-y-7">
       {encabezado}
 
       <section className={tarjeta} style={estiloTarjeta} aria-label="Estado del examen">

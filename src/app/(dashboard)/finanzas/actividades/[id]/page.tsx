@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Plus } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { Pagina, Grupo, Fila, Tarjeta } from '@/components/ui/ios'
 import AgregarMovimientoForm from '@/components/finanzas/AgregarMovimientoForm'
 
 function fmt(n: number) {
@@ -24,63 +23,37 @@ export default async function ActividadDetailPage({ params }: { params: Promise<
   const egresos = (movimientos ?? []).filter((m) => m.tipo === 'egreso').reduce((s, m) => s + Number(m.monto), 0)
   const balance = ingresos - egresos
 
-  return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/finanzas/actividades"
-          className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
-          <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{actividad.nombre}</h1>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>{formatDate(actividad.fecha)}</p>
-        </div>
-      </div>
-
-      {/* Balance cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="p-3 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Ingresos</p>
-          <p className="font-bold text-sm" style={{ color: '#16a34a' }}>{fmt(ingresos)}</p>
-        </div>
-        <div className="p-3 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Egresos</p>
-          <p className="font-bold text-sm" style={{ color: 'var(--error)' }}>{fmt(egresos)}</p>
-        </div>
-        <div className="p-3 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Balance</p>
-          <p className="font-bold text-sm" style={{ color: balance >= 0 ? '#16a34a' : 'var(--error)' }}>{fmt(balance)}</p>
-        </div>
-      </div>
-
-      {/* Add movement */}
-      <div className="p-4 rounded-2xl border mb-6" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <p className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>Agregar movimiento</p>
-        <AgregarMovimientoForm actividadId={id} />
-      </div>
-
-      {/* Movement list */}
-      <div className="space-y-2">
-        {(movimientos ?? []).map((m) => (
-          <div key={m.id} className="flex items-center gap-3 p-4 rounded-2xl border"
-            style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="w-2 self-stretch rounded-full" style={{ background: m.tipo === 'ingreso' ? '#16a34a' : 'var(--error)' }} />
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm" style={{ color: 'var(--foreground)' }}>{m.concepto}</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                {m.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'} · {formatDate(m.fecha)}
-              </p>
-            </div>
-            <p className="font-bold text-sm" style={{ color: m.tipo === 'ingreso' ? '#16a34a' : 'var(--error)' }}>
-              {m.tipo === 'egreso' ? '−' : '+'}{fmt(Number(m.monto))}
-            </p>
-          </div>
-        ))}
-        {(!movimientos || movimientos.length === 0) && (
-          <p className="text-center py-8 text-sm" style={{ color: 'var(--muted)' }}>Sin movimientos</p>
-        )}
-      </div>
+  const Monto = ({ t, v, c }: { t: string; v: number; c: string }) => (
+    <div className="min-w-0">
+      <p className="text-[12px]" style={{ color: 'var(--muted)' }}>{t}</p>
+      <p className="text-[17px] font-semibold tabular-nums truncate" style={{ color: c }}>{fmt(v)}</p>
     </div>
+  )
+  return (
+    <Pagina ancho="estrecho" titulo={actividad.nombre} subtitulo={formatDate(actividad.fecha)}
+      volver={{ href: '/finanzas/actividades', texto: 'Actividades' }}>
+      <section aria-label="Balance" className="rounded-2xl border p-5" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <p className="text-[13px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Balance</p>
+        <p className="text-[34px] leading-tight font-bold tabular-nums tracking-tight" style={{ color: balance >= 0 ? 'var(--foreground)' : 'var(--error)' }}>{fmt(balance)}</p>
+        <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+          <Monto t="Ingresos" v={ingresos} c="var(--success)" />
+          <Monto t="Egresos" v={egresos} c="var(--error)" />
+        </div>
+      </section>
+
+      <Tarjeta titulo="Agregar movimiento">
+        <AgregarMovimientoForm actividadId={id} />
+      </Tarjeta>
+
+      <Grupo titulo="Movimientos">
+        {(movimientos ?? []).map((m, i) => (
+          <Fila key={m.id} primero={i === 0} titulo={m.concepto}
+            subtitulo={`${m.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'} · ${formatDate(m.fecha)}`}
+            detalle={<span className="font-semibold tabular-nums" style={{ color: m.tipo === 'ingreso' ? 'var(--success)' : 'var(--foreground)' }}>
+              {m.tipo === 'egreso' ? '−' : '+'}{fmt(Number(m.monto))}</span>} />
+        ))}
+        {(!movimientos || movimientos.length === 0) && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Sin movimientos</span>} />}
+      </Grupo>
+    </Pagina>
   )
 }

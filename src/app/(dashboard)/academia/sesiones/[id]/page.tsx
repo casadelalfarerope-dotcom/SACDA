@@ -50,9 +50,9 @@ export default async function SesionPage({ params }: { params: Promise<{ id: str
   const estiloTarjeta = { background: 'var(--surface)', borderColor: 'var(--border)' }
 
   return (
-    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
+    <div className="px-4 md:px-8 py-6 max-w-3xl mx-auto space-y-7">
       <div>
-        <Link href={`/academia/temas/${tema.id}`} className="text-sm hover:underline" style={{ color: 'var(--muted)' }}>
+        <Link href={`/academia/temas/${tema.id}`} className="volver">
           {tema.curso.nombre} · Tema {tema.orden}: {tema.titulo}
         </Link>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Clase del {formatDate(sesion.fecha)}</h1>

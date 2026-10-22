@@ -46,7 +46,7 @@ export default async function TallerSesionPage({ params }: { params: Promise<{ i
   return (
     <div className="space-y-5">
       <div>
-        <Link href={`/taller/cursos/${tema.curso_id}`} className="text-sm hover:underline" style={{ color: 'var(--muted)' }}>{tema.curso.nombre}</Link>
+        <Link href={`/taller/cursos/${tema.curso_id}`} className="volver">{tema.curso.nombre}</Link>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{tema.orden}. {tema.titulo}</h1>
         <p className="text-sm" style={{ color: 'var(--muted)' }}>
           Clase del {formatDate(sesion.fecha)}

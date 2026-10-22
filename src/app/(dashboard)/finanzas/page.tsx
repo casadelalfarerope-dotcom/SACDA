@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
+import { Pagina, BotonEnlace } from '@/components/ui/ios'
 import FinanzasTabs from './FinanzasTabs'
 
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto',
@@ -86,19 +86,8 @@ export default async function FinanzasPage({
   const esHoy    = mes === hoy.getMonth() + 1 && anio === hoy.getFullYear()
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Finanzas</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>Aportes y gastos</p>
-        </div>
-        <Link href="/finanzas/actividades"
-          className="px-3 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70"
-          style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-          Actividades
-        </Link>
-      </div>
-
+    <Pagina titulo="Finanzas" subtitulo="Aportes, gastos y actividades"
+      acciones={<BotonEnlace href="/finanzas/actividades" variante="tintado">Actividades</BotonEnlace>}>
       <FinanzasTabs
         aportesMes={aportesMes}
         gastosMes={gastosMes}
@@ -115,6 +104,6 @@ export default async function FinanzasPage({
         aportesHist={aportesHist}
         gastosHist={gastosHist}
       />
-    </div>
+    </Pagina>
   )
 }

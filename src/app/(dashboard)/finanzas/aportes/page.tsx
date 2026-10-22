@@ -1,7 +1,7 @@
 import { etiquetaTipoAporte } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { ArrowLeft, Plus, Download } from 'lucide-react'
+import { Plus, Download } from 'lucide-react'
+import { Pagina, Grupo, Fila, SegmentadoEnlaces, BotonEnlace, Vacio } from '@/components/ui/ios'
 import { formatDate } from '@/lib/utils'
 
 function fmt(n: number) {
@@ -37,81 +37,44 @@ export default async function AportesPage({
     porTipo[a.tipo] = (porTipo[a.tipo] ?? 0) + Number(a.monto)
   }
 
+  const TIPOS = ['ofrenda', 'diezmo', 'pacto', 'otro']
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/finanzas"
-          className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
-          <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Aportes</h1>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>Total: {fmt(total)}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <a href="/api/export/aportes"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border"
-            style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-            <Download size={14} /> Excel
-          </a>
-          <Link href="/finanzas/aportes/nuevo"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: 'var(--accent)' }}>
-            <Plus size={15} /> Registrar
-          </Link>
-        </div>
-      </div>
+    <Pagina titulo="Aportes" subtitulo={`Total: ${fmt(total)}`} volver={{ href: '/finanzas', texto: 'Finanzas' }}
+      acciones={<>
+        <a href="/api/export/aportes" className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[14px] font-semibold"
+          style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>
+          <Download size={15} aria-hidden="true" /> Excel
+        </a>
+        <BotonEnlace href="/finanzas/aportes/nuevo" etiqueta="Registrar aporte"><Plus size={16} aria-hidden="true" /><span className="hidden sm:inline">Registrar</span></BotonEnlace>
+      </>}>
 
-      {/* Resumen por tipo */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {Object.entries(porTipo).map(([tipo, monto]) => (
-          <div key={tipo} className="p-3 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: tipoColor[tipo] ?? '#6366f1' }} />
-              <span className="text-xs capitalize" style={{ color: 'var(--muted)' }}>{tipo}</span>
-            </div>
-            <p className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>{fmt(monto)}</p>
+          <div key={tipo} className="p-4 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+            <span className="flex items-center gap-1.5 text-[13px]" style={{ color: 'var(--muted)' }}>
+              <span className="w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: tipoColor[tipo] ?? '#8e8e93' }} />
+              {etiquetaTipoAporte(tipo)}
+            </span>
+            <p className="text-[20px] font-bold tabular-nums mt-1" style={{ color: 'var(--foreground)' }}>{fmt(monto)}</p>
           </div>
         ))}
       </div>
 
-      {/* Filtros */}
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
-        {['ofrenda','diezmo','pacto','otro'].map((t) => (
-          <Link key={t} href={params.tipo === t ? '/finanzas/aportes' : `/finanzas/aportes?tipo=${t}`}
-            className="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border capitalize"
-            style={{
-              background: params.tipo === t ? 'var(--accent)' : 'var(--surface)',
-              borderColor: params.tipo === t ? 'var(--accent)' : 'var(--border)',
-              color: params.tipo === t ? '#fff' : 'var(--foreground)',
-            }}>
-            {t}
-          </Link>
-        ))}
-      </div>
+      <SegmentadoEnlaces etiqueta="Filtrar por tipo" actual={params.tipo ?? ''}
+        opciones={[{ valor: '', texto: 'Todos', href: '/finanzas/aportes' },
+          ...TIPOS.map((t) => ({ valor: t, texto: etiquetaTipoAporte(t), href: `/finanzas/aportes?tipo=${t}` }))]} />
 
-      <div className="space-y-2">
-        {(aportes ?? []).map((a) => (
-          <div key={a.id} className="flex items-center gap-4 p-4 rounded-2xl border"
-            style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="w-2 self-stretch rounded-full" style={{ background: tipoColor[a.tipo] ?? '#6366f1' }} />
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm" style={{ color: 'var(--foreground)' }}>
-                {(a.personas as any)?.nombre_completo ?? '—'}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                {etiquetaTipoAporte(a.tipo)} · {formatDate(a.fecha)}
-                {a.concepto ? ` · ${a.concepto}` : ''}
-              </p>
-            </div>
-            <p className="font-bold" style={{ color: '#16a34a' }}>{fmt(Number(a.monto))}</p>
-          </div>
-        ))}
-        {(aportes ?? []).length === 0 && (
-          <p className="text-center py-12 text-sm" style={{ color: 'var(--muted)' }}>Sin registros</p>
-        )}
-      </div>
-    </div>
+      {(aportes ?? []).length === 0 ? <Vacio titulo="Sin aportes" texto="Aún no hay registros con este filtro." /> : (
+        <Grupo titulo="Últimos 100">
+          {(aportes ?? []).map((a, i) => (
+            <Fila key={a.id} primero={i === 0}
+              inicio={<span className="block w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: tipoColor[a.tipo] ?? '#8e8e93' }} />}
+              titulo={(a.personas as { nombre_completo: string } | null)?.nombre_completo ?? 'Anónimo'}
+              subtitulo={`${etiquetaTipoAporte(a.tipo)} · ${formatDate(a.fecha)}${a.concepto ? ` · ${a.concepto}` : ''}`}
+              detalle={<span className="font-semibold tabular-nums" style={{ color: 'var(--success)' }}>+{fmt(Number(a.monto))}</span>} />
+          ))}
+        </Grupo>
+      )}
+    </Pagina>
   )
 }

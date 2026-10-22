@@ -25,9 +25,9 @@ export default async function TemaPage({ params }: { params: Promise<{ id: strin
   const estiloTarjeta = { background: 'var(--surface)', borderColor: 'var(--border)' }
 
   return (
-    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-5">
+    <div className="px-4 md:px-8 py-6 max-w-3xl mx-auto space-y-7">
       <div>
-        <Link href={`/academia/cursos/${curso.id}`} className="text-sm hover:underline" style={{ color: 'var(--muted)' }}>
+        <Link href={`/academia/cursos/${curso.id}`} className="volver">
           {curso.nombre}
         </Link>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Tema {tema.orden}: {tema.titulo}</h1>

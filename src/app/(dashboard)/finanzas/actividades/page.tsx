@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { ArrowLeft, Plus, TrendingUp, TrendingDown } from 'lucide-react'
+import { Plus, TrendingUp, TrendingDown } from 'lucide-react'
+import { Pagina, Grupo, Fila, BotonEnlace, Vacio } from '@/components/ui/ios'
 import { formatDate } from '@/lib/utils'
 
 function fmt(n: number) {
@@ -16,52 +16,23 @@ export default async function ActividadesFinancierasPage() {
     .order('fecha', { ascending: false })
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/finanzas"
-          className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
-          <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Actividades financieras</h1>
-        </div>
-        <Link href="/finanzas/actividades/nueva"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: 'var(--accent)' }}>
-          <Plus size={15} /> Nueva
-        </Link>
-      </div>
-
-      <div className="space-y-3">
-        {(actividades ?? []).map((a) => {
-          const movs = a.actividad_movimientos as { tipo: string; monto: number }[]
-          const ingresos = movs.filter((m) => m.tipo === 'ingreso').reduce((s, m) => s + Number(m.monto), 0)
-          const egresos = movs.filter((m) => m.tipo === 'egreso').reduce((s, m) => s + Number(m.monto), 0)
-          const balance = ingresos - egresos
-          return (
-            <Link key={a.id} href={`/finanzas/actividades/${a.id}`}
-              className="flex items-center gap-4 p-4 rounded-2xl border transition-opacity hover:opacity-80"
-              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>{a.nombre}</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>{formatDate(a.fecha)}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-sm" style={{ color: balance >= 0 ? '#16a34a' : 'var(--error)' }}>
-                  {fmt(balance)}
-                </p>
-                <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                  {movs.length} mov.
-                </p>
-              </div>
-            </Link>
-          )
-        })}
-        {(!actividades || actividades.length === 0) && (
-          <p className="text-center py-12 text-sm" style={{ color: 'var(--muted)' }}>Sin actividades registradas</p>
-        )}
-      </div>
-    </div>
+    <Pagina titulo="Actividades" subtitulo="Ingresos y egresos por actividad" volver={{ href: '/finanzas', texto: 'Finanzas' }}
+      acciones={<BotonEnlace href="/finanzas/actividades/nueva" etiqueta="Nueva actividad"><Plus size={16} aria-hidden="true" /><span className="hidden sm:inline">Nueva</span></BotonEnlace>}>
+      {(!actividades || actividades.length === 0) ? <Vacio titulo="Sin actividades" texto="Registra una pollada, bazar u otra actividad para llevar su balance." /> : (
+        <Grupo>
+          {actividades.map((a, i) => {
+            const movs = a.actividad_movimientos as { tipo: string; monto: number }[]
+            const ingresos = movs.filter((m) => m.tipo === 'ingreso').reduce((s, m) => s + Number(m.monto), 0)
+            const egresos = movs.filter((m) => m.tipo === 'egreso').reduce((s, m) => s + Number(m.monto), 0)
+            const balance = ingresos - egresos
+            return (
+              <Fila key={a.id} href={`/finanzas/actividades/${a.id}`} primero={i === 0}
+                titulo={a.nombre} subtitulo={`${formatDate(a.fecha)} · ${movs.length} movimientos`}
+                detalle={<span className="font-semibold tabular-nums" style={{ color: balance >= 0 ? 'var(--success)' : 'var(--error)' }}>{fmt(balance)}</span>} />
+            )
+          })}
+        </Grupo>
+      )}
+    </Pagina>
   )
 }

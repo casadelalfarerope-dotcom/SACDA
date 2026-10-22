@@ -34,7 +34,7 @@ export default async function TallerExamenPage({ params }: { params: Promise<{ i
   return (
     <div className="space-y-5">
       <div>
-        <Link href={`/taller/cursos/${examen.curso_id}`} className="text-sm hover:underline" style={{ color: 'var(--muted)' }}>{curso.nombre}</Link>
+        <Link href={`/taller/cursos/${examen.curso_id}`} className="volver">{curso.nombre}</Link>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{examen.titulo}</h1>
         <p className="text-sm" style={{ color: 'var(--muted)' }}>
           {preguntas} preguntas{examen.fecha_limite ? ` · Plazo: ${formatDate(examen.fecha_limite, { time: true })}` : ''}

@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import { GraduationCap, ChevronRight, Users, BookOpen } from 'lucide-react'
+import { School } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { crearCurso } from '@/app/actions/academia'
 import FormAccion from '@/components/academia/FormAccion'
@@ -7,6 +6,8 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Textarea from '@/components/ui/Textarea'
 import Badge from '@/components/ui/Badge'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Pagina, Grupo, Fila, Tarjeta, Vacio } from '@/components/ui/ios'
 
 const ESTADO: Record<string, { label: string; variant: 'muted' | 'success' | 'default' }> = {
   borrador: { label: 'Borrador', variant: 'muted' },
@@ -24,49 +25,27 @@ export default async function AcademiaPage() {
   ])
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <GraduationCap size={24} style={{ color: 'var(--accent)' }} />
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Academia</h1>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>El Taller del Alfarero</p>
-        </div>
-      </div>
+    <Pagina titulo="Academia" subtitulo="El Taller del Alfarero">
+      {!cursos?.length ? (
+        <Vacio icono={<School size={44} />} titulo="Aún no hay cursos" texto="Crea el primero con el formulario de abajo." />
+      ) : (
+        <Grupo titulo="Cursos">
+          {cursos.map((c, i) => {
+            const profesor = c.profesor as unknown as { nombre_completo: string } | null
+            const alumnos = (c.curso_inscripciones as { activo: boolean }[]).filter((x) => x.activo).length
+            const estado = ESTADO[c.estado] ?? ESTADO.borrador!
+            return (
+              <Fila key={c.id} href={`/academia/cursos/${c.id}`} primero={i === 0}
+                inicio={<IconoModulo icon={School} color="#af52de" tamano={36} />}
+                titulo={c.nombre}
+                subtitulo={[`${alumnos} alumnos`, `${(c.temas as unknown[]).length} temas`, profesor?.nombre_completo].filter(Boolean).join(' · ')}
+                detalle={<Badge variant={estado.variant}>{estado.label}</Badge>} />
+            )
+          })}
+        </Grupo>
+      )}
 
-      <section aria-labelledby="cursos-titulo" className="space-y-3">
-        <h2 id="cursos-titulo" className="font-semibold" style={{ color: 'var(--foreground)' }}>Cursos</h2>
-        {!cursos?.length && (
-          <p className="text-sm py-6 text-center rounded-2xl border" style={{ color: 'var(--muted)', borderColor: 'var(--border)' }}>
-            Aún no hay cursos. Crea el primero abajo.
-          </p>
-        )}
-        {cursos?.map((c) => {
-          const profesor = c.profesor as unknown as { nombre_completo: string } | null
-          const alumnos = (c.curso_inscripciones as { activo: boolean }[]).filter((i) => i.activo).length
-          const estado = ESTADO[c.estado] ?? ESTADO.borrador!
-          return (
-            <Link key={c.id} href={`/academia/cursos/${c.id}`}
-              className="flex items-center gap-4 p-4 rounded-2xl border hover:opacity-80 transition-opacity"
-              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold" style={{ color: 'var(--foreground)' }}>{c.nombre}</p>
-                  <Badge variant={estado.variant}>{estado.label}</Badge>
-                </div>
-                <p className="text-xs mt-1 flex flex-wrap gap-x-3 gap-y-1" style={{ color: 'var(--muted)' }}>
-                  <span className="inline-flex items-center gap-1"><Users size={12} aria-hidden="true" /> {alumnos} alumnos</span>
-                  <span className="inline-flex items-center gap-1"><BookOpen size={12} aria-hidden="true" /> {(c.temas as unknown[]).length} temas</span>
-                  {profesor && <span>Profesor: {profesor.nombre_completo}</span>}
-                </p>
-              </div>
-              <ChevronRight size={18} aria-hidden="true" style={{ color: 'var(--muted)' }} />
-            </Link>
-          )
-        })}
-      </section>
-
-      <section aria-labelledby="nuevo-curso" className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <h2 id="nuevo-curso" className="font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Nuevo curso</h2>
+      <Tarjeta titulo="Nuevo curso">
         <FormAccion accion={crearCurso} textoBoton="Crear curso" irA="/academia/cursos/{id}">
           <Input name="nombre" label="Nombre del curso *" placeholder="Ej. Fundamentos de la fe" required />
           <Textarea name="descripcion" label="Descripción" rows={2} />
@@ -77,7 +56,7 @@ export default async function AcademiaPage() {
             <Input name="fecha_fin" type="date" label="Fecha de fin" />
           </div>
         </FormAccion>
-      </section>
-    </div>
+      </Tarjeta>
+    </Pagina>
   )
 }

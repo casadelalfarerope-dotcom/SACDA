@@ -1,7 +1,7 @@
 import { CATEGORIAS_GASTO, etiquetaCategoriaGasto } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { ArrowLeft, Plus, Download } from 'lucide-react'
+import { Plus, Download } from 'lucide-react'
+import { Pagina, Grupo, Fila, SegmentadoEnlaces, BotonEnlace, Vacio } from '@/components/ui/ios'
 import { formatDate } from '@/lib/utils'
 
 function fmt(n: number) {
@@ -38,78 +38,44 @@ export default async function GastosPage({
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/finanzas"
-          className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
-          <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Gastos</h1>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>Total: {fmt(total)}</p>
-        </div>
-        <a href="/api/export/gastos"
-          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70"
-          style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
-          <Download size={15} /> Excel
+    <Pagina titulo="Gastos" subtitulo={`Total: ${fmt(total)}`} volver={{ href: '/finanzas', texto: 'Finanzas' }}
+      acciones={<>
+        <a href="/api/export/gastos" className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[14px] font-semibold"
+          style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>
+          <Download size={15} aria-hidden="true" /> Excel
         </a>
-        <Link href="/finanzas/gastos/nuevo"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: 'var(--accent)' }}>
-          <Plus size={15} /> Registrar
-        </Link>
-      </div>
+        <BotonEnlace href="/finanzas/gastos/nuevo" etiqueta="Registrar gasto"><Plus size={16} aria-hidden="true" /><span className="hidden sm:inline">Registrar</span></BotonEnlace>
+      </>}>
 
-      {/* Resumen por categoría */}
+      <SegmentadoEnlaces etiqueta="Filtrar por categoría" actual={params.categoria ?? ''}
+        opciones={[{ valor: '', texto: 'Todas', href: '/finanzas/gastos' },
+          ...CATEGORIAS_GASTO.map((c) => ({ valor: c.value, texto: c.label, href: `/finanzas/gastos?categoria=${c.value}` }))]} />
+
       {Object.keys(porCategoria).length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {Object.entries(porCategoria).map(([cat, monto]) => (
-            <div key={cat} className="p-3 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: catColor[cat] ?? '#6366f1' }} />
-                <span className="text-xs capitalize" style={{ color: 'var(--muted)' }}>{cat}</span>
-              </div>
-              <p className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>{fmt(monto)}</p>
+            <div key={cat} className="p-4 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+              <span className="flex items-center gap-1.5 text-[13px]" style={{ color: 'var(--muted)' }}>
+                <span className="w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: catColor[cat] ?? '#8e8e93' }} />
+                {etiquetaCategoriaGasto(cat)}
+              </span>
+              <p className="text-[20px] font-bold tabular-nums mt-1" style={{ color: 'var(--foreground)' }}>{fmt(monto)}</p>
             </div>
           ))}
         </div>
       )}
 
-      {/* Filtros */}
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
-        {CATEGORIAS_GASTO.map(({ value: c, label }) => (
-          <Link key={c} href={params.categoria === c ? '/finanzas/gastos' : `/finanzas/gastos?categoria=${c}`}
-            className="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border capitalize"
-            style={{
-              background: params.categoria === c ? 'var(--accent)' : 'var(--surface)',
-              borderColor: params.categoria === c ? 'var(--accent)' : 'var(--border)',
-              color: params.categoria === c ? '#fff' : 'var(--foreground)',
-            }}>
-            {label}
-          </Link>
-        ))}
-      </div>
-
-      <div className="space-y-2">
-        {(gastos ?? []).map((g) => (
-          <div key={g.id} className="flex items-center gap-4 p-4 rounded-2xl border"
-            style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-            <div className="w-2 self-stretch rounded-full" style={{ background: catColor[g.categoria] ?? '#6366f1' }} />
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm" style={{ color: 'var(--foreground)' }}>{g.concepto}</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                {etiquetaCategoriaGasto(g.categoria)} · {formatDate(g.fecha)}
-                {g.descripcion ? ` · ${g.descripcion}` : ''}
-              </p>
-            </div>
-            <p className="font-bold" style={{ color: 'var(--error)' }}>−{fmt(Number(g.monto))}</p>
-          </div>
-        ))}
-        {(gastos ?? []).length === 0 && (
-          <p className="text-center py-12 text-sm" style={{ color: 'var(--muted)' }}>Sin gastos registrados</p>
-        )}
-      </div>
-    </div>
+      {(gastos ?? []).length === 0 ? <Vacio titulo="Sin gastos" texto="Aún no hay registros con este filtro." /> : (
+        <Grupo titulo="Últimos 100">
+          {(gastos ?? []).map((g, i) => (
+            <Fila key={g.id} primero={i === 0}
+              inicio={<span className="block w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: catColor[g.categoria] ?? '#8e8e93' }} />}
+              titulo={g.concepto}
+              subtitulo={`${etiquetaCategoriaGasto(g.categoria)} · ${formatDate(g.fecha)}`}
+              detalle={<span className="font-semibold tabular-nums" style={{ color: 'var(--foreground)' }}>−{fmt(Number(g.monto))}</span>} />
+          ))}
+        </Grupo>
+      )}
+    </Pagina>
   )
 }

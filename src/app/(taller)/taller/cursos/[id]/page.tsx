@@ -46,7 +46,7 @@ export default async function TallerCursoPage({ params }: { params: Promise<{ id
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/taller" className="text-sm hover:underline" style={{ color: 'var(--muted)' }}>Mi Taller</Link>
+        <Link href="/taller" className="volver">Mi Taller</Link>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{curso.nombre}</h1>
         {curso.descripcion && <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{curso.descripcion}</p>}
       </div>
