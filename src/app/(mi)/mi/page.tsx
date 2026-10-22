@@ -32,10 +32,11 @@ export default async function MiInicioPage() {
     .map((t) => ({ ...t, p: t.programa as unknown as { titulo: string; fecha: string } }))
     .sort((a, b) => a.p.fecha.localeCompare(b.p.fecha)).slice(0, 3)
   const nombre = ctx.persona.nombre_completo.split(' ')[0]
-  const fechaHoy = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
+  const fechaLarga = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
+  const fechaHoy = fechaLarga.charAt(0).toUpperCase() + fechaLarga.slice(1)
 
   return (
-    <Pagina ancho="estrecho" titulo={`${saludo()}, ${nombre}`} subtitulo={<span className="capitalize">{fechaHoy}</span>}>
+    <Pagina ancho="estrecho" titulo={`${saludo()}, ${nombre}`} subtitulo={fechaHoy}>
       {ctx.esServidor && (
         <Grupo titulo="Mis próximos turnos" accion={<a href="/mi/servicio" className="text-[15px]" style={{ color: 'var(--accent)' }}>Ver todo</a>}>
           {proximos.map(({ p, ...t }, i) => {

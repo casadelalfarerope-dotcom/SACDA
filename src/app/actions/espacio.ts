@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { formatDate } from '@/lib/utils'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -67,7 +68,7 @@ export async function solicitarVenta(datos: { titulo: string; detalle: string; f
         persona_id,
         tipo: 'solicitud_venta',
         titulo: 'Nueva solicitud de venta',
-        cuerpo: `"${titulo}" para el ${datos.fecha}. Revísala en Ventas.`,
+        cuerpo: `"${titulo}" para el ${formatDate(datos.fecha)}. Revísala en Ventas.`,
         url: `/tareas/${tarea.id}`,
       })))
     }
