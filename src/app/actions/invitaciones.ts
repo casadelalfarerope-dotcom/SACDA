@@ -3,6 +3,7 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 
 export async function invitarPersona(personaId: string, email: string) {
   const supabase = await createClient()
@@ -19,7 +20,10 @@ export async function invitarPersona(personaId: string, email: string) {
 
   if (existing) return { error: 'Esta persona ya tiene acceso al sistema' }
 
-  const { data: invite, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email)
+  const origin = (await headers()).get('origin')
+  const { data: invite, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: origin ? `${origin}/auth/invitacion` : undefined,
+  })
   if (inviteError) return { error: inviteError.message }
 
   // Con el correo en la ficha, el login con Google puede reconocer a la persona.
