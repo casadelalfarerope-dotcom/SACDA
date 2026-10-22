@@ -9,7 +9,7 @@ export default function NuevoCongregantePage() {
       <div className="flex items-center gap-3 mb-6">
         <Link href="/congregantes"
           className="p-2 rounded-xl transition-opacity hover:opacity-70"
-          style={{ color: 'var(--muted)' }}>
+          style={{ color: 'var(--muted)' }} aria-label="Volver">
           <ArrowLeft size={20} />
         </Link>
         <div>

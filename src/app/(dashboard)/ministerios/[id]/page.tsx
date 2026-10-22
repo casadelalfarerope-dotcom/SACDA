@@ -50,7 +50,7 @@ export default async function DetalleGrupoPage({
       {/* Cabecera */}
       <div className="flex items-center gap-3">
         <Link href="/ministerios"
-          className="p-2 rounded-xl" style={{ color: 'var(--muted)' }}>
+          className="p-2 rounded-xl" style={{ color: 'var(--muted)' }} aria-label="Volver">
           <ArrowLeft size={20} />
         </Link>
         <div className="flex-1 min-w-0">

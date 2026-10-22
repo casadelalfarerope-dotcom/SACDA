@@ -1,4 +1,5 @@
 'use client'
+import { hoyLima } from '@/lib/utils'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -10,7 +11,7 @@ export default function NuevaActividadPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const hoy = new Date().toISOString().split('T')[0]!
+  const hoy = hoyLima()
 
   async function handle(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -33,16 +34,16 @@ export default function NuevaActividadPage() {
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="nombre" label="Nombre" placeholder="Pollada, Bazar, Bingo..." required />
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
+            <label htmlFor="nueva-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
               Fecha <span style={{ color: 'var(--error)' }}>*</span>
             </label>
-            <input name="fecha" type="date" required defaultValue={hoy}
+            <input id="nueva-page-1" name="fecha" type="date" required defaultValue={hoy}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
-            <textarea name="descripcion" rows={2}
+            <label htmlFor="nueva-page-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
+            <textarea id="nueva-page-2" name="descripcion" rows={2}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>

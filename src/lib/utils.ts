@@ -63,9 +63,15 @@ export function diasParaCumpleanios(fechaNacimiento: string | Date): number {
 
 export function getInitials(nombre: string): string {
   return nombre
-    .split(' ')
+    .split(/\s+/)
+    .filter((n) => /^\p{L}/u.test(n))
     .slice(0, 2)
     .map((n) => n[0])
     .join('')
     .toUpperCase()
+}
+
+// Fecha de hoy (YYYY-MM-DD) en hora de Perú, igual en el servidor (UTC) y en el navegador.
+export function hoyLima(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(new Date())
 }

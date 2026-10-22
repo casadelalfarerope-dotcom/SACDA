@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { TrendingUp, TrendingDown, Plus, ArrowRight } from 'lucide-react'
+import { formatDateShort } from '@/lib/utils'
+import { etiquetaTipoAporte, etiquetaCategoriaGasto } from '@/lib/etiquetas'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -271,18 +273,18 @@ function StatTiles({ totalAportes, totalGastos, balance }: { totalAportes: numbe
           <TrendingUp size={14} style={{ color: '#16a34a' }} />
           <span className="text-xs" style={{ color: 'var(--muted)' }}>Aportes</span>
         </div>
-        <p className="text-lg font-bold" style={{ color: '#16a34a' }}>{fmt(totalAportes)}</p>
+        <p className="text-base sm:text-lg font-bold break-words" style={{ color: '#16a34a' }}>{fmt(totalAportes)}</p>
       </div>
       <div className="p-4 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
         <div className="flex items-center gap-2 mb-1">
           <TrendingDown size={14} style={{ color: 'var(--error)' }} />
           <span className="text-xs" style={{ color: 'var(--muted)' }}>Gastos</span>
         </div>
-        <p className="text-lg font-bold" style={{ color: 'var(--error)' }}>{fmt(totalGastos)}</p>
+        <p className="text-base sm:text-lg font-bold break-words" style={{ color: 'var(--error)' }}>{fmt(totalGastos)}</p>
       </div>
       <div className="p-4 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
         <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Balance</p>
-        <p className="text-lg font-bold" style={{ color: balance >= 0 ? '#16a34a' : 'var(--error)' }}>{fmt(balance)}</p>
+        <p className="text-base sm:text-lg font-bold break-words" style={{ color: balance >= 0 ? '#16a34a' : 'var(--error)' }}>{fmt(balance)}</p>
       </div>
     </div>
   )
@@ -320,8 +322,8 @@ export default function FinanzasTabs(props: FinanzasTabsProps) {
 
   // ── Datos para Estadísticas según período ──
   const tendencia     = agregarTendencia(filtrar(props.aportesHist, periodoEst), filtrar(props.gastosHist, periodoEst), periodoEst)
-  const aportesPorTipo = topPorCategoria(props.aportesHist, 'tipo',      periodoEst)
-  const gastosPorCat   = topPorCategoria(props.gastosHist,  'categoria', periodoEst)
+  const aportesPorTipo = topPorCategoria(props.aportesHist, 'tipo', periodoEst).map(d => ({ ...d, label: etiquetaTipoAporte(d.label) }))
+  const gastosPorCat   = topPorCategoria(props.gastosHist, 'categoria', periodoEst).map(d => ({ ...d, label: etiquetaCategoriaGasto(d.label) }))
   const totalAE  = filtrar(props.aportesHist, periodoEst).reduce((s, a) => s + a.monto, 0)
   const totalGE  = filtrar(props.gastosHist,  periodoEst).reduce((s, g) => s + g.monto, 0)
   const balanceE = totalAE - totalGE
@@ -403,7 +405,7 @@ export default function FinanzasTabs(props: FinanzasTabsProps) {
                     style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
                     <div>
                       <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{a.persona ?? '—'}</p>
-                      <p className="text-xs" style={{ color: 'var(--muted)' }}>{a.tipo} · {a.fecha}</p>
+                      <p className="text-xs" style={{ color: 'var(--muted)' }}>{etiquetaTipoAporte(a.tipo)} · {formatDateShort(a.fecha)}</p>
                     </div>
                     <p className="font-semibold text-sm" style={{ color: '#16a34a' }}>{fmt(a.monto)}</p>
                   </div>
@@ -436,7 +438,7 @@ export default function FinanzasTabs(props: FinanzasTabsProps) {
                     style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
                     <div>
                       <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{g.concepto}</p>
-                      <p className="text-xs" style={{ color: 'var(--muted)' }}>{g.categoria} · {g.fecha}</p>
+                      <p className="text-xs" style={{ color: 'var(--muted)' }}>{etiquetaCategoriaGasto(g.categoria)} · {formatDateShort(g.fecha)}</p>
                     </div>
                     <p className="font-semibold text-sm" style={{ color: 'var(--error)' }}>{fmt(g.monto)}</p>
                   </div>

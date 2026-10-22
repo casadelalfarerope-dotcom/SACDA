@@ -1,6 +1,7 @@
 'use client'
+import { hoyLima } from '@/lib/utils'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useId } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -24,12 +25,13 @@ function PersonaSelect({ label, required, value, onChange, personas, placeholder
   personas: Persona[]
   placeholder: string
 }) {
+  const id = useId()
   return (
     <div>
-      <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+      <label htmlFor={id} className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
         {label} {required && <span style={{ color: 'var(--error)' }}>*</span>}
       </label>
-      <select
+      <select id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
@@ -50,7 +52,7 @@ export default function NuevaVisitaForm({ personas }: { personas: Persona[] }) {
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     persona_id: '',
-    fecha_primera_visita: new Date().toISOString().slice(0, 10),
+    fecha_primera_visita: hoyLima(),
     referido_por: '',
     seguimiento_por: '',
     notas: '',
@@ -71,7 +73,7 @@ export default function NuevaVisitaForm({ personas }: { personas: Persona[] }) {
       <div className="flex items-center gap-3 mb-6">
         <Link href="/miembros/visitas"
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Registrar visita</h1>
@@ -96,10 +98,10 @@ export default function NuevaVisitaForm({ personas }: { personas: Persona[] }) {
         </p>
 
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+          <label htmlFor="nueva-nuevavis-2" className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
             Fecha de primera visita <span style={{ color: 'var(--error)' }}>*</span>
           </label>
-          <Input
+          <Input id="nueva-nuevavis-2"
             type="date"
             value={form.fecha_primera_visita}
             onChange={(e) => setForm((p) => ({ ...p, fecha_primera_visita: e.target.value }))}
@@ -124,10 +126,10 @@ export default function NuevaVisitaForm({ personas }: { personas: Persona[] }) {
         />
 
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+          <label htmlFor="nueva-nuevavis-3" className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
             Notas (opcional)
           </label>
-          <textarea
+          <textarea id="nueva-nuevavis-3"
             rows={3}
             placeholder="Observaciones del seguimiento..."
             value={form.notas}
@@ -138,7 +140,7 @@ export default function NuevaVisitaForm({ personas }: { personas: Persona[] }) {
         </div>
 
         {error && (
-          <p className="text-sm px-3 py-2 rounded-lg" style={{ background: 'var(--error)20', color: 'var(--error)' }}>
+          <p className="text-sm px-3 py-2 rounded-lg" style={{ background: 'color-mix(in srgb, var(--error) 12%, transparent)', color: 'var(--error)' }}>
             {error}
           </p>
         )}

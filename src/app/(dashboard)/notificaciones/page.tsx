@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Bell, CheckCheck } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import MarcarLeidasBtn from '@/components/MarcarLeidasBtn'
@@ -7,6 +8,11 @@ import MarcarLeidasBtn from '@/components/MarcarLeidasBtn'
 const TIPO_ICONO: Record<string, string> = {
   turno_asignado: '📋',
   cumpleanios: '🎂',
+  cumpleanios_proximo: '🎂',
+  tarea_asignada: '📝',
+  tarea_aprobada: '✅',
+  tarea_rechazada: '↩️',
+  arte_distribuido: '🖼️',
   ausencia: '⚠️',
   reunion_grupo: '👥',
   tarea_diseno: '🎨',
@@ -67,14 +73,16 @@ export default async function NotificacionesPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {notifs.map((n) => (
-            <div key={n.id}
-              className="flex items-start gap-4 px-4 py-4 rounded-2xl border transition-all"
+          {notifs.map((n) => {
+            const Contenedor = n.url ? Link : 'div'
+            return (
+            <Contenedor key={n.id} href={n.url ?? ''}
+              className="flex items-start gap-4 px-4 py-4 rounded-2xl border transition-all hover:opacity-80"
               style={{
-                background: n.leida ? 'var(--surface)' : 'var(--accent)08',
-                borderColor: n.leida ? 'var(--border)' : 'var(--accent)30',
+                background: n.leida ? 'var(--surface)' : 'color-mix(in srgb, var(--accent) 6%, var(--surface))',
+                borderColor: n.leida ? 'var(--border)' : 'color-mix(in srgb, var(--accent) 30%, var(--border))',
               }}>
-              <span className="text-xl flex-shrink-0 mt-0.5">
+              <span className="text-xl flex-shrink-0 mt-0.5" aria-hidden="true">
                 {TIPO_ICONO[n.tipo] ?? '🔔'}
               </span>
               <div className="flex-1 min-w-0">
@@ -89,11 +97,12 @@ export default async function NotificacionesPage() {
                 </p>
               </div>
               {!n.leida && (
-                <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" aria-label="Sin leer"
                   style={{ background: 'var(--accent)' }} />
               )}
-            </div>
-          ))}
+            </Contenedor>
+            )
+          })}
         </div>
       )}
     </div>

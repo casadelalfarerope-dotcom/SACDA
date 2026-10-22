@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { type InputHTMLAttributes } from 'react'
+import { type InputHTMLAttributes, useId } from 'react'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -8,7 +8,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export default function Input({ label, error, hint, className, id, ...props }: InputProps) {
-  const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
+  const autoId = useId()
+  const inputId = id ?? autoId
 
   return (
     <div className="space-y-1.5">

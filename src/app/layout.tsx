@@ -16,8 +16,9 @@ export const viewport: Viewport = {
   themeColor: '#0071e3',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
 }
+
+const temaInicial = `try{var t=localStorage.getItem('tema');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
 
 export default function RootLayout({
   children,
@@ -25,7 +26,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es">
+    <html lang="es-PE" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: temaInicial }} />
+      </head>
       <body>
         {children}
         <script dangerouslySetInnerHTML={{ __html: `

@@ -46,7 +46,7 @@ export default async function TareaPage({ params }: { params: Promise<{ id: stri
       <div className="flex items-center gap-3 mb-6">
         <Link href="/tareas"
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <div className="flex-1 min-w-0">

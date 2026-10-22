@@ -1,3 +1,4 @@
+import { CATEGORIAS_GASTO, etiquetaCategoriaGasto } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Download } from 'lucide-react'
@@ -41,7 +42,7 @@ export default async function GastosPage({
       <div className="flex items-center gap-3 mb-6">
         <Link href="/finanzas"
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <div className="flex-1">
@@ -77,7 +78,7 @@ export default async function GastosPage({
 
       {/* Filtros */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
-        {['local','equipos','actividades','personal','servicios','otros'].map((c) => (
+        {CATEGORIAS_GASTO.map(({ value: c, label }) => (
           <Link key={c} href={params.categoria === c ? '/finanzas/gastos' : `/finanzas/gastos?categoria=${c}`}
             className="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border capitalize"
             style={{
@@ -85,7 +86,7 @@ export default async function GastosPage({
               borderColor: params.categoria === c ? 'var(--accent)' : 'var(--border)',
               color: params.categoria === c ? '#fff' : 'var(--foreground)',
             }}>
-            {c}
+            {label}
           </Link>
         ))}
       </div>
@@ -98,7 +99,7 @@ export default async function GastosPage({
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm" style={{ color: 'var(--foreground)' }}>{g.concepto}</p>
               <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                {g.categoria} · {formatDate(g.fecha)}
+                {etiquetaCategoriaGasto(g.categoria)} · {formatDate(g.fecha)}
                 {g.descripcion ? ` · ${g.descripcion}` : ''}
               </p>
             </div>

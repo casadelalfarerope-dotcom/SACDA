@@ -18,6 +18,7 @@ const LABELS: Record<string, string> = {
   finanzas:       'Finanzas',
   aportes:        'Aportes',
   gastos:         'Gastos',
+  actividades:    'Actividades',
   inventario:     'Inventario',
   ventas:         'Ventas',
   notificaciones: 'Notificaciones',
@@ -53,13 +54,7 @@ export default function Breadcrumb() {
     accumulated += `/${seg}`
 
     if (isUUID(seg)) {
-      // Si el segmento anterior tiene un label, este segmento es "Detalle"
-      // Solo lo añadimos si NO es el último (porque "Editar" lo cubre luego)
-      if (i < segments.length - 1) {
-        crumbs.push({ label: 'Detalle', href: accumulated })
-      } else {
-        crumbs.push({ label: 'Detalle', href: accumulated })
-      }
+      crumbs.push({ label: 'Detalle', href: accumulated })
     } else {
       const label = LABELS[seg] ?? seg
       crumbs.push({ label, href: accumulated })
@@ -76,12 +71,13 @@ export default function Breadcrumb() {
               <ChevronRight size={13} className="flex-shrink-0" style={{ color: 'var(--muted)' }} />
             )}
             {isLast ? (
-              <span className="font-semibold truncate max-w-[140px] md:max-w-xs"
+              <span aria-current="page" className="font-semibold truncate max-w-[140px] md:max-w-xs"
                 style={{ color: 'var(--foreground)' }}>
                 {crumb.label}
               </span>
             ) : (
               <Link href={crumb.href}
+                aria-label={i === 0 ? 'Inicio' : undefined}
                 className="truncate max-w-[80px] md:max-w-[120px] hover:underline underline-offset-2 transition-opacity hover:opacity-70"
                 style={{ color: 'var(--muted)' }}>
                 {i === 0 ? <Home size={14} className="inline -mt-0.5" /> : crumb.label}

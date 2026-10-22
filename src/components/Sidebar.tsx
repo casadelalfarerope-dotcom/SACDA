@@ -6,41 +6,8 @@ import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import Avatar from './ui/Avatar'
 import type { Persona } from '@/types/database'
-import {
-  LayoutDashboard,
-  Users,
-  UserCheck,
-  LogOut,
-  Settings,
-  Shield,
-  BookOpen,
-  Calendar,
-  Bell,
-  Mic2,
-  GraduationCap,
-  ClipboardList,
-  DollarSign,
-  Package,
-  ShoppingBag,
-  Loader2,
-} from 'lucide-react'
-
-const navItems = [
-  { href: '/',               label: 'Inicio',         icon: LayoutDashboard },
-  { href: '/congregantes',   label: 'Congregantes',   icon: Users },
-  { href: '/miembros',       label: 'Miembros',       icon: UserCheck },
-  { href: '/ministerios',    label: 'Ministerios',    icon: BookOpen },
-  { href: '/calendario',     label: 'Calendario',     icon: Calendar },
-  { href: '/servidores',     label: 'Servidores',     icon: Mic2 },
-  { href: '/capacitacion',   label: 'Capacitación',   icon: GraduationCap },
-  { href: '/tareas',         label: 'Tareas',         icon: ClipboardList },
-  { href: '/finanzas',       label: 'Finanzas',       icon: DollarSign },
-  { href: '/inventario',     label: 'Inventario',     icon: Package },
-  { href: '/ventas',         label: 'Ventas',         icon: ShoppingBag },
-  { href: '/notificaciones', label: 'Notificaciones', icon: Bell },
-  { href: '/roles',          label: 'Roles',          icon: Shield },
-  { href: '/configuracion',  label: 'Configuración',  icon: Settings },
-]
+import { LogOut, Loader2 } from 'lucide-react'
+import { NAV_ITEMS, isActive } from './navItems'
 
 interface SidebarProps {
   persona: Persona | null
@@ -91,13 +58,15 @@ export default function Sidebar({ persona }: SidebarProps) {
       </div>
 
       {/* Navegación */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+      <nav aria-label="Navegación principal" className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          const active = isActive(href, pathname)
           const pending = pendingHref === href && isPending
           return (
             <button
               key={href}
+              type="button"
+              aria-current={active ? 'page' : undefined}
               onClick={() => navigate(href)}
               disabled={pending}
               className={cn(
@@ -136,6 +105,7 @@ export default function Sidebar({ persona }: SidebarProps) {
           </div>
         )}
         <button
+          type="button"
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-opacity hover:opacity-70"
           style={{ color: 'var(--muted)' }}>

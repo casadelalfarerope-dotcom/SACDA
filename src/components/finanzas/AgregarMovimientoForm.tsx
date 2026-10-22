@@ -1,4 +1,5 @@
 'use client'
+import { hoyLima } from '@/lib/utils'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -11,7 +12,7 @@ export default function AgregarMovimientoForm({ actividadId }: { actividadId: st
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const sel = { background: 'var(--surface-secondary)', borderColor: 'var(--border)', color: 'var(--foreground)' }
-  const hoy = new Date().toISOString().split('T')[0]!
+  const hoy = hoyLima()
 
   async function handle(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -35,27 +36,27 @@ export default function AgregarMovimientoForm({ actividadId }: { actividadId: st
     <form onSubmit={handle} className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Tipo</label>
-          <select name="tipo" required className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel}>
+          <label htmlFor="finanzas-agregarm-1" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Tipo</label>
+          <select id="finanzas-agregarm-1" name="tipo" required className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel}>
             <option value="ingreso">Ingreso</option>
             <option value="egreso">Egreso</option>
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Monto (S/.)</label>
-          <input name="monto" type="number" step="0.01" min="0.01" required placeholder="0.00"
+          <label htmlFor="finanzas-agregarm-2" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Monto (S/.)</label>
+          <input id="finanzas-agregarm-2" name="monto" type="number" step="0.01" min="0.01" required placeholder="0.00"
             className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Concepto</label>
-          <input name="concepto" required placeholder="Descripción"
+          <label htmlFor="finanzas-agregarm-3" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Concepto</label>
+          <input id="finanzas-agregarm-3" name="concepto" required placeholder="Descripción"
             className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel} />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Fecha</label>
-          <input name="fecha" type="date" required defaultValue={hoy}
+          <label htmlFor="finanzas-agregarm-4" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Fecha</label>
+          <input id="finanzas-agregarm-4" name="fecha" type="date" required defaultValue={hoy}
             className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel} />
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { actualizarEstadoBien } from '@/app/actions/inventario'
 import Button from '@/components/ui/Button'
+import { etiquetaEstadoBien } from '@/lib/etiquetas'
 
 const ESTADOS = ['bueno', 'regular', 'malo', 'baja']
 
@@ -24,8 +25,9 @@ export default function CambiarEstadoBienBtn({ bienId, estadoActual }: { bienId:
       {ESTADOS.map((e) => (
         <Button key={e} size="sm" variant={e === estadoActual ? 'primary' : 'secondary'}
           loading={loading && e !== estadoActual}
+          aria-pressed={e === estadoActual}
           onClick={() => handle(e)}>
-          {e.replace('_', ' ')}
+          {etiquetaEstadoBien(e)}
         </Button>
       ))}
     </div>

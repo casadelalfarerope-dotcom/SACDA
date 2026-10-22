@@ -43,7 +43,7 @@ export default function EditarTutorialForm({
       <div className="flex items-center gap-3 mb-6">
         <Link href={`/capacitacion/${id}`}
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Editar tutorial</h1>
@@ -53,22 +53,22 @@ export default function EditarTutorialForm({
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="titulo" label="Título" defaultValue={tut.titulo as string} required />
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
-            <textarea name="descripcion" rows={3} defaultValue={tut.descripcion as string ?? ''}
+            <label htmlFor="editar-editartu-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
+            <textarea id="editar-editartu-1" name="descripcion" rows={3} defaultValue={tut.descripcion as string ?? ''}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Área de servicio</label>
-            <select name="rol_servicio_id" defaultValue={tut.rol_servicio_id as string ?? ''}
+            <label htmlFor="editar-editartu-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Área de servicio</label>
+            <select id="editar-editartu-2" name="rol_servicio_id" defaultValue={tut.rol_servicio_id as string ?? ''}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
               <option value="">Sin área específica</option>
               {roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Destino</label>
-            <select name="tipo_destino" defaultValue={tut.tipo_destino as string}
+            <label htmlFor="editar-editartu-3" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Destino</label>
+            <select id="editar-editartu-3" name="tipo_destino" defaultValue={tut.tipo_destino as string}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
               <option value="general">General</option>
               <option value="pantalla_principal">Pantalla principal</option>

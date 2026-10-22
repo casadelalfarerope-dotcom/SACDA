@@ -16,6 +16,7 @@ export default async function NotifBell({ personaId }: { personaId: string | nul
 
   return (
     <Link href="/notificaciones"
+      aria-label={sinLeer > 0 ? `Notificaciones, ${sinLeer} sin leer` : 'Notificaciones'}
       className="relative p-2 rounded-xl transition-opacity hover:opacity-70"
       style={{ color: 'var(--foreground)' }}>
       <Bell size={20} />

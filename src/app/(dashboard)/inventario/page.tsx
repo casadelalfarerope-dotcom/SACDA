@@ -1,7 +1,8 @@
+import { etiquetaCategoriaBien, etiquetaEstadoBien } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Plus, AlertTriangle, Package } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { formatDate , hoyLima } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 
 const estadoVariant: Record<string, 'success' | 'warning' | 'error' | 'muted'> = {
@@ -15,7 +16,7 @@ export default async function InventarioPage({
 }) {
   const params = await searchParams
   const supabase = await createClient()
-  const hoy = new Date().toISOString().split('T')[0]!
+  const hoy = hoyLima()
   const en30dias = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]!
 
   let query = supabase.from('bienes').select('*').order('nombre')
@@ -92,12 +93,12 @@ export default async function InventarioPage({
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>{b.nombre}</p>
               <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                {b.categoria ?? 'Sin categoría'}
+                {etiquetaCategoriaBien(b.categoria)}
                 {b.numero_serie ? ` · ${b.numero_serie}` : ''}
               </p>
             </div>
             <div className="flex flex-col items-end gap-1">
-              <Badge variant={estadoVariant[b.estado] ?? 'muted'}>{b.estado.replace('_', ' ')}</Badge>
+              <Badge variant={estadoVariant[b.estado] ?? 'muted'}>{etiquetaEstadoBien(b.estado)}</Badge>
               {b.proximo_mantenimiento && (
                 <span className="text-xs" style={{ color: 'var(--muted)' }}>
                   Mant. {formatDate(b.proximo_mantenimiento)}

@@ -1,4 +1,5 @@
 'use client'
+import { hoyLima } from '@/lib/utils'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -10,7 +11,7 @@ export default function RegistrarMantenimientoForm({ bienId }: { bienId: string 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const sel = { background: 'var(--surface-secondary)', borderColor: 'var(--border)', color: 'var(--foreground)' }
-  const hoy = new Date().toISOString().split('T')[0]!
+  const hoy = hoyLima()
 
   async function handle(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -33,25 +34,25 @@ export default function RegistrarMantenimientoForm({ bienId }: { bienId: string 
   return (
     <form onSubmit={handle} className="space-y-3">
       <div>
-        <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Descripción *</label>
-        <input name="descripcion" required placeholder="Limpieza, revisión, cambio de cable..."
+        <label htmlFor="inventario-registra-1" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Descripción *</label>
+        <input id="inventario-registra-1" name="descripcion" required placeholder="Limpieza, revisión, cambio de cable..."
           className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel} />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Fecha *</label>
-          <input name="fecha" type="date" required defaultValue={hoy}
+          <label htmlFor="inventario-registra-2" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Fecha *</label>
+          <input id="inventario-registra-2" name="fecha" type="date" required defaultValue={hoy}
             className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel} />
         </div>
         <div>
-          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Costo (S/.)</label>
-          <input name="costo" type="number" step="0.01" min="0" placeholder="0.00"
+          <label htmlFor="inventario-registra-3" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Costo (S/.)</label>
+          <input id="inventario-registra-3" name="costo" type="number" step="0.01" min="0" placeholder="0.00"
             className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel} />
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Realizado por</label>
-        <input name="realizado_por" placeholder="Nombre del técnico"
+        <label htmlFor="inventario-registra-4" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Realizado por</label>
+        <input id="inventario-registra-4" name="realizado_por" placeholder="Nombre del técnico"
           className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel} />
       </div>
       {error && <p className="text-xs" style={{ color: 'var(--error)' }}>{error}</p>}

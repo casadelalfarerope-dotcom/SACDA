@@ -72,10 +72,10 @@ export default function GrupoForm({ grupos, onSubmit, initialData }: GrupoFormPr
         placeholder="Ej. Ministerio de Jóvenes"
       />
       <div className="space-y-1.5">
-        <label className="block text-sm font-medium" style={{ color: 'var(--foreground)' }}>
+        <label htmlFor="ministerio-grupofor-1" className="block text-sm font-medium" style={{ color: 'var(--foreground)' }}>
           Descripción
         </label>
-        <textarea
+        <textarea id="ministerio-grupofor-1"
           value={form.descripcion}
           onChange={(e) => set('descripcion', e.target.value)}
           rows={2}

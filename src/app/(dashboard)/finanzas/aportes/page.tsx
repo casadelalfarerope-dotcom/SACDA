@@ -1,3 +1,4 @@
+import { etiquetaTipoAporte } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Download } from 'lucide-react'
@@ -41,7 +42,7 @@ export default async function AportesPage({
       <div className="flex items-center gap-3 mb-6">
         <Link href="/finanzas"
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <div className="flex-1">
@@ -100,7 +101,7 @@ export default async function AportesPage({
                 {(a.personas as any)?.nombre_completo ?? '—'}
               </p>
               <p className="text-xs mt-0.5" style={{ color: 'var(--muted)' }}>
-                {a.tipo} · {formatDate(a.fecha)}
+                {etiquetaTipoAporte(a.tipo)} · {formatDate(a.fecha)}
                 {a.concepto ? ` · ${a.concepto}` : ''}
               </p>
             </div>

@@ -1,4 +1,5 @@
 'use client'
+import { hoyLima } from '@/lib/utils'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -6,7 +7,7 @@ import { registrarGasto } from '@/app/actions/finanzas'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 
-const CATEGORIAS = ['local','equipos','actividades','personal','servicios','otros']
+import { CATEGORIAS_GASTO } from '@/lib/etiquetas'
 
 export default function NuevoGastoPage() {
   const router = useRouter()
@@ -30,7 +31,7 @@ export default function NuevoGastoPage() {
     router.push('/finanzas')
   }
 
-  const hoy = new Date().toISOString().split('T')[0]!
+  const hoy = hoyLima()
 
   return (
     <div className="p-4 md:p-8 max-w-lg mx-auto">
@@ -40,23 +41,23 @@ export default function NuevoGastoPage() {
           <Input name="concepto" label="Concepto" placeholder="Pago de luz, compra de cables..." required />
           <Input name="monto" label="Monto (S/.)" type="number" step="0.01" min="0.01" placeholder="0.00" required />
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
+            <label htmlFor="nuevo-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
               Categoría <span style={{ color: 'var(--error)' }}>*</span>
             </label>
-            <select name="categoria" required className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
-              {CATEGORIAS.map((c) => <option key={c} value={c} className="capitalize">{c}</option>)}
+            <select id="nuevo-page-1" name="categoria" required className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
+              {CATEGORIAS_GASTO.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
+            <label htmlFor="nuevo-page-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
               Fecha <span style={{ color: 'var(--error)' }}>*</span>
             </label>
-            <input name="fecha" type="date" required defaultValue={hoy}
+            <input id="nuevo-page-2" name="fecha" type="date" required defaultValue={hoy}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
-            <textarea name="descripcion" rows={2} placeholder="Detalles adicionales..."
+            <label htmlFor="nuevo-page-3" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
+            <textarea id="nuevo-page-3" name="descripcion" rows={2} placeholder="Detalles adicionales..."
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>

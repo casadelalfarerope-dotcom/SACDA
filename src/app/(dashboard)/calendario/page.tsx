@@ -67,23 +67,23 @@ export default async function CalendarioPage({
       {/* Cabecera */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link href={`/calendario?mes=${mesPrev}&anio=${anioPrev}`}
-            className="p-2 rounded-xl border text-sm font-medium transition-opacity hover:opacity-70"
+          <Link href={`/calendario?mes=${mesPrev}&anio=${anioPrev}`} aria-label="Mes anterior"
+            className="w-10 h-10 flex items-center justify-center rounded-xl border text-sm font-medium transition-opacity hover:opacity-70"
             style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
             ‹
           </Link>
           <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>
             {MESES[mes]} {anio}
           </h1>
-          <Link href={`/calendario?mes=${mesSig}&anio=${aniuoSig}`}
-            className="p-2 rounded-xl border text-sm font-medium transition-opacity hover:opacity-70"
+          <Link href={`/calendario?mes=${mesSig}&anio=${aniuoSig}`} aria-label="Mes siguiente"
+            className="w-10 h-10 flex items-center justify-center rounded-xl border text-sm font-medium transition-opacity hover:opacity-70"
             style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
             ›
           </Link>
         </div>
         <Link href="/calendario/nuevo"
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
-          style={{ background: 'var(--accent)' }}>
+          style={{ background: 'var(--accent)' }} aria-label="Nuevo evento">
           <Plus size={16} />
           <span className="hidden sm:inline">Nuevo evento</span>
         </Link>
@@ -122,18 +122,26 @@ export default async function CalendarioPage({
                   style={esHoy ? { background: 'var(--accent)' } : { color: 'var(--foreground)' }}>
                   {dia}
                 </span>
+                {instDia.length > 0 && (
+                  <div className="flex md:hidden flex-wrap gap-0.5 px-0.5" aria-label={`${instDia.length} evento${instDia.length > 1 ? 's' : ''}`}>
+                    {instDia.slice(0, 3).map((inst, idx) => (
+                      <span key={idx} className="w-1.5 h-1.5 rounded-full"
+                        style={{ background: inst.excepcion ? 'var(--warning)' : 'var(--accent)' }} />
+                    ))}
+                  </div>
+                )}
                 {instDia.slice(0, 2).map((inst, idx) => (
                   <div key={idx}
-                    className="truncate px-1 py-0.5 rounded text-xs mb-0.5"
+                    className="hidden md:block truncate px-1 py-0.5 rounded text-xs mb-0.5"
                     style={{
-                      background: inst.excepcion ? '#ff950020' : 'var(--accent)15',
+                      background: inst.excepcion ? '#ff950020' : 'color-mix(in srgb, var(--accent) 9%, transparent)',
                       color: inst.excepcion ? 'var(--warning)' : 'var(--accent)',
                     }}>
                     {inst.titulo}
                   </div>
                 ))}
                 {instDia.length > 2 && (
-                  <p className="text-xs" style={{ color: 'var(--muted)' }}>+{instDia.length - 2}</p>
+                  <p className="hidden md:block text-xs" style={{ color: 'var(--muted)' }}>+{instDia.length - 2}</p>
                 )}
               </div>
             )

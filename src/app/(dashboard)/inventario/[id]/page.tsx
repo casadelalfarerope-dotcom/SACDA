@@ -1,3 +1,4 @@
+import { etiquetaCategoriaBien, etiquetaEstadoBien } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -23,7 +24,7 @@ export default async function BienDetailPage({ params }: { params: Promise<{ id:
   if (!bien) notFound()
 
   const campos = [
-    { label: 'Categoría', value: bien.categoria },
+    { label: 'Categoría', value: etiquetaCategoriaBien(bien.categoria) },
     { label: 'N° de serie', value: bien.numero_serie },
     { label: 'Fecha de compra', value: bien.fecha_compra ? formatDate(bien.fecha_compra) : null },
     { label: 'Vida útil', value: bien.vida_util_anios ? `${bien.vida_util_anios} años` : null },
@@ -37,7 +38,7 @@ export default async function BienDetailPage({ params }: { params: Promise<{ id:
       <div className="flex items-center gap-3 mb-6">
         <Link href="/inventario"
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <div className="flex-1">
@@ -48,7 +49,7 @@ export default async function BienDetailPage({ params }: { params: Promise<{ id:
           style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
           <Pencil size={14} /> Editar
         </Link>
-        <Badge variant={estadoVariant[bien.estado] ?? 'muted'}>{bien.estado.replace('_', ' ')}</Badge>
+        <Badge variant={estadoVariant[bien.estado] ?? 'muted'}>{etiquetaEstadoBien(bien.estado)}</Badge>
       </div>
 
       {/* Info */}

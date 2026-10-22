@@ -18,19 +18,11 @@ export default async function DashboardLayout({
 
   const { data: cuenta } = await supabase
     .from('cuentas')
-    .select('persona_id')
+    .select('persona_id, persona:personas(*)')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
-  let persona: Persona | null = null
-  if (cuenta) {
-    const { data } = await supabase
-      .from('personas')
-      .select('*')
-      .eq('id', cuenta.persona_id)
-      .single()
-    persona = data
-  }
+  const persona = (cuenta?.persona as unknown as Persona | null) ?? null
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>

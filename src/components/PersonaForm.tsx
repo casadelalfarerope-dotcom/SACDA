@@ -135,10 +135,10 @@ export default function PersonaForm({ persona, onSubmit, onCancel }: PersonaForm
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-sm font-medium" style={{ color: 'var(--foreground)' }}>
+        <label htmlFor="components-personaf-1" className="block text-sm font-medium" style={{ color: 'var(--foreground)' }}>
           Notas internas
         </label>
-        <textarea
+        <textarea id="components-personaf-1"
           value={form.notas ?? ''}
           onChange={(e) => set('notas', e.target.value)}
           rows={3}

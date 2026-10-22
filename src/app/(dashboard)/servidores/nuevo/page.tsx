@@ -1,4 +1,5 @@
 'use client'
+import { hoyLima } from '@/lib/utils'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -25,7 +26,7 @@ export default function NuevoProgramaPage() {
     router.push(`/servidores/${res.id}`)
   }
 
-  const hoy = new Date().toISOString().split('T')[0]!
+  const hoy = hoyLima()
 
   return (
     <div className="p-4 md:p-8 max-w-lg mx-auto">
@@ -34,18 +35,18 @@ export default function NuevoProgramaPage() {
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="titulo" label="Título" placeholder="Culto Domingo 25 de agosto" required />
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
+            <label htmlFor="nuevo-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
               Fecha <span style={{ color: 'var(--error)' }}>*</span>
             </label>
-            <input
+            <input id="nuevo-page-1"
               name="fecha" type="date" required defaultValue={hoy}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none transition-all"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Notas</label>
-            <textarea
+            <label htmlFor="nuevo-page-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Notas</label>
+            <textarea id="nuevo-page-2"
               name="notas" rows={3} placeholder="Información adicional..."
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}

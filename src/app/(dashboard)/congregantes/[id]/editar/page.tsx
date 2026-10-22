@@ -26,7 +26,7 @@ export default async function EditarCongregantePage({
       <div className="flex items-center gap-3 mb-6">
         <Link href={`/congregantes/${id}`}
           className="p-2 rounded-xl transition-opacity hover:opacity-70"
-          style={{ color: 'var(--muted)' }}>
+          style={{ color: 'var(--muted)' }} aria-label="Volver">
           <ArrowLeft size={20} />
         </Link>
         <div>
@@ -43,7 +43,7 @@ export default async function EditarCongregantePage({
         style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
         <PersonaForm
           persona={persona}
-          onSubmit={(data) => editarPersona(id, data)}
+          onSubmit={editarPersona.bind(null, id)}
         />
       </div>
     </div>

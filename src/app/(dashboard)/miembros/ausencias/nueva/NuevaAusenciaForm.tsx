@@ -1,4 +1,5 @@
 'use client'
+import { hoyLima } from '@/lib/utils'
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
@@ -22,7 +23,7 @@ export default function NuevaAusenciaForm({ personas }: { personas: Persona[] })
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     persona_id: '',
-    fecha: new Date().toISOString().slice(0, 10),
+    fecha: hoyLima(),
     motivo: '',
     seguimiento_por: '',
   })
@@ -42,7 +43,7 @@ export default function NuevaAusenciaForm({ personas }: { personas: Persona[] })
       <div className="flex items-center gap-3 mb-6">
         <Link href="/miembros/ausencias"
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Registrar ausencia</h1>
@@ -52,10 +53,10 @@ export default function NuevaAusenciaForm({ personas }: { personas: Persona[] })
         style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
 
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+          <label htmlFor="nueva-nuevaaus-1" className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
             Miembro ausente <span style={{ color: 'var(--error)' }}>*</span>
           </label>
-          <select
+          <select id="nueva-nuevaaus-1"
             value={form.persona_id}
             onChange={(e) => setForm((p) => ({ ...p, persona_id: e.target.value }))}
             required
@@ -69,10 +70,10 @@ export default function NuevaAusenciaForm({ personas }: { personas: Persona[] })
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+          <label htmlFor="nueva-nuevaaus-2" className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
             Fecha de ausencia <span style={{ color: 'var(--error)' }}>*</span>
           </label>
-          <Input
+          <Input id="nueva-nuevaaus-2"
             type="date"
             value={form.fecha}
             onChange={(e) => setForm((p) => ({ ...p, fecha: e.target.value }))}
@@ -81,10 +82,10 @@ export default function NuevaAusenciaForm({ personas }: { personas: Persona[] })
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+          <label htmlFor="nueva-nuevaaus-3" className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
             Motivo (opcional)
           </label>
-          <Input
+          <Input id="nueva-nuevaaus-3"
             placeholder="Ej. viaje, enfermedad..."
             value={form.motivo}
             onChange={(e) => setForm((p) => ({ ...p, motivo: e.target.value }))}
@@ -92,10 +93,10 @@ export default function NuevaAusenciaForm({ personas }: { personas: Persona[] })
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+          <label htmlFor="nueva-nuevaaus-4" className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
             Encargado de seguimiento (opcional)
           </label>
-          <select
+          <select id="nueva-nuevaaus-4"
             value={form.seguimiento_por}
             onChange={(e) => setForm((p) => ({ ...p, seguimiento_por: e.target.value }))}
             className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
@@ -108,7 +109,7 @@ export default function NuevaAusenciaForm({ personas }: { personas: Persona[] })
         </div>
 
         {error && (
-          <p className="text-sm px-3 py-2 rounded-lg" style={{ background: 'var(--error)20', color: 'var(--error)' }}>
+          <p className="text-sm px-3 py-2 rounded-lg" style={{ background: 'color-mix(in srgb, var(--error) 12%, transparent)', color: 'var(--error)' }}>
             {error}
           </p>
         )}

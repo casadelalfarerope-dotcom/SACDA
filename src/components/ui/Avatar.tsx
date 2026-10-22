@@ -33,13 +33,14 @@ export default function Avatar({ nombre, fotoUrl, size = 'md', className = '' }:
       <img
         src={fotoUrl}
         alt={nombre}
+        referrerPolicy="no-referrer"
         className={`${container} rounded-full object-cover ${className}`}
       />
     )
   }
 
   return (
-    <div className={`${container} ${color} rounded-full flex items-center justify-center text-white font-semibold ${className}`}>
+    <div aria-hidden="true" className={`${container} ${color} rounded-full flex-shrink-0 flex items-center justify-center text-white font-semibold ${className}`}>
       {getInitials(nombre)}
     </div>
   )

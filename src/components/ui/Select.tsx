@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { type SelectHTMLAttributes } from 'react'
+import { type SelectHTMLAttributes, useId } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -10,7 +10,8 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export default function Select({ label, error, options, placeholder, className, id, ...props }: SelectProps) {
-  const selectId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
+  const autoId = useId()
+  const selectId = id ?? autoId
 
   return (
     <div className="space-y-1.5">

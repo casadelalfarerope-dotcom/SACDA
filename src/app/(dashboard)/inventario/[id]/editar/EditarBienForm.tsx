@@ -48,7 +48,7 @@ export default function EditarBienForm({ bien }: { bien: Record<string, unknown>
       <div className="flex items-center gap-3 mb-6">
         <Link href={`/inventario/${id}`}
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Editar bien</h1>
@@ -59,16 +59,16 @@ export default function EditarBienForm({ bien }: { bien: Record<string, unknown>
           <Input name="nombre" label="Nombre" defaultValue={bien.nombre as string} required />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Categoría</label>
-              <select name="categoria" defaultValue={bien.categoria as string}
+              <label htmlFor="editar-editarbi-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Categoría</label>
+              <select id="editar-editarbi-1" name="categoria" defaultValue={bien.categoria as string}
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
                 <option value="">Sin categoría</option>
                 {CATEGORIAS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Estado</label>
-              <select name="estado" defaultValue={bien.estado as string} required
+              <label htmlFor="editar-editarbi-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Estado</label>
+              <select id="editar-editarbi-2" name="estado" defaultValue={bien.estado as string} required
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
                 <option value="bueno">Bueno</option>
                 <option value="regular">Regular</option>
@@ -80,33 +80,33 @@ export default function EditarBienForm({ bien }: { bien: Record<string, unknown>
           <Input name="numero_serie" label="Número de serie (opcional)" defaultValue={bien.numero_serie as string ?? ''} />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Fecha de compra</label>
-              <input name="fecha_compra" type="date" defaultValue={bien.fecha_compra as string ?? ''}
+              <label htmlFor="editar-editarbi-3" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Fecha de compra</label>
+              <input id="editar-editarbi-3" name="fecha_compra" type="date" defaultValue={bien.fecha_compra as string ?? ''}
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Vida útil (años)</label>
-              <input name="vida_util_anios" type="number" min="1" defaultValue={bien.vida_util_anios as string ?? ''}
+              <label htmlFor="editar-editarbi-4" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Vida útil (años)</label>
+              <input id="editar-editarbi-4" name="vida_util_anios" type="number" min="1" defaultValue={bien.vida_util_anios as string ?? ''}
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Intervalo mantenimiento (días)</label>
-              <input name="intervalo_mantenimiento_dias" type="number" min="1"
+              <label htmlFor="editar-editarbi-5" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Intervalo mantenimiento (días)</label>
+              <input id="editar-editarbi-5" name="intervalo_mantenimiento_dias" type="number" min="1"
                 defaultValue={bien.intervalo_mantenimiento_dias as string ?? ''}
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Próximo mantenimiento</label>
-              <input name="proximo_mantenimiento" type="date"
+              <label htmlFor="editar-editarbi-6" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Próximo mantenimiento</label>
+              <input id="editar-editarbi-6" name="proximo_mantenimiento" type="date"
                 defaultValue={bien.proximo_mantenimiento as string ?? ''}
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel} />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
-            <textarea name="descripcion" rows={2} defaultValue={bien.descripcion as string ?? ''}
+            <label htmlFor="editar-editarbi-7" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
+            <textarea id="editar-editarbi-7" name="descripcion" rows={2} defaultValue={bien.descripcion as string ?? ''}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>

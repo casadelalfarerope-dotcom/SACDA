@@ -28,7 +28,7 @@ export default async function CeremoniasPage() {
       <div className="flex items-center gap-3 mb-6">
         <Link href="/miembros"
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <div className="flex-1">

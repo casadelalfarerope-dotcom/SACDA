@@ -48,10 +48,10 @@ export default function NuevaTareaPage() {
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
+            <label htmlFor="nueva-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
               Tipo <span style={{ color: 'var(--error)' }}>*</span>
             </label>
-            <select name="tipo" defaultValue={tipoInicial} required
+            <select id="nueva-page-1" name="tipo" defaultValue={tipoInicial} required
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
               <option value="diseno">Diseño gráfico</option>
               <option value="solicitud_venta">Solicitud de venta</option>
@@ -61,21 +61,21 @@ export default function NuevaTareaPage() {
           </div>
           <Input name="titulo" label="Título" placeholder="Arte para el culto del domingo" required />
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
-            <textarea name="descripcion" rows={3} placeholder="Detalles de la tarea..."
+            <label htmlFor="nueva-page-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
+            <textarea id="nueva-page-2" name="descripcion" rows={3} placeholder="Detalles de la tarea..."
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Asignar a</label>
-            <select name="asignado_id" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
+            <label htmlFor="nueva-page-3" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Asignar a</label>
+            <select id="nueva-page-3" name="asignado_id" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
               <option value="">Sin asignar</option>
               {personas.map((p) => <option key={p.id} value={p.id}>{p.nombre_completo}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Fecha límite</label>
-            <input name="fecha_limite" type="date"
+            <label htmlFor="nueva-page-4" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Fecha límite</label>
+            <input id="nueva-page-4" name="fecha_limite" type="date"
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>

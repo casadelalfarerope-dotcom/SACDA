@@ -39,7 +39,7 @@ export default function EditarProgramaForm({ programa }: { programa: Programa })
       <div className="flex items-center gap-3 mb-6">
         <Link href={`/servidores/${programa.id}`}
           className="p-2 rounded-xl hover:opacity-70 transition-opacity"
-          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }} aria-label="Volver">
           <ArrowLeft size={18} style={{ color: 'var(--foreground)' }} />
         </Link>
         <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Editar programa</h1>
@@ -51,8 +51,8 @@ export default function EditarProgramaForm({ programa }: { programa: Programa })
           <Input name="titulo" label="Título" defaultValue={programa.titulo} required />
           <Input name="fecha" label="Fecha" type="date" defaultValue={programa.fecha} required />
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Notas</label>
-            <textarea name="notas" rows={4} defaultValue={programa.notas ?? ''}
+            <label htmlFor="editar-editarpr-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Notas</label>
+            <textarea id="editar-editarpr-1" name="notas" rows={4} defaultValue={programa.notas ?? ''}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>

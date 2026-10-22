@@ -43,7 +43,7 @@ export async function procesarCumpleaniosProximos() {
   if (rolDiseno) {
     const { data: asignados } = await admin
       .from('roles_asignados')
-      .select('persona_id, persona:personas(email, nombre_completo)')
+      .select('persona_id, persona:personas!roles_asignados_persona_id_fkey(email, nombre_completo)')
       .eq('rol_id', rolDiseno.id)
       .eq('activo', true)
 

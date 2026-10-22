@@ -70,7 +70,7 @@ export default function NuevoEventoPage() {
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/calendario" className="p-2 rounded-xl" style={{ color: 'var(--muted)' }}>
+        <Link href="/calendario" className="p-2 rounded-xl" style={{ color: 'var(--muted)' }} aria-label="Volver">
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Nuevo evento</h1>
@@ -105,7 +105,7 @@ export default function NuevoEventoPage() {
         {form.tipo_recurrencia === 'semanal' && (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium" style={{ color: 'var(--foreground)' }}>Días de la semana *</label>
+              <label htmlFor="nuevo-page-1" className="block text-sm font-medium" style={{ color: 'var(--foreground)' }}>Días de la semana *</label>
               <div className="flex flex-wrap gap-2">
                 {DIAS_OPCIONES.map((dia) => (
                   <button key={dia} type="button" onClick={() => toggleDia(dia)}
@@ -120,7 +120,7 @@ export default function NuevoEventoPage() {
                 ))}
               </div>
             </div>
-            <Input label="Fecha de inicio de la serie *" type="date" value={form.fecha_inicio_serie} onChange={(e) => set('fecha_inicio_serie', e.target.value)} />
+            <Input id="nuevo-page-1" label="Fecha de inicio de la serie *" type="date" value={form.fecha_inicio_serie} onChange={(e) => set('fecha_inicio_serie', e.target.value)} />
           </div>
         )}
 
@@ -165,10 +165,10 @@ export default function NuevoEventoPage() {
           </label>
           {form.requiere_diseno && (
             <div className="pl-7 animate-fade">
-              <label className="block text-xs mb-1.5" style={{ color: 'var(--muted)' }}>
+              <label htmlFor="nuevo-page-2" className="block text-xs mb-1.5" style={{ color: 'var(--muted)' }}>
                 Avisar al diseñador con cuántos días de anticipación
               </label>
-              <select
+              <select id="nuevo-page-2"
                 value={form.dias_aviso_diseno}
                 onChange={(e) => setForm((prev) => ({ ...prev, dias_aviso_diseno: e.target.value }))}
                 className="px-3 py-2 rounded-xl border text-sm outline-none"

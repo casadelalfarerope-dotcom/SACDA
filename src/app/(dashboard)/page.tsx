@@ -14,7 +14,7 @@ function StatCard({ label, value, icon: Icon, href }: {
       className="rounded-2xl border p-4 flex items-center gap-4 transition-all hover:shadow-sm active:scale-[0.99]"
       style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
       <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-        style={{ background: 'var(--accent)20' }}>
+        style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }}>
         <Icon size={20} style={{ color: 'var(--accent)' }} />
       </div>
       <div>

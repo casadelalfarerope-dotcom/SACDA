@@ -11,7 +11,7 @@ export default async function RolesPage() {
   const [{ data: roles }, { data: asignaciones }, { data: personas }] = await Promise.all([
     supabase.from('roles').select('*').order('nombre'),
     supabase.from('roles_asignados')
-      .select('*, persona:personas(id, nombre_completo, foto_url), rol:roles(nombre)')
+      .select('*, persona:personas!roles_asignados_persona_id_fkey(id, nombre_completo, foto_url), rol:roles(nombre)')
       .eq('activo', true)
       .order('created_at', { ascending: false })
       .limit(200),

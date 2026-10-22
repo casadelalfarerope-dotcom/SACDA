@@ -57,7 +57,7 @@ export default async function CongregantesPage({
         <Link
           href="/congregantes/nuevo"
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-80"
-          style={{ background: 'var(--accent)' }}>
+          style={{ background: 'var(--accent)' }} aria-label="Nuevo">
           <Plus size={16} />
           <span className="hidden sm:inline">Nuevo</span>
         </Link>
@@ -70,6 +70,7 @@ export default async function CongregantesPage({
             style={{ color: 'var(--muted)' }} />
           <input
             name="q"
+            aria-label="Buscar por nombre o DNI"
             defaultValue={params.q}
             placeholder="Buscar por nombre o DNI..."
             className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm border outline-none"
@@ -78,6 +79,7 @@ export default async function CongregantesPage({
         </div>
         <select
           name="estado"
+          aria-label="Filtrar por estado"
           defaultValue={params.estado ?? ''}
           className="px-3 py-2.5 rounded-xl text-sm border outline-none cursor-pointer"
           style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
@@ -88,6 +90,7 @@ export default async function CongregantesPage({
         </select>
         <select
           name="ministerio"
+          aria-label="Filtrar por ministerio"
           defaultValue={params.ministerio ?? ''}
           className="px-3 py-2.5 rounded-xl text-sm border outline-none cursor-pointer"
           style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>

@@ -87,7 +87,7 @@ async function crearTareaDisenoPorEvento(
   if (roles) {
     const { data: asignados } = await admin
       .from('roles_asignados')
-      .select('persona_id, persona:personas(nombre_completo, email)')
+      .select('persona_id, persona:personas!roles_asignados_persona_id_fkey(nombre_completo, email)')
       .eq('rol_id', roles.id)
       .eq('activo', true)
       .limit(1)

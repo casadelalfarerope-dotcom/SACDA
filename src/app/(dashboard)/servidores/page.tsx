@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Plus, Calendar, Users, ChevronRight } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { formatDate , hoyLima } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 
 const estadoLabel: Record<string, string> = { borrador: 'Borrador', publicado: 'Publicado' }
@@ -19,8 +19,8 @@ export default async function ServidoresPage() {
     .order('fecha', { ascending: false })
     .limit(50)
 
-  const proximos = programas?.filter((p) => p.fecha >= new Date().toISOString().split('T')[0]!) ?? []
-  const pasados = programas?.filter((p) => p.fecha < new Date().toISOString().split('T')[0]!) ?? []
+  const proximos = programas?.filter((p) => p.fecha >= hoyLima()) ?? []
+  const pasados = programas?.filter((p) => p.fecha < hoyLima()) ?? []
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto">

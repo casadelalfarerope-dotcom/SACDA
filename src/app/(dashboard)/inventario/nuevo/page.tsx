@@ -1,4 +1,5 @@
 'use client'
+import { hoyLima } from '@/lib/utils'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -19,7 +20,7 @@ export default function NuevoBienPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const sel = { background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }
-  const hoy = new Date().toISOString().split('T')[0]!
+  const hoy = hoyLima()
 
   async function handle(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -49,17 +50,17 @@ export default function NuevoBienPage() {
           <Input name="nombre" label="Nombre" placeholder="Parlante JBL, Guitarra, Cámara..." required />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Categoría</label>
-              <select name="categoria" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none capitalize" style={sel}>
+              <label htmlFor="nuevo-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Categoría</label>
+              <select id="nuevo-page-1" name="categoria" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none capitalize" style={sel}>
                 <option value="">Sin categoría</option>
                 {CATEGORIAS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
+              <label htmlFor="nuevo-page-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
                 Estado <span style={{ color: 'var(--error)' }}>*</span>
               </label>
-              <select name="estado" required className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
+              <select id="nuevo-page-2" name="estado" required className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
                 <option value="bueno">Bueno</option>
                 <option value="regular">Regular</option>
                 <option value="malo">Malo</option>
@@ -70,31 +71,31 @@ export default function NuevoBienPage() {
           <Input name="numero_serie" label="Número de serie (opcional)" placeholder="SN-12345..." />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Fecha de compra</label>
-              <input name="fecha_compra" type="date" defaultValue={hoy}
+              <label htmlFor="nuevo-page-3" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Fecha de compra</label>
+              <input id="nuevo-page-3" name="fecha_compra" type="date" defaultValue={hoy}
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Vida útil (años)</label>
-              <input name="vida_util_anios" type="number" min="1" placeholder="5"
+              <label htmlFor="nuevo-page-4" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Vida útil (años)</label>
+              <input id="nuevo-page-4" name="vida_util_anios" type="number" min="1" placeholder="5"
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Intervalo mantenimiento (días)</label>
-              <input name="intervalo_mantenimiento_dias" type="number" min="1" placeholder="180"
+              <label htmlFor="nuevo-page-5" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Intervalo mantenimiento (días)</label>
+              <input id="nuevo-page-5" name="intervalo_mantenimiento_dias" type="number" min="1" placeholder="180"
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Próximo mantenimiento</label>
-              <input name="proximo_mantenimiento" type="date"
+              <label htmlFor="nuevo-page-6" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Próximo mantenimiento</label>
+              <input id="nuevo-page-6" name="proximo_mantenimiento" type="date"
                 className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel} />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
-            <textarea name="descripcion" rows={2}
+            <label htmlFor="nuevo-page-7" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
+            <textarea id="nuevo-page-7" name="descripcion" rows={2}
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>

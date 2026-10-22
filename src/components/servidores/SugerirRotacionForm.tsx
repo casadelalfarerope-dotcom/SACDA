@@ -50,7 +50,7 @@ export default function SugerirRotacionForm({ programaId, sugerencias, onConfirm
           <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
             Rotación sugerida
           </span>
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--accent)20', color: 'var(--accent)' }}>
+          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>
             {sugerencias.length} roles
           </span>
         </div>

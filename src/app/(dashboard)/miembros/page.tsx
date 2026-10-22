@@ -25,7 +25,7 @@ export default async function MiembrosPage() {
   // Visitas pendientes de seguimiento
   const { data: visitas } = await supabase
     .from('seguimiento_visitas')
-    .select('*, persona:personas(id, nombre_completo, foto_url, ministerio)')
+    .select('*, persona:personas!seguimiento_visitas_persona_id_fkey(id, nombre_completo, foto_url, ministerio)')
     .eq('estado', 'pendiente')
     .order('fecha_primera_visita', { ascending: false })
     .limit(10)
@@ -33,7 +33,7 @@ export default async function MiembrosPage() {
   // Ausencias pendientes
   const { data: ausencias } = await supabase
     .from('ausencias')
-    .select('*, persona:personas(id, nombre_completo, foto_url)')
+    .select('*, persona:personas!ausencias_persona_id_fkey(id, nombre_completo, foto_url)')
     .eq('estado', 'pendiente')
     .order('fecha', { ascending: false })
     .limit(10)
@@ -47,11 +47,11 @@ export default async function MiembrosPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
           Gestión de Miembros
         </h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link href="/miembros/ceremonias/nueva"
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-opacity hover:opacity-70"
             style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--surface)' }}>
@@ -68,7 +68,7 @@ export default async function MiembrosPage() {
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-80"
             style={{ background: 'var(--accent)' }}>
             <UserPlus size={15} />
-            <span className="hidden sm:inline">Visita</span>
+            Visita
           </Link>
         </div>
       </div>

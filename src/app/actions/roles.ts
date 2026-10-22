@@ -1,4 +1,5 @@
 'use server'
+import { hoyLima } from '@/lib/utils'
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
@@ -33,7 +34,7 @@ export async function revocarRol(id: string) {
   const supabase = await createClient()
   const { error } = await supabase
     .from('roles_asignados')
-    .update({ activo: false, fecha_fin: new Date().toISOString().split('T')[0] })
+    .update({ activo: false, fecha_fin: hoyLima() })
     .eq('id', id)
 
   if (error) return { error: 'No se pudo revocar el rol.' }

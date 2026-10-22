@@ -47,23 +47,23 @@ export default function NuevoTutorialPage() {
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="titulo" label="Título" placeholder="Cómo operar el software de presentación" required />
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
-            <textarea name="descripcion" rows={3} placeholder="Breve descripción del tutorial..."
+            <label htmlFor="nuevo-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Descripción</label>
+            <textarea id="nuevo-page-1" name="descripcion" rows={3} placeholder="Breve descripción del tutorial..."
               className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none"
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Área de servicio</label>
-            <select name="rol_servicio_id" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
+            <label htmlFor="nuevo-page-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Área de servicio</label>
+            <select id="nuevo-page-2" name="rol_servicio_id" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
               <option value="">Selecciona un área...</option>
               {roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
+            <label htmlFor="nuevo-page-3" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
               Destino <span style={{ color: 'var(--error)' }}>*</span>
             </label>
-            <select name="tipo_destino" required className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
+            <select id="nuevo-page-3" name="tipo_destino" required className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
               <option value="general">General</option>
               <option value="pantalla_principal">Pantalla principal</option>
               <option value="redes_sociales">Redes sociales</option>
