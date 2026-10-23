@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/login') || pathname.startsWith('/recuperar')) {
     if (user) {
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(new URL('/entrar', request.url))
     }
     return supabaseResponse
   }

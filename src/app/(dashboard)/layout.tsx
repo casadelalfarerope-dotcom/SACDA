@@ -4,6 +4,8 @@ import Sidebar from '@/components/Sidebar'
 import BottomNav from '@/components/BottomNav'
 import NotifBell from '@/components/NotifBell'
 import Breadcrumb from '@/components/Breadcrumb'
+import SelectorEspacios, { RecordarEspacio, type Espacio } from '@/components/espacio/SelectorEspacios'
+import { contextoEspacio } from '@/lib/espacio'
 import type { Persona } from '@/types/database'
 
 export default async function DashboardLayout({
@@ -36,6 +38,8 @@ export default async function DashboardLayout({
     modulos = [...new Set((permisos ?? []).map((p) => p.modulo as string))]
   }
   if (!modulos.length) redirect('/mi')
+  const ctx = await contextoEspacio()
+  const disponibles: Espacio[] = ['mi', ...(ctx.esEstudiante ? ['academia' as const] : []), 'admin']
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>
@@ -43,8 +47,12 @@ export default async function DashboardLayout({
       <div className="flex-1 flex flex-col min-w-0">
         <header className="material sticky top-0 z-30 flex items-center justify-between gap-3 px-4 md:px-8 h-12 border-b"
           style={{ borderColor: 'var(--border)' }}>
+          <RecordarEspacio espacio="admin" />
           <Breadcrumb />
-          <NotifBell personaId={cuenta?.persona_id ?? null} />
+          <div className="flex items-center gap-1">
+            <SelectorEspacios disponibles={disponibles} actual="admin" />
+            <NotifBell personaId={cuenta?.persona_id ?? null} />
+          </div>
         </header>
         <main className="flex-1 pb-24 md:pb-10 md:pt-2 animate-page">
           {children}

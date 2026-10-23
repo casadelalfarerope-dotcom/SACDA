@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 
 function destinoSeguro(next: string | null) {
-  return next && next.startsWith('/') && !next.startsWith('//') ? next : '/'
+  return next && next.startsWith('/') && !next.startsWith('//') ? next : '/entrar'
 }
 
 // Devuelve el error a mostrar en /login, o null si el usuario tiene acceso.

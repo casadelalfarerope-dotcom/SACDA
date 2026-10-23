@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, UserCheck, Settings, Shield, BookOpen, Calendar, Bell,
-  Mic2, GraduationCap, UserRound, ClipboardList, DollarSign, Package, ShoppingBag, School,
+  Mic2, GraduationCap, ClipboardList, DollarSign, Package, ShoppingBag, School,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -34,7 +34,6 @@ export const NAV_GRUPOS: NavGrupo[] = [
     { href: '/roles',        label: 'Roles',        icon: Shield,          color: '#636366', modulo: 'roles' },
   ] },
   { titulo: 'Cuenta', items: [
-    { href: '/mi',             label: 'Mi espacio',     icon: UserRound,   color: '#34c759' },
     { href: '/notificaciones', label: 'Notificaciones', icon: Bell,        color: '#ff3b30' },
     { href: '/configuracion',  label: 'Configuración',  icon: Settings,    color: '#8e8e93' },
   ] },

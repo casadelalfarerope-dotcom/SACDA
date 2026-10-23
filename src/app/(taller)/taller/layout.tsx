@@ -1,6 +1,6 @@
 import EspacioShell from '@/components/espacio/EspacioShell'
 
-// La Academia es un módulo más de Mi espacio: comparte la barra superior y la navegación.
+// La Academia es un espacio propio: comparte la barra superior (cuadrícula, avisos y perfil).
 export default function TallerLayout({ children }: { children: React.ReactNode }) {
-  return <EspacioShell>{children}</EspacioShell>
+  return <EspacioShell espacio="academia">{children}</EspacioShell>
 }

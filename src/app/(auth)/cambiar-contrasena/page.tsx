@@ -30,7 +30,7 @@ export default function CambiarContrasenaPage() {
       setLoading(false)
       return
     }
-    router.push('/')
+    router.push('/entrar')
     router.refresh()
   }
 

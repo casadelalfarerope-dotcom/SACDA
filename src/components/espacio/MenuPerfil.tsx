@@ -3,13 +3,14 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { UserRound, LayoutGrid, LogOut } from 'lucide-react'
+import { UserRound, LogOut } from 'lucide-react'
 import Avatar from '@/components/ui/Avatar'
 import { createClient } from '@/lib/supabase/client'
 
-// Foto de perfil en la barra superior: abre Mi perfil, el panel (si es líder) y Salir.
-export default function MenuPerfil({ nombre, fotoUrl, email, tienePanel }: {
-  nombre: string; fotoUrl: string | null; email: string | null; tienePanel: boolean
+// Foto de perfil en la barra superior: Mi perfil y Cerrar sesión. Para cambiar
+// de espacio está la cuadrícula.
+export default function MenuPerfil({ nombre, fotoUrl, email }: {
+  nombre: string; fotoUrl: string | null; email: string | null
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -51,11 +52,6 @@ export default function MenuPerfil({ nombre, fotoUrl, email, tienePanel }: {
           <Link role="menuitem" href="/mi/perfil" className={opcion} style={{ color: 'var(--foreground)' }}>
             <UserRound size={18} aria-hidden="true" /> Mi perfil
           </Link>
-          {tienePanel && (
-            <Link role="menuitem" href="/" className={opcion} style={{ color: 'var(--foreground)' }}>
-              <LayoutGrid size={18} aria-hidden="true" /> Administración
-            </Link>
-          )}
           <div className="h-px mx-2 my-1" style={{ background: 'var(--border)' }} />
           <button role="menuitem" type="button" onClick={salir} className={opcion} style={{ color: 'var(--destructive)' }}>
             <LogOut size={18} aria-hidden="true" /> Cerrar sesión

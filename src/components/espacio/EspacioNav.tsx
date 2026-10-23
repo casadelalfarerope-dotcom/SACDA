@@ -3,17 +3,16 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Home, Mic2, ShoppingBag, Wallet, School, Loader2, type LucideIcon } from 'lucide-react'
+import { Home, Mic2, ShoppingBag, Wallet, Loader2, type LucideIcon } from 'lucide-react'
 import { IconoModulo } from '@/components/ui/IconoApp'
 
-export type ModuloEspacio = 'inicio' | 'servicio' | 'solicitudes' | 'aportes' | 'academia'
+export type ModuloEspacio = 'inicio' | 'servicio' | 'solicitudes' | 'aportes'
 
 const MODULOS: Record<ModuloEspacio, { href: string; label: string; icon: LucideIcon; color: string; rutas: string[] }> = {
   inicio:      { href: '/mi',             label: 'Inicio',      icon: Home,        color: '#007aff', rutas: [] },
   servicio:    { href: '/mi/ministerios', label: 'Ministerios', icon: Mic2,        color: '#ff2d55', rutas: ['/mi/tareas', '/mi/servicio'] },
   solicitudes: { href: '/mi/solicitudes', label: 'Solicitudes', icon: ShoppingBag, color: '#00c7be', rutas: [] },
   aportes:     { href: '/mi/aportes',     label: 'Mis aportes', icon: Wallet,      color: '#34c759', rutas: [] },
-  academia:    { href: '/taller',         label: 'Academia',    icon: School,      color: '#af52de', rutas: [] },
 }
 
 function activo(m: ModuloEspacio, pathname: string) {
@@ -34,7 +33,7 @@ export default function EspacioNav({ modulos }: { modulos: ModuloEspacio[] }) {
 
   return (
     <>
-      <nav aria-label="Módulos" className="hidden md:block w-60 flex-shrink-0 px-3 py-5">
+      {modulos.length > 0 && <nav aria-label="Módulos" className="hidden md:block w-60 flex-shrink-0 px-3 py-5">
         <ul className="space-y-0.5 sticky top-20">
           {modulos.map((m) => {
             const { href, label, icon, color } = MODULOS[m]
@@ -57,7 +56,7 @@ export default function EspacioNav({ modulos }: { modulos: ModuloEspacio[] }) {
             )
           })}
         </ul>
-      </nav>
+      </nav>}
 
       {modulos.length > 1 && (
         <nav aria-label="Módulos"
