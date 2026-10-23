@@ -32,7 +32,7 @@ export default async function EspacioShell({ children, espacio = 'mi' }: { child
             </span>
           </Link>
           <SelectorEspacios disponibles={disponibles} actual={espacio} />
-          <Link href="/mi/avisos" className="relative p-2 rounded-xl hover:opacity-70"
+          <Link href={`${inicio}/avisos`} className="relative p-2 rounded-xl hover:opacity-70"
             aria-label={ctx.sinLeer ? `Avisos, ${ctx.sinLeer} sin leer` : 'Avisos'} style={{ color: 'var(--foreground)' }}>
             <Bell size={21} />
             {ctx.sinLeer > 0 && (
@@ -40,7 +40,7 @@ export default async function EspacioShell({ children, espacio = 'mi' }: { child
                 style={{ background: 'var(--destructive)' }} aria-hidden="true">{ctx.sinLeer > 9 ? '9+' : ctx.sinLeer}</span>
             )}
           </Link>
-          <MenuPerfil nombre={ctx.persona.nombre_completo} fotoUrl={ctx.persona.foto_url} email={ctx.persona.email} />
+          <MenuPerfil nombre={ctx.persona.nombre_completo} fotoUrl={ctx.persona.foto_url} email={ctx.persona.email} perfilHref={`${inicio}/perfil`} />
         </div>
       </header>
       <div className="max-w-6xl mx-auto flex">

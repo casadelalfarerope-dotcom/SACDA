@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation'
+import Avisos from '@/components/espacio/paginas/Avisos'
 
-export default function AvisosTallerPage() {
-  redirect('/mi/avisos')
-}
+export default Avisos

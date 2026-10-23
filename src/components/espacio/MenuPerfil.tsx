@@ -9,8 +9,8 @@ import { createClient } from '@/lib/supabase/client'
 
 // Foto de perfil en la barra superior: Mi perfil y Cerrar sesión. Para cambiar
 // de espacio está la cuadrícula.
-export default function MenuPerfil({ nombre, fotoUrl, email }: {
-  nombre: string; fotoUrl: string | null; email: string | null
+export default function MenuPerfil({ nombre, fotoUrl, email, perfilHref = '/mi/perfil' }: {
+  nombre: string; fotoUrl: string | null; email: string | null; perfilHref?: string
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -49,7 +49,7 @@ export default function MenuPerfil({ nombre, fotoUrl, email }: {
             {email && <p className="text-[13px] truncate" style={{ color: 'var(--muted)' }}>{email}</p>}
           </div>
           <div className="h-px mx-2 my-1" style={{ background: 'var(--border)' }} />
-          <Link role="menuitem" href="/mi/perfil" className={opcion} style={{ color: 'var(--foreground)' }}>
+          <Link role="menuitem" href={perfilHref} className={opcion} style={{ color: 'var(--foreground)' }}>
             <UserRound size={18} aria-hidden="true" /> Mi perfil
           </Link>
           <div className="h-px mx-2 my-1" style={{ background: 'var(--border)' }} />
