@@ -58,8 +58,9 @@ export async function revocarAcceso(personaId: string) {
 
   if (!cuenta) return { error: 'Esta persona no tiene cuenta activa' }
 
-  await admin.auth.admin.deleteUser(cuenta.id)
+  const { error } = await admin.auth.admin.deleteUser(cuenta.id)
   // La fila en cuentas se borra por CASCADE
+  if (error) return { error: 'No se pudo revocar el acceso. Inténtalo de nuevo o avisa al administrador.' }
 
   revalidatePath(`/congregantes/${personaId}`)
   return { ok: true }

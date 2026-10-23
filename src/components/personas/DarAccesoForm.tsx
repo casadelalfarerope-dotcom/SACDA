@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Mail, ShieldCheck, ShieldOff } from 'lucide-react'
 import { invitarPersona, revocarAcceso } from '@/app/actions/invitaciones'
 import Button from '@/components/ui/Button'
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function DarAccesoForm({ personaId, emailSugerido, tieneAcceso }: Props) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<{ type: 'ok' | 'error'; text: string } | null>(null)
   const [confirmRevocar, setConfirmRevocar] = useState(false)
@@ -28,7 +30,8 @@ export default function DarAccesoForm({ personaId, emailSugerido, tieneAcceso }:
     if (res.error) {
       setMsg({ type: 'error', text: res.error })
     } else {
-      setMsg({ type: 'ok', text: `Invitación enviada a ${email}. El hermano recibirá un correo para crear su contraseña.` })
+      setMsg({ type: 'ok', text: `Invitación enviada a ${email}. Recibirá un correo para activar su cuenta con Google o con una contraseña.` })
+      router.refresh()
     }
   }
 
@@ -42,6 +45,7 @@ export default function DarAccesoForm({ personaId, emailSugerido, tieneAcceso }:
       setMsg({ type: 'error', text: res.error })
     } else {
       setMsg({ type: 'ok', text: 'Acceso revocado correctamente.' })
+      router.refresh()
     }
   }
 
