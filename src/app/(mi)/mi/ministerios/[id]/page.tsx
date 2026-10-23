@@ -83,8 +83,8 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
             <h2 id="prog-titulo" className="text-[13px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Programación</h2>
           </div>
           {puestoIds.length > 0 && <div className="px-1"><CompletarProximosBtn grupoId={id} /></div>}
-          <Grupo pie={puestoIds.length ? 'Abre un culto para asignar, repetir los del culto anterior o publicar.' : 'Primero define los puestos de tu ministerio (abajo).'}>
-            {(programas ?? []).map((p, i) => {
+          <Grupo pie={puestoIds.length ? 'Abre un culto para asignar, repetir los del culto anterior o publicar.' : 'Si tu ministerio sirve en los cultos, define sus puestos (abajo) y aquí aparecerán los cultos para programar.'}>
+            {(puestoIds.length ? programas ?? [] : []).map((p, i) => {
               const n = (asignaciones ?? []).filter((a) => a.programa_id === p.id).length
               const estado = publicado.has(p.id) ? 'publicado' : n ? 'borrador' : 'vacio'
               return (
@@ -95,7 +95,8 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
                     : <Badge variant={n ? 'warning' : 'muted'}>{n}/{necesarios}</Badge>} />
               )
             })}
-            {!programas?.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>No hay cultos en el calendario</span>} />}
+            {!puestoIds.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Tu ministerio aún no tiene puestos en el culto</span>} />}
+            {!!puestoIds.length && !programas?.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>No hay cultos en el calendario</span>} />}
           </Grupo>
         </section>
       ) : (

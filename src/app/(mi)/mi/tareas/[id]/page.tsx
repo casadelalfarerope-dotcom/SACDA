@@ -17,7 +17,7 @@ export default async function MiTareaPage({ params }: { params: Promise<{ id: st
 
   // La base de datos solo devuelve la tarea a su asignado, al líder de su ministerio o a un encargado.
   const { data: tarea } = await supabase.from('tareas')
-    .select('id, titulo, descripcion, estado, fecha_limite, feedback_rechazo, asignado_id, asignado:personas!tareas_asignado_id_fkey(nombre_completo), grupo:grupos(id, nombre, encargado_id)')
+    .select('id, tipo, titulo, descripcion, estado, fecha_limite, feedback_rechazo, asignado_id, asignado:personas!tareas_asignado_id_fkey(nombre_completo), grupo:grupos(id, nombre, encargado_id)')
     .eq('id', id).maybeSingle()
   if (!tarea) notFound()
   const grupo = tarea.grupo as unknown as { id: string; nombre: string; encargado_id: string | null } | null
@@ -63,7 +63,7 @@ export default async function MiTareaPage({ params }: { params: Promise<{ id: st
       {esLider && tarea.estado === 'entregado' && (
         <Tarjeta titulo="Revisar la entrega">
           <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
-            Abre la última entrega (abajo). Si la apruebas, se envía automáticamente a quien corresponda; si no, escribe qué cambiar.
+            Abre la última entrega (abajo).{tarea.tipo === 'diseno' ? ' Si la apruebas, el arte se envía automáticamente a Multimedia e Impresiones.' : ''} Si necesita cambios, escribe qué corregir.
           </p>
           <AprobarRechazarBtns tareaId={tarea.id} />
         </Tarjeta>
