@@ -3,21 +3,24 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Home, Mic2, ShoppingBag, Wallet, Loader2, type LucideIcon } from 'lucide-react'
+import { Home, Mic2, ShoppingBag, Wallet, School, CalendarDays, Loader2, type LucideIcon } from 'lucide-react'
 import { IconoModulo } from '@/components/ui/IconoApp'
 
-export type ModuloEspacio = 'inicio' | 'servicio' | 'solicitudes' | 'aportes'
+export type ModuloEspacio = 'inicio' | 'servicio' | 'solicitudes' | 'aportes' | 'academia' | 'calendario'
 
 const MODULOS: Record<ModuloEspacio, { href: string; label: string; icon: LucideIcon; color: string; rutas: string[] }> = {
   inicio:      { href: '/mi',             label: 'Inicio',      icon: Home,        color: '#007aff', rutas: [] },
   servicio:    { href: '/mi/ministerios', label: 'Ministerios', icon: Mic2,        color: '#ff2d55', rutas: ['/mi/tareas', '/mi/servicio'] },
   solicitudes: { href: '/mi/solicitudes', label: 'Solicitudes', icon: ShoppingBag, color: '#00c7be', rutas: [] },
   aportes:     { href: '/mi/aportes',     label: 'Mis aportes', icon: Wallet,      color: '#34c759', rutas: [] },
+  // Academia
+  academia:    { href: '/taller',            label: 'Mis cursos',  icon: School,       color: '#af52de', rutas: ['/taller/cursos', '/taller/sesiones', '/taller/examenes'] },
+  calendario:  { href: '/taller/calendario', label: 'Calendario',  icon: CalendarDays, color: '#ff3b30', rutas: [] },
 }
 
 function activo(m: ModuloEspacio, pathname: string) {
   const { href, rutas } = MODULOS[m]
-  if (href === '/mi') return pathname === '/mi'
+  if (href === '/mi' || href === '/taller') return pathname === href || rutas.some((r) => pathname.startsWith(r))
   return [href, ...rutas].some((r) => pathname === r || pathname.startsWith(r + '/'))
 }
 

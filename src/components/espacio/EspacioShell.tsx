@@ -10,7 +10,7 @@ import SelectorEspacios, { RecordarEspacio, type Espacio } from './SelectorEspac
 // espacios, campana y perfil) y los módulos que corresponden a la persona.
 export default async function EspacioShell({ children, espacio = 'mi' }: { children: React.ReactNode; espacio?: 'mi' | 'academia' }) {
   const ctx = await contextoEspacio()
-  const modulos: ModuloEspacio[] = espacio === 'academia' ? [] : [
+  const modulos: ModuloEspacio[] = espacio === 'academia' ? ['academia', 'calendario'] : [
     'inicio',
     ...(ctx.esServidor ? ['servicio' as const] : []),
     'solicitudes',
