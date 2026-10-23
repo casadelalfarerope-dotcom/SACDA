@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import * as XLSX from 'xlsx'
+import { crearExcel, respuestaExcel } from '@/lib/excel'
 import { createClient } from '@/lib/supabase/server'
 import { hoyLima } from '@/lib/utils'
 
@@ -22,7 +22,7 @@ export async function GET() {
   ])
 
   type P = { nombre_completo: string; telefono: string | null; direccion: string | null; ministerio?: string | null } | null
-  const hojaVisitas = XLSX.utils.json_to_sheet((visitas ?? []).map((v) => {
+  const filasVisitas = (visitas ?? []).map((v) => {
     const p = v.persona as unknown as P
     return {
       Nombre: p?.nombre_completo ?? '', 'Teléfono': p?.telefono ?? '', 'Dirección': p?.direccion ?? '',
@@ -30,27 +30,21 @@ export async function GET() {
       'Invitado por': (v.referido as unknown as { nombre_completo: string } | null)?.nombre_completo ?? '',
       Notas: v.notas ?? '', 'Resultado del contacto': '',
     }
-  }))
-  hojaVisitas['!cols'] = [{ wch: 32 }, { wch: 16 }, { wch: 30 }, { wch: 14 }, { wch: 9 }, { wch: 26 }, { wch: 30 }, { wch: 30 }]
+  })
 
-  const hojaAusencias = XLSX.utils.json_to_sheet((ausencias ?? []).map((a) => {
+  const filasAusencias = (ausencias ?? []).map((a) => {
     const p = a.persona as unknown as P
     return {
       Nombre: p?.nombre_completo ?? '', 'Teléfono': p?.telefono ?? '', 'Dirección': p?.direccion ?? '',
       Ministerio: p?.ministerio ?? '', 'Fecha de la ausencia': a.fecha, Motivo: a.motivo ?? '', 'Resultado del contacto': '',
     }
-  }))
-  hojaAusencias['!cols'] = [{ wch: 32 }, { wch: 16 }, { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 30 }, { wch: 30 }]
-
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, hojaVisitas, 'Visitas por contactar')
-  XLSX.utils.book_append_sheet(wb, hojaAusencias, 'Ausencias por atender')
-  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
-
-  return new NextResponse(buf, {
-    headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': `attachment; filename="seguimiento-${hoyLima()}.xlsx"`,
-    },
   })
+
+  const buf = await crearExcel([
+    { nombre: 'Visitas por contactar', filas: filasVisitas, anchos: [32, 16, 30, 14, 9, 26, 30, 30],
+      columnas: ['Nombre', 'Teléfono', 'Dirección', 'Primera visita', '¿Volvió?', 'Invitado por', 'Notas', 'Resultado del contacto'] },
+    { nombre: 'Ausencias por atender', filas: filasAusencias, anchos: [32, 16, 30, 18, 18, 30, 30],
+      columnas: ['Nombre', 'Teléfono', 'Dirección', 'Ministerio', 'Fecha de la ausencia', 'Motivo', 'Resultado del contacto'] },
+  ])
+  return respuestaExcel(buf, `seguimiento-${hoyLima()}.xlsx`)
 }

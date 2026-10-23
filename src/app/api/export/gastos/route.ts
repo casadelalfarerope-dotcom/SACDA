@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import * as XLSX from 'xlsx'
+import { crearExcel, respuestaExcel } from '@/lib/excel'
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient()
@@ -33,18 +33,8 @@ export async function GET(req: NextRequest) {
     Descripción: g.descripcion ?? '',
   }))
 
-  const ws = XLSX.utils.json_to_sheet(filas)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Gastos')
-  ws['!cols'] = [{ wch: 30 }, { wch: 10 }, { wch: 12 }, { wch: 15 }, { wch: 40 }]
-
-  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
+  const buf = await crearExcel([{ nombre: 'Gastos', filas, anchos: [30, 10, 12, 15, 40],
+    columnas: ['Concepto', 'Monto', 'Fecha', 'Categoría', 'Descripción'] }])
   const nombre = mes ? `gastos-${mes}.xlsx` : anio ? `gastos-${anio}.xlsx` : 'gastos.xlsx'
-
-  return new NextResponse(buf, {
-    headers: {
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': `attachment; filename="${nombre}"`,
-    },
-  })
+  return respuestaExcel(buf, nombre)
 }
