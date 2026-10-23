@@ -17,18 +17,34 @@ function GoogleIcon() {
   )
 }
 
-// El correo de invitación de Supabase devuelve la sesión en el hash de la URL.
-// Con la sesión activa, la persona elige cómo entrará de ahora en adelante.
+// Formas en que puede llegar la invitación:
+// · ?token_hash=…&type=invite (plantilla recomendada): la cuenta se activa
+//   recién cuando la persona pulsa un botón, así los antivirus del correo que
+//   abren los enlaces no la gastan antes.
+// · #access_token=… (plantilla por defecto de Supabase): ya trae la sesión.
+// Luego la persona elige cómo entrará: con Google o con una contraseña.
 export default function InvitacionPage() {
   const [estado, setEstado] = useState<'cargando' | 'error' | 'elegir'>('cargando')
   const [email, setEmail] = useState<string | null>(null)
+  const [tokenHash, setTokenHash] = useState<string | null>(null)
   const [conectando, setConectando] = useState(false)
+  const [activando, setActivando] = useState(false)
   const [errorGoogle, setErrorGoogle] = useState('')
+  const [errorClave, setErrorClave] = useState('')
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.slice(1))
-    const access_token = params.get('access_token')
-    const refresh_token = params.get('refresh_token')
+    const query = new URLSearchParams(window.location.search)
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+    const th = query.get('token_hash')
+    if (th) {
+      setTokenHash(th)
+      setEmail(query.get('email'))
+      window.history.replaceState(null, '', window.location.pathname)
+      setEstado('elegir')
+      return
+    }
+    const access_token = hash.get('access_token')
+    const refresh_token = hash.get('refresh_token')
     if (!access_token || !refresh_token) { setEstado('error'); return }
 
     createClient().auth.setSession({ access_token, refresh_token }).then(({ data, error }) => {
@@ -38,6 +54,20 @@ export default function InvitacionPage() {
       setEstado('elegir')
     })
   }, [])
+
+  // Con la plantilla de token_hash, la cuenta se activa al elegir la contraseña.
+  async function crearContrasena() {
+    if (!tokenHash) { window.location.href = '/cambiar-contrasena'; return }
+    setActivando(true)
+    setErrorClave('')
+    const { error } = await createClient().auth.verifyOtp({ token_hash: tokenHash, type: 'invite' })
+    if (error) {
+      setErrorClave('Este enlace ya se usó o venció. Entra con Google o pide que te inviten de nuevo.')
+      setActivando(false)
+      return
+    }
+    window.location.href = '/cambiar-contrasena'
+  }
 
   async function continuarConGoogle() {
     setConectando(true)
@@ -60,12 +90,23 @@ export default function InvitacionPage() {
         )}
 
         {estado === 'error' && (
-          <div className="text-center space-y-4">
-            <p className="text-sm" style={{ color: 'var(--foreground)' }}>
-              El enlace de invitación no es válido o ya venció. Pide a un líder que te invite de nuevo,
-              o entra con Google usando el correo invitado.
+          <div className="space-y-5 text-center">
+            <IconoApp tamano={56} className="mx-auto" />
+            <h1 className="text-[22px] font-bold" style={{ color: 'var(--foreground)' }}>Este enlace ya no funciona</h1>
+            <p className="text-[15px]" style={{ color: 'var(--muted)' }}>
+              Los enlaces de invitación sirven una sola vez; a veces el propio correo los abre al revisarlos.
+              Tu cuenta igual está creada: si tu correo es de Google, entra directamente.
             </p>
-            <Link href="/login" className="text-sm underline" style={{ color: 'var(--accent)' }}>Ir al inicio de sesión</Link>
+            <button type="button" onClick={continuarConGoogle} disabled={conectando}
+              className="w-full h-12 flex items-center justify-center gap-3 rounded-full text-[15px] font-semibold border disabled:opacity-60"
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+              {conectando ? <Loader2 size={18} className="animate-spin" /> : <GoogleIcon />}
+              Continuar con Google
+            </button>
+            {errorGoogle && <p role="alert" className="text-[13px]" style={{ color: 'var(--error)' }}>{errorGoogle}</p>}
+            <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
+              ¿Tu correo no es de Google? Ve a <Link href="/recuperar" className="underline" style={{ color: 'var(--accent)' }}>¿Olvidaste tu contraseña?</Link> para crear una, o pide que te inviten de nuevo.
+            </p>
           </div>
         )}
 
@@ -100,11 +141,12 @@ export default function InvitacionPage() {
             </div>
 
             <div className="space-y-3">
-              <Link href="/cambiar-contrasena"
-                className="w-full h-12 flex items-center justify-center gap-2 rounded-full text-[15px] font-semibold"
+              <button type="button" onClick={crearContrasena} disabled={activando}
+                className="w-full h-12 flex items-center justify-center gap-2 rounded-full text-[15px] font-semibold disabled:opacity-60"
                 style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}>
-                <KeyRound size={18} aria-hidden="true" /> Crear una contraseña
-              </Link>
+                {activando ? <Loader2 size={18} className="animate-spin" /> : <KeyRound size={18} aria-hidden="true" />} Crear una contraseña
+              </button>
+              {errorClave && <p role="alert" className="text-[13px] text-center" style={{ color: 'var(--error)' }}>{errorClave}</p>}
               <p className="text-[13px] text-center px-2" style={{ color: 'var(--muted)' }}>
                 Entras con tu correo y la contraseña que elijas. Úsalo si tu correo no es de Google.
               </p>
