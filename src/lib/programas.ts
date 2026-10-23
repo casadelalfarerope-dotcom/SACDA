@@ -101,7 +101,9 @@ export async function sugerirMinisterio(db: SupabaseClient, programaId: string, 
     .sort((a, b) => b.fecha.localeCompare(a.fecha))
 
   const sugerencias: Sugerencia[] = []
-  for (const puesto of puestos) {
+  // Los puestos fijos van primero para que un puesto que rota no les quite a su persona.
+  const enOrden = [...puestos].sort((a, b) => Number(a.modo !== 'fijo') - Number(b.modo !== 'fijo'))
+  for (const puesto of enOrden) {
     const ya = (actuales ?? []).filter((a) => a.rol_servicio_id === puesto.id).length
     let faltan = (puesto.cantidad as number) - ya
     if (faltan <= 0) continue
