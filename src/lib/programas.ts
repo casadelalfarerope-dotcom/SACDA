@@ -54,7 +54,7 @@ export async function asegurarProgramas(admin: SupabaseClient) {
       await admin.from('programas').update({ fecha, titulo: i.titulo, hora_inicio: hora, cancelado: false }).eq('id', actual.id)
     }
   }
-  if (nuevos.length) await admin.from('programas').upsert(nuevos, { onConflict: 'evento_id,fecha_original', ignoreDuplicates: true })
+  if (nuevos.length) await admin.from('programas').insert(nuevos)
 
   // Cultos cancelados: si nadie fue asignado se borra; si no, queda marcado.
   for (const p of existentes ?? []) {
