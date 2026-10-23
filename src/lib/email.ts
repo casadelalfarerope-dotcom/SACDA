@@ -88,3 +88,28 @@ export function tplArteAprobado(destino: 'multimedia' | 'impresiones', tituloTar
       </div>`,
   }
 }
+
+export function tplInvitacion(nombre: string, enlace: string) {
+  const primerNombre = nombre.split(' ')[0] || ''
+  return {
+    subject: 'Te invitaron al sistema de Casa del Alfarero',
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <h2 style="color:#1d1d1f;margin-bottom:8px">¡Hola${primerNombre ? ` ${primerNombre}` : ''}!</h2>
+        <p style="color:#1d1d1f;font-size:16px">
+          Te dieron acceso al sistema de <strong>Casa del Alfarero</strong>. Pulsa el botón para activar tu cuenta:
+          podrás entrar con Google o crear una contraseña.
+        </p>
+        <a href="${enlace}"
+           style="display:inline-block;margin-top:16px;padding:12px 24px;
+                  background:#0071e3;color:#fff;border-radius:999px;text-decoration:none;font-size:15px;font-weight:600">
+          Activar mi cuenta
+        </a>
+        <p style="color:#86868b;font-size:13px;margin-top:20px">
+          Si el botón no funciona, entra a ${process.env.NEXT_PUBLIC_APP_URL ?? 'la aplicación'} y usa «Continuar con Google» con este correo.
+        </p>
+        <hr style="margin:24px 0;border:none;border-top:1px solid #d2d2d7"/>
+        <p style="color:#86868b;font-size:12px">Casa del Alfarero — Sistema interno</p>
+      </div>`,
+  }
+}
