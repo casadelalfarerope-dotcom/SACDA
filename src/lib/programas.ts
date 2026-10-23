@@ -20,18 +20,19 @@ export async function asegurarProgramas(admin: SupabaseClient) {
   const { data: eventos } = await admin.from('eventos')
     .select('id, titulo, tipo, hora_inicio, hora_fin, lugar, tipo_recurrencia, fecha_unica, fecha_inicio_serie, fecha_fin_serie, dias_semana, semana_del_mes, dia_semana_mes')
     .eq('tipo', 'servicio')
-  if (!eventos?.length) return
 
-  const ids = eventos.map((e) => e.id as string)
+  const ids = (eventos ?? []).map((e) => e.id as string)
   const [{ data: excepciones }, { data: existentes }] = await Promise.all([
     admin.from('evento_excepciones').select('evento_id, fecha_original, tipo_excepcion, fecha_nueva, titulo_override').in('evento_id', ids),
+    // Todos los programas futuros ligados al calendario: si su evento dejó de ser
+    // un culto (o se borró), se tratan como cancelados.
     admin.from('programas').select('id, evento_id, fecha_original, fecha, titulo, hora_inicio, cancelado')
-      .in('evento_id', ids).gte('fecha_original', hoy).lte('fecha_original', hasta),
+      .not('evento_id', 'is', null).gte('fecha_original', hoy).lte('fecha_original', hasta),
   ])
 
   const desde = new Date(hoy + 'T12:00:00Z')
   const fin = new Date(hasta + 'T12:00:00Z')
-  const instancias = eventos.flatMap((e) => {
+  const instancias = (eventos ?? []).flatMap((e) => {
     const fechaFin = e.fecha_fin_serie as string | null
     return generarInstancias(e as EventoBase, ((excepciones ?? []) as (ExcepcionBase & { evento_id: string })[])
       .filter((x) => x.evento_id === e.id), desde, fechaFin && fechaFin < hasta ? new Date(fechaFin + 'T12:00:00Z') : fin)
