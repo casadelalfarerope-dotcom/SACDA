@@ -26,7 +26,7 @@ export default async function MiTareaPage({ params }: { params: Promise<{ id: st
   const puedeEntregar = ['pendiente', 'en_progreso', 'rechazado'].includes(tarea.estado)
 
   return (
-    <Pagina ancho="estrecho" titulo={tarea.titulo} volver={{ href: '/mi/servicio', texto: 'Mi servicio' }}
+    <Pagina ancho="estrecho" titulo={tarea.titulo} volver={{ href: '/mi/ministerios', texto: 'Mis ministerios' }}
       subtitulo={<span className="inline-flex flex-wrap items-center gap-2">
         <Badge variant={est.variant}>{est.label}</Badge>
         {tarea.fecha_limite ? `Vence el ${formatDate(tarea.fecha_limite)}` : 'Sin fecha límite'}

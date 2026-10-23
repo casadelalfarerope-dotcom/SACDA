@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { sugerirMinisterio } from '@/lib/programas'
+import { sugerirMinisterio, asignacionesAnteriores } from '@/lib/programas'
+import { hoyLima } from '@/lib/utils'
 import { formatDate } from '@/lib/utils'
 
 // Los permisos los decide la base de datos: quien tiene el módulo Servidores
@@ -59,6 +60,44 @@ export async function llenarSugerencias(programaId: string, grupoId: string) {
   return { success: true, cantidad: sugerencias.length }
 }
 
+// Repite a las personas del culto anterior (ministerios que casi no varían).
+export async function repetirAnterior(programaId: string, grupoId: string) {
+  const supabase = await createClient()
+  const filas = await asignacionesAnteriores(supabase, programaId, grupoId)
+  if (!filas.length) return { error: 'No hay un culto anterior con este ministerio asignado, o ya está completo.' }
+  const { error } = await supabase.from('programa_asignaciones').insert(
+    filas.map((s) => ({ programa_id: programaId, rol_servicio_id: s.puesto_id, persona_id: s.persona_id })),
+  )
+  if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudo repetir la programación.' }
+  revalidar(programaId)
+  return { success: true, cantidad: filas.length }
+}
+
+// Completa con sugerencia, en orden de fecha, los cultos de los próximos días
+// que el ministerio aún no llenó. No publica: el líder revisa y publica.
+export async function completarProximos(grupoId: string, dias = 31) {
+  const supabase = await createClient()
+  const hoy = hoyLima()
+  const hasta = new Date(hoy + 'T12:00:00Z')
+  hasta.setUTCDate(hasta.getUTCDate() + dias)
+  const { data: programas } = await supabase.from('programas').select('id')
+    .gte('fecha', hoy).lte('fecha', hasta.toISOString().slice(0, 10)).eq('cancelado', false)
+    .order('fecha').order('hora_inicio')
+  let total = 0
+  for (const p of programas ?? []) {
+    const sugerencias = await sugerirMinisterio(supabase, p.id, grupoId)
+    if (!sugerencias.length) continue
+    const { error } = await supabase.from('programa_asignaciones').insert(
+      sugerencias.map((s) => ({ programa_id: p.id, rol_servicio_id: s.puesto_id, persona_id: s.persona_id })),
+    )
+    if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudieron completar los cultos.' }
+    total += sugerencias.length
+  }
+  if (!total) return { error: 'Los próximos cultos ya están completos.' }
+  revalidar()
+  return { success: true, cantidad: total }
+}
+
 // Publica la parte de un ministerio y avisa a sus asignados. No requiere aprobación.
 export async function publicarMinisterio(programaId: string, grupoId: string) {
   const supabase = await createClient()
@@ -87,7 +126,7 @@ export async function publicarMinisterio(programaId: string, grupoId: string) {
     tipo: 'turno_asignado',
     titulo: `Te toca servir: ${nombrePuesto.get(a.rol_servicio_id as string) ?? 'Servicio'}`,
     cuerpo: `${programa?.titulo ?? 'Culto'} · ${programa ? formatDate(programa.fecha) : ''}`,
-    url: '/mi/servicio',
+    url: '/mi/ministerios',
   })))
 
   revalidar(programaId)

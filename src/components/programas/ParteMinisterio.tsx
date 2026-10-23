@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Sparkles, Send, Undo2, Link as LinkIcon } from 'lucide-react'
+import { X, Sparkles, Send, Undo2, Repeat, Link as LinkIcon } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
-import { agregarAsignacion, eliminarAsignacion, llenarSugerencias, publicarMinisterio, despublicarMinisterio } from '@/app/actions/servidores'
+import { agregarAsignacion, eliminarAsignacion, llenarSugerencias, repetirAnterior, publicarMinisterio, despublicarMinisterio } from '@/app/actions/servidores'
 
 export interface PuestoPrograma {
   id: string
@@ -114,6 +114,11 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
           {!completo && (
             <Button size="sm" variant="secondary" loading={pendiente} onClick={() => ejecutar(() => llenarSugerencias(programaId, grupo.id), 'Se completaron los puestos vacíos. Revisa y publica.')}>
               <Sparkles size={14} aria-hidden="true" /> Completar con sugerencia
+            </Button>
+          )}
+          {!completo && (
+            <Button size="sm" variant="secondary" loading={pendiente} onClick={() => ejecutar(() => repetirAnterior(programaId, grupo.id), 'Se repitieron los del culto anterior. Revisa y publica.')}>
+              <Repeat size={14} aria-hidden="true" /> Repetir los del culto anterior
             </Button>
           )}
           {estado !== 'publicado' ? (

@@ -9,7 +9,7 @@ export type ModuloEspacio = 'inicio' | 'servicio' | 'solicitudes' | 'aportes' | 
 
 const MODULOS: Record<ModuloEspacio, { href: string; label: string; icon: LucideIcon; color: string; rutas: string[] }> = {
   inicio:      { href: '/mi',             label: 'Inicio',      icon: Home,        color: '#007aff', rutas: [] },
-  servicio:    { href: '/mi/servicio',    label: 'Mi servicio', icon: Mic2,        color: '#ff2d55', rutas: ['/mi/tareas'] },
+  servicio:    { href: '/mi/ministerios', label: 'Ministerios', icon: Mic2,        color: '#ff2d55', rutas: ['/mi/tareas', '/mi/servicio'] },
   solicitudes: { href: '/mi/solicitudes', label: 'Solicitudes', icon: ShoppingBag, color: '#00c7be', rutas: [] },
   aportes:     { href: '/mi/aportes',     label: 'Mis aportes', icon: Wallet,      color: '#34c759', rutas: [] },
   academia:    { href: '/taller',         label: 'Academia',    icon: School,      color: '#af52de', rutas: [] },

@@ -190,3 +190,65 @@ export async function cargarPrograma(db: SupabaseClient, programaId: string, gru
   }
   return [...grupos.values()].sort((a, b) => a.grupo.nombre.localeCompare(b.grupo.nombre))
 }
+
+export interface Turno {
+  id: string
+  programa_id: string
+  material_url: string | null
+  estado_material: string
+  puesto: { nombre: string; requiere_material: boolean }
+  grupo: { id: string; nombre: string }
+  programa: { titulo: string; fecha: string; hora_inicio: string | null }
+  publicado: boolean
+}
+
+// Turnos de una persona. Un turno se muestra cuando su ministerio publicó su
+// parte del programa (o si la persona es el líder de ese ministerio).
+export async function misTurnos(db: SupabaseClient, personaId: string): Promise<Turno[]> {
+  const { data } = await db.from('programa_asignaciones')
+    .select('id, programa_id, material_url, estado_material, puesto:roles_servicio(nombre, requiere_material, grupo:grupos(id, nombre, encargado_id)), programa:programas!inner(titulo, fecha, hora_inicio, cancelado, programa_ministerios(grupo_id, estado))')
+    .eq('persona_id', personaId).eq('programa.cancelado', false)
+
+  return (data ?? []).flatMap((a) => {
+    const puesto = a.puesto as unknown as { nombre: string; requiere_material: boolean; grupo: { id: string; nombre: string; encargado_id: string | null } | null } | null
+    const prog = a.programa as unknown as { titulo: string; fecha: string; hora_inicio: string | null; programa_ministerios: { grupo_id: string; estado: string }[] }
+    if (!puesto?.grupo) return []
+    const publicado = prog.programa_ministerios.some((m) => m.grupo_id === puesto.grupo!.id && m.estado === 'publicado')
+    if (!publicado && puesto.grupo.encargado_id !== personaId) return []
+    return [{
+      id: a.id, programa_id: a.programa_id, material_url: a.material_url, estado_material: a.estado_material,
+      puesto: { nombre: puesto.nombre, requiere_material: puesto.requiere_material },
+      grupo: { id: puesto.grupo.id, nombre: puesto.grupo.nombre },
+      programa: { titulo: prog.titulo, fecha: prog.fecha, hora_inicio: prog.hora_inicio },
+      publicado,
+    }]
+  }).sort((x, y) => x.programa.fecha.localeCompare(y.programa.fecha))
+}
+
+// Repite en este culto a las personas del culto anterior del ministerio
+// (solo en los puestos que siguen vacíos).
+export async function asignacionesAnteriores(db: SupabaseClient, programaId: string, grupoId: string): Promise<Sugerencia[]> {
+  const [{ data: programa }, { data: puestos }] = await Promise.all([
+    db.from('programas').select('fecha').eq('id', programaId).single(),
+    db.from('roles_servicio').select('id, cantidad').eq('grupo_id', grupoId).eq('activo', true),
+  ])
+  if (!programa || !puestos?.length) return []
+  const puestoIds = puestos.map((p) => p.id as string)
+  const [{ data: actuales }, { data: previas }] = await Promise.all([
+    db.from('programa_asignaciones').select('rol_servicio_id, persona_id').eq('programa_id', programaId),
+    db.from('programa_asignaciones').select('rol_servicio_id, persona_id, programa:programas!inner(id, fecha, cancelado)')
+      .in('rol_servicio_id', puestoIds).lt('programa.fecha', programa.fecha).eq('programa.cancelado', false).limit(300),
+  ])
+  const lista = (previas ?? []).map((p) => ({ ...p, prog: p.programa as unknown as { id: string; fecha: string } }))
+    .sort((a, b) => b.prog.fecha.localeCompare(a.prog.fecha))
+  const ultimo = lista[0]?.prog.id
+  if (!ultimo) return []
+  const ocupados = new Set((actuales ?? []).map((a) => `${a.rol_servicio_id}|${a.persona_id}`))
+  return lista.filter((p) => p.prog.id === ultimo)
+    .filter((p) => !ocupados.has(`${p.rol_servicio_id}|${p.persona_id}`))
+    .filter((p) => {
+      const cupo = (puestos.find((x) => x.id === p.rol_servicio_id)?.cantidad as number) ?? 1
+      return (actuales ?? []).filter((a) => a.rol_servicio_id === p.rol_servicio_id).length < cupo
+    })
+    .map((p) => ({ puesto_id: p.rol_servicio_id as string, persona_id: p.persona_id as string }))
+}

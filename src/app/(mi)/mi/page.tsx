@@ -1,6 +1,7 @@
 import { CalendarCheck, ClipboardList, ShoppingBag, School, Wallet } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { contextoEspacio } from '@/lib/espacio'
+import { misTurnos } from '@/lib/programas'
 import { estadoTarea } from '@/lib/etiquetas'
 import { formatDate, hoyLima } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
@@ -17,10 +18,8 @@ export default async function MiInicioPage() {
   const supabase = await createClient()
   const hoy = hoyLima()
 
-  const [{ data: turnos }, { data: tareas }, { data: solicitudes }] = await Promise.all([
-    supabase.from('programa_asignaciones')
-      .select('id, rol:roles_servicio(nombre), programa:programas!inner(titulo, fecha, estado)')
-      .eq('persona_id', ctx.personaId).eq('programa.estado', 'publicado').gte('programa.fecha', hoy),
+  const [turnos, { data: tareas }, { data: solicitudes }] = await Promise.all([
+    misTurnos(supabase, ctx.personaId),
     supabase.from('tareas').select('id, titulo, estado, fecha_limite')
       .eq('asignado_id', ctx.personaId).neq('tipo', 'solicitud_venta')
       .in('estado', ['pendiente', 'en_progreso', 'rechazado']).order('fecha_limite', { nullsFirst: false }).limit(5),
@@ -28,9 +27,7 @@ export default async function MiInicioPage() {
       .eq('tipo', 'solicitud_venta').eq('solicitante_id', ctx.userId).order('created_at', { ascending: false }).limit(3),
   ])
 
-  const proximos = (turnos ?? [])
-    .map((t) => ({ ...t, p: t.programa as unknown as { titulo: string; fecha: string } }))
-    .sort((a, b) => a.p.fecha.localeCompare(b.p.fecha)).slice(0, 3)
+  const proximos = turnos.filter((t) => t.programa.fecha >= hoy).slice(0, 3)
   const nombre = ctx.persona.nombre_completo.split(' ')[0]
   const fechaLarga = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
   const fechaHoy = fechaLarga.charAt(0).toUpperCase() + fechaLarga.slice(1)
@@ -38,15 +35,12 @@ export default async function MiInicioPage() {
   return (
     <Pagina ancho="estrecho" titulo={`${saludo()}, ${nombre}`} subtitulo={fechaHoy}>
       {ctx.esServidor && (
-        <Grupo titulo="Mis próximos turnos" accion={<a href="/mi/servicio" className="text-[15px]" style={{ color: 'var(--accent)' }}>Ver todo</a>}>
-          {proximos.map(({ p, ...t }, i) => {
-            const rol = (t.rol as unknown as { nombre: string } | null)?.nombre ?? 'Servicio'
-            return (
-              <Fila key={t.id} primero={i === 0} href="/mi/servicio"
-                inicio={<IconoModulo icon={CalendarCheck} color="#ff2d55" tamano={36} />}
-                titulo={rol} subtitulo={`${p.titulo} · ${formatDate(p.fecha)}`} />
-            )
-          })}
+        <Grupo titulo="Mis próximos turnos" accion={<a href="/mi/ministerios" className="text-[15px]" style={{ color: 'var(--accent)' }}>Ver todo</a>}>
+          {proximos.map((t, i) => (
+            <Fila key={t.id} primero={i === 0} href="/mi/ministerios"
+              inicio={<IconoModulo icon={CalendarCheck} color="#ff2d55" tamano={36} />}
+              titulo={`${t.puesto.nombre} · ${t.grupo.nombre}`} subtitulo={`${t.programa.titulo} · ${formatDate(t.programa.fecha)}`} />
+          ))}
           {!proximos.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>No tienes turnos programados</span>} />}
         </Grupo>
       )}
