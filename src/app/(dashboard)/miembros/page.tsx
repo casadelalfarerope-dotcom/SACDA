@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Cake, Church, UserX, UserPlus } from 'lucide-react'
+import { Cake, Church, UserX, UserPlus, Download } from 'lucide-react'
 import { diasParaCumpleanios, formatDateShort } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
@@ -57,6 +57,15 @@ export default async function MiembrosPage() {
         <BotonEnlace href="/miembros/ausencias/nueva" variante="tintado"><UserX size={15} aria-hidden="true" /> Ausencia</BotonEnlace>
         <BotonEnlace href="/miembros/visitas/nueva"><UserPlus size={15} aria-hidden="true" /> Visita</BotonEnlace>
       </>}>
+
+      <Grupo pie="Excel con las visitas que faltan contactar y las ausencias por atender, con teléfono y dirección, para entregar a quien hará el seguimiento.">
+        <li>
+          <a href="/api/export/seguimiento" download className="flex items-center gap-3 pl-4 pr-4 min-h-[52px] transition-colors hover:bg-[color:var(--fill)]">
+            <IconoModulo icon={Download} color="#34c759" />
+            <span className="text-[15px] font-medium" style={{ color: 'var(--accent)' }}>Descargar reporte de seguimiento</span>
+          </a>
+        </li>
+      </Grupo>
 
       <Grupo titulo="Cumpleaños · próximos 30 días">
         {cumpleProximos.map((p, i) => (

@@ -13,6 +13,7 @@ export async function crearTarea(data: {
   asignado_id?: string
   evento_id?: string
   fecha_limite?: string
+  grupo_id?: string
 }) {
   if (!data.titulo?.trim()) return { error: 'El título es obligatorio.' }
 
@@ -20,8 +21,16 @@ export async function crearTarea(data: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado.' }
 
+  // Las tareas de diseño pertenecen a Diseño Gráfico si no se indica otro ministerio.
+  let grupoId = data.grupo_id || null
+  if (!grupoId && data.tipo === 'diseno') {
+    const { data: diseno } = await supabase.from('grupos').select('id').eq('clave', 'diseno').maybeSingle()
+    grupoId = diseno?.id ?? null
+  }
+
   const { data: tarea, error } = await supabase.from('tareas').insert({
     tipo: data.tipo,
+    grupo_id: grupoId,
     titulo: data.titulo.trim(),
     descripcion: data.descripcion?.trim() || null,
     asignado_id: data.asignado_id || null,
@@ -39,6 +48,7 @@ export async function crearTarea(data: {
   }
 
   revalidatePath('/tareas')
+  revalidatePath('/mi', 'layout')
   return { success: true, id: tarea.id }
 }
 
@@ -103,12 +113,12 @@ export async function aprobarTarea(tarea_id: string) {
     .single()
   if (!tarea) return { error: 'Tarea no encontrada.' }
 
-  const { error } = await supabase.from('tareas').update({
+  const { data: aprobada, error } = await supabase.from('tareas').update({
     estado: 'aprobado',
     aprobado_por: user.id,
     fecha_aprobacion: new Date().toISOString(),
-  }).eq('id', tarea_id)
-  if (error) return { error: 'No se pudo aprobar.' }
+  }).eq('id', tarea_id).select('id')
+  if (error || !aprobada?.length) return { error: 'No se pudo aprobar.' }
 
   // Post-aprobación para tareas de diseño: distribuir y notificar
   if (tarea.tipo === 'diseno') {
@@ -171,6 +181,7 @@ export async function aprobarTarea(tarea_id: string) {
 
   revalidatePath(`/tareas/${tarea_id}`)
   revalidatePath('/tareas')
+  revalidatePath('/mi', 'layout')
   return { success: true }
 }
 
@@ -184,12 +195,12 @@ export async function rechazarTarea(tarea_id: string, feedback: string) {
   const { data: tarea } = await supabase
     .from('tareas').select('asignado_id, titulo').eq('id', tarea_id).single()
 
-  const { error } = await supabase.from('tareas').update({
+  const { data: rechazada, error } = await supabase.from('tareas').update({
     estado: 'rechazado',
     aprobado_por: user.id,
     feedback_rechazo: feedback.trim(),
-  }).eq('id', tarea_id)
-  if (error) return { error: 'No se pudo rechazar.' }
+  }).eq('id', tarea_id).select('id')
+  if (error || !rechazada?.length) return { error: 'No se pudo rechazar.' }
 
   // Notificar al diseñador del rechazo
   if (tarea?.asignado_id) {
@@ -205,6 +216,21 @@ export async function rechazarTarea(tarea_id: string, feedback: string) {
 
   revalidatePath(`/tareas/${tarea_id}`)
   revalidatePath('/tareas')
+  revalidatePath('/mi', 'layout')
+  return { success: true }
+}
+
+// El líder (o un encargado) asigna una tarea sin responsable a alguien.
+export async function asignarTarea(tarea_id: string, persona_id: string) {
+  if (!persona_id) return { error: 'Elige a quién asignar la tarea.' }
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('tareas')
+    .update({ asignado_id: persona_id, estado: 'en_progreso' }).eq('id', tarea_id)
+    .select('titulo, fecha_limite')
+  if (error || !data?.length) return { error: 'No tienes permiso para asignar esta tarea.' }
+  await notificarAsignado(persona_id, tarea_id, data[0]!.titulo, data[0]!.fecha_limite)
+  revalidatePath('/tareas')
+  revalidatePath('/mi', 'layout')
   return { success: true }
 }
 

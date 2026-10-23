@@ -74,3 +74,21 @@ export async function editarTutorial(id: string, data: {
   revalidatePath(`/capacitacion/${id}`)
   return { success: true }
 }
+
+// El líder publica un tutorial para su ministerio (visible para sus integrantes).
+export async function crearTutorialMinisterio(grupoId: string, data: { titulo: string; url_contenido: string; descripcion?: string }) {
+  const titulo = data.titulo.trim()
+  if (!titulo) return { error: 'Escribe el título del tutorial.' }
+  if (!/^https?:\/\/\S+$/.test(data.url_contenido.trim())) return { error: 'Pega un enlace válido (empieza con https://).' }
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Tu sesión expiró.' }
+  const { error } = await supabase.from('tutoriales').insert({
+    titulo, grupo_id: grupoId, tipo_destino: 'general', publicado: true,
+    url_contenido: data.url_contenido.trim(), descripcion: data.descripcion?.trim() || null, created_by: user.id,
+  })
+  if (error) return { error: error.code === '42501' ? 'Solo el líder del ministerio puede agregar tutoriales.' : 'No se pudo guardar el tutorial.' }
+  revalidatePath('/capacitacion')
+  revalidatePath('/mi', 'layout')
+  return { success: true }
+}

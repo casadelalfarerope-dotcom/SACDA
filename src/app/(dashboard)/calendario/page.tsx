@@ -24,14 +24,21 @@ export default async function CalendarioPage({
 
   const supabase = await createClient()
 
-  const [{ data: eventos }, { data: excepciones }] = await Promise.all([
+  const [{ data: eventos }, { data: excepciones }, { data: programas }] = await Promise.all([
     supabase.from('eventos').select('*').or(
       `tipo_recurrencia.neq.ninguna,and(tipo_recurrencia.eq.ninguna,fecha_unica.gte.${desde.toISOString().split('T')[0]},fecha_unica.lte.${hasta.toISOString().split('T')[0]})`
     ),
     supabase.from('evento_excepciones').select('*')
       .gte('fecha_original', desde.toISOString().split('T')[0])
       .lte('fecha_original', hasta.toISOString().split('T')[0]),
+    // Programas de servidores de los cultos de este mes (con lo que ya publicó cada ministerio).
+    supabase.from('programas').select('id, evento_id, fecha_original, programa_ministerios(estado)')
+      .not('evento_id', 'is', null).eq('cancelado', false),
   ])
+  const programaDe = new Map((programas ?? []).map((p) => [`${p.evento_id}|${p.fecha_original}`, {
+    id: p.id as string,
+    publicados: ((p.programa_ministerios ?? []) as { estado: string }[]).filter((m) => m.estado === 'publicado').length,
+  }]))
 
   // Generar todas las instancias del mes
   const excepcionesPorEvento: Record<string, typeof excepciones> = {}
@@ -137,14 +144,19 @@ export default async function CalendarioPage({
             const d = new Date(`${f}T12:00:00`)
             return (
               <Grupo key={f} titulo={`${DIAS_SEMANA[d.getDay()]} ${d.getDate()} de ${MESES[mes]}`}>
-                {porFecha[f]!.map((inst, k) => (
-                  <Fila key={k} primero={k === 0}
+                {porFecha[f]!.map((inst, k) => {
+                  const programa = programaDe.get(`${inst.evento_id}|${inst.fecha_original}`)
+                  return (
+                  <Fila key={k} primero={k === 0} href={programa ? `/servidores/${programa.id}` : undefined}
                     inicio={<span className="block w-1 h-9 rounded-full" aria-hidden="true"
                       style={{ background: inst.excepcion ? 'var(--warning)' : 'var(--accent)' }} />}
                     titulo={inst.titulo}
-                    subtitulo={[inst.lugar, inst.excepcion ? 'Modificado' : null].filter(Boolean).join(' · ') || undefined}
+                    subtitulo={[inst.lugar, inst.excepcion ? 'Modificado' : null,
+                      programa && (programa.publicados ? `Servidores: ${programa.publicados} ${programa.publicados === 1 ? 'ministerio publicó' : 'ministerios publicaron'}` : 'Servidores sin publicar')]
+                      .filter(Boolean).join(' · ') || undefined}
                     detalle={inst.hora_inicio ? <span className="tabular-nums">{inst.hora_inicio.slice(0, 5)}</span> : 'Todo el día'} />
-                ))}
+                  )
+                })}
               </Grupo>
             )
           })}

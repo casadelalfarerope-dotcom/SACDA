@@ -2,10 +2,16 @@
 
 import { createServiceClient } from '@/lib/supabase/service'
 import { enviarEmail, tplCumpleanios } from '@/lib/email'
-import { diasParaCumpleanios } from '@/lib/utils'
+import { diasParaCumpleanios, formatDate, hoyLima } from '@/lib/utils'
 import { integrantesMinisterio } from '@/lib/ministerios'
 
 const DIAS_AVISO_CUMPLE = 7
+
+function sumarDias(fecha: string, dias: number) {
+  const d = new Date(fecha + 'T12:00:00Z')
+  d.setUTCDate(d.getUTCDate() + dias)
+  return d.toISOString().slice(0, 10)
+}
 
 export async function procesarCumpleaniosProximos() {
   const admin = createServiceClient()
@@ -37,23 +43,34 @@ export async function procesarCumpleaniosProximos() {
 
   if (pendientes.length === 0) return { ok: true, enviados: 0 }
 
-  // Se avisa a los integrantes del ministerio de Diseño Gráfico.
-  const diseñadores = await integrantesMinisterio(admin, 'diseno')
+  // Cada cumpleaños genera una tarea de arte en Diseño Gráfico; su líder la
+  // asigna. Se avisa al líder (o a todo el ministerio si no tiene líder).
+  const { data: diseno } = await admin.from('grupos').select('id').eq('clave', 'diseno').maybeSingle()
+  const integrantes = await integrantesMinisterio(admin, 'diseno')
+  const avisar = integrantes.some((d) => d.esLider) ? integrantes.filter((d) => d.esLider) : integrantes
+  const hoy = hoyLima()
 
   let enviados = 0
 
   for (const persona of pendientes) {
-    // Notificación in-app a cada diseñador
-    for (const d of diseñadores) {
+    const fechaCumple = sumarDias(hoy, persona.dias)
+    const { data: tarea } = await admin.from('tareas').insert({
+      tipo: 'diseno',
+      grupo_id: diseno?.id ?? null,
+      titulo: `Arte de cumpleaños: ${persona.nombre_completo}`,
+      descripcion: `${persona.nombre_completo} cumple años el ${formatDate(fechaCumple)}. Prepara el saludo para pantalla y redes.`,
+      fecha_limite: persona.dias > 0 ? sumarDias(hoy, persona.dias - 1) : hoy,
+      estado: 'pendiente',
+    }).select('id').single()
+
+    for (const d of avisar) {
       await admin.from('notificaciones').insert({
         persona_id: d.persona_id,
         tipo: 'cumpleanios_proximo',
         titulo: `Cumpleaños de ${persona.nombre_completo.split(' ')[0]}`,
-        cuerpo: `${persona.nombre_completo} cumple años ${persona.dias === 0 ? 'hoy' : persona.dias === 1 ? 'mañana' : `en ${persona.dias} días`}. Prepara el arte.`,
-        url: `/congregantes/${persona.id}`,
+        cuerpo: `${persona.nombre_completo} cumple años ${persona.dias === 0 ? 'hoy' : persona.dias === 1 ? 'mañana' : `en ${persona.dias} días`}. Se creó la tarea del arte${d.esLider ? ': asígnala a alguien de tu ministerio' : ''}.`,
+        url: tarea ? `/mi/tareas/${tarea.id}` : '/mi/ministerios',
       })
-
-      // Email
       if (d.email) {
         const { subject, html } = tplCumpleanios(persona.nombre_completo, persona.dias)
         await enviarEmail(d.email, subject, html)

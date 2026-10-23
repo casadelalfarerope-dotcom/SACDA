@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { Mic2, MessageCircle, ExternalLink, Users } from 'lucide-react'
+import { Mic2, MessageCircle, ExternalLink, Users, ClipboardList, GraduationCap, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { contextoEspacio, misMinisterios } from '@/lib/espacio'
@@ -8,9 +8,12 @@ import { formatDate, hoyLima } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import { IconoModulo } from '@/components/ui/IconoApp'
-import { Pagina, Grupo, Fila } from '@/components/ui/ios'
+import { Pagina, Grupo, Fila, Tarjeta } from '@/components/ui/ios'
 import CompletarProximosBtn from '@/components/programas/CompletarProximosBtn'
 import PuestosMinisterio from '@/components/programas/PuestosMinisterio'
+import { NuevaTareaForm, NuevoTutorialForm } from '@/components/espacio/FormulariosLider'
+import MarcarVistoBtn from '@/components/servidores/MarcarVistoBtn'
+import { estadoTarea } from '@/lib/etiquetas'
 
 const fechaCorta = (f: string, h: string | null) => `${formatDate(f)}${h ? ` · ${h.slice(0, 5)}` : ''}`
 
@@ -27,7 +30,7 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
   if (mio.esLider) await asegurarProgramas(admin)
 
   const [{ data: grupo }, { data: miembros }, { data: subgrupos }, { data: materiales }, { data: puestos }] = await Promise.all([
-    admin.from('grupos').select('nombre, descripcion, enlace_whatsapp, encargado_id, lider:personas!grupos_encargado_id_fkey(nombre_completo, foto_url)').eq('id', id).single(),
+    admin.from('grupos').select('nombre, clave, descripcion, enlace_whatsapp, encargado_id, lider:personas!grupos_encargado_id_fkey(nombre_completo, foto_url)').eq('id', id).single(),
     admin.from('grupo_miembros').select('persona_id, rol_en_grupo, persona:personas(nombre_completo, foto_url)').eq('grupo_id', id).eq('activo', true),
     admin.from('grupos').select('id, nombre').eq('grupo_padre_id', id).eq('activo', true),
     admin.from('grupo_materiales').select('id, titulo, url').eq('grupo_id', id).order('created_at', { ascending: false }).limit(5),
@@ -47,6 +50,16 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
       : Promise.resolve({ data: [] as never[] }),
     admin.from('programa_ministerios').select('programa_id, estado').eq('grupo_id', id),
   ])
+  // Tareas del ministerio (el líder ve todas; el integrante, las suyas) y tutoriales.
+  const [{ data: tareasGrupo }, { data: tutoriales }, { data: progreso }] = await Promise.all([
+    admin.from('tareas').select('id, titulo, estado, fecha_limite, asignado_id, asignado:personas!tareas_asignado_id_fkey(nombre_completo)')
+      .eq('grupo_id', id).neq('estado', 'aprobado').order('fecha_limite', { nullsFirst: false }),
+    admin.from('tutoriales').select('id, titulo, url_contenido, descripcion').eq('grupo_id', id).eq('publicado', true).order('created_at', { ascending: false }),
+    admin.from('tutorial_progreso').select('tutorial_id').eq('persona_id', ctx.personaId).eq('visto', true),
+  ])
+  const tareasVisibles = (tareasGrupo ?? []).filter((t) => mio.esLider || t.asignado_id === ctx.personaId)
+  const vistos = new Set((progreso ?? []).map((p) => p.tutorial_id))
+
   const necesarios = (puestos ?? []).reduce((n, p) => n + (p.cantidad as number), 0)
   const publicado = new Set((estados ?? []).filter((e) => e.estado === 'publicado').map((e) => e.programa_id))
   const nombrePuesto = new Map((puestos ?? []).map((p) => [p.id as string, p.nombre as string]))
@@ -113,6 +126,47 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
             }))} />
         </section>
       )}
+
+      <Grupo titulo={mio.esLider ? 'Tareas del ministerio' : 'Mis tareas en este ministerio'}
+        pie={mio.esLider ? 'Abre una tarea para asignarla, revisar la entrega y aprobarla o pedir cambios.' : undefined}>
+        {tareasVisibles.map((t, i) => {
+          const est = estadoTarea(t.estado)
+          const quien = (t.asignado as unknown as { nombre_completo: string } | null)?.nombre_completo
+          return (
+            <Fila key={t.id} primero={i === 0} href={`/mi/tareas/${t.id}`}
+              inicio={<IconoModulo icon={ClipboardList} color="#f5b400" tamano={36} />}
+              titulo={t.titulo}
+              subtitulo={[mio.esLider && (quien ?? 'Sin asignar'), t.fecha_limite && `Vence el ${formatDate(t.fecha_limite)}`].filter(Boolean).join(' · ') || undefined}
+              detalle={!t.asignado_id ? <Badge variant="warning">Por asignar</Badge> : <Badge variant={est.variant}>{est.label}</Badge>} />
+          )
+        })}
+        {!tareasVisibles.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>No hay tareas pendientes</span>} />}
+      </Grupo>
+      {mio.esLider && (
+        <Tarjeta titulo="Nueva tarea">
+          <NuevaTareaForm grupoId={id} esDiseno={grupo.clave === 'diseno'} integrantes={opciones} hoy={hoy} />
+        </Tarjeta>
+      )}
+
+      <Grupo titulo="Capacitación">
+        {(tutoriales ?? []).map((tu, i) => {
+          const visto = vistos.has(tu.id)
+          return (
+            <Fila key={tu.id} primero={i === 0}
+              inicio={<IconoModulo icon={visto ? CheckCircle2 : GraduationCap} color={visto ? '#34c759' : '#32ade6'} tamano={36} />}
+              titulo={tu.titulo} subtitulo={tu.descripcion ?? undefined}>
+              <span className="flex flex-wrap items-center gap-3 mt-2">
+                {tu.url_contenido && (
+                  <a href={tu.url_contenido} target="_blank" rel="noopener noreferrer" className="text-[13px] font-medium underline" style={{ color: 'var(--accent)' }}>Abrir tutorial</a>
+                )}
+                {visto ? <Badge variant="success">Visto</Badge> : <MarcarVistoBtn tutorialId={tu.id} personaId={ctx.personaId} />}
+              </span>
+            </Fila>
+          )
+        })}
+        {!tutoriales?.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Aún no hay tutoriales en este ministerio</span>} />}
+      </Grupo>
+      {mio.esLider && <Tarjeta titulo="Compartir un tutorial"><NuevoTutorialForm grupoId={id} /></Tarjeta>}
 
       <Grupo titulo={`Integrantes (${integrantes.length + (lider && !integrantes.some((m) => m.id === grupo.encargado_id) ? 1 : 0)})`}>
         {lider && (
