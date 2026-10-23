@@ -24,20 +24,22 @@ export default async function DashboardLayout({
 
   const persona = (cuenta?.persona as unknown as Persona | null) ?? null
 
-  // Quien no tiene ningún permiso del panel (servidores y estudiantes) usa Mi espacio.
+  // Módulos que puede ver; quien no tiene ninguno (servidores y estudiantes) usa Mi espacio.
+  let modulos: string[] = []
   if (cuenta) {
     const { data: roles } = await supabase.from('roles_asignados')
       .select('rol_id').eq('persona_id', cuenta.persona_id).eq('activo', true)
     const rolIds = (roles ?? []).map((r) => r.rol_id as string)
-    const { count } = rolIds.length
-      ? await supabase.from('permisos_modulo').select('id', { count: 'exact', head: true }).in('rol_id', rolIds).eq('puede_ver', true)
-      : { count: 0 }
-    if (!count) redirect('/mi')
+    const { data: permisos } = rolIds.length
+      ? await supabase.from('permisos_modulo').select('modulo').in('rol_id', rolIds).eq('puede_ver', true)
+      : { data: [] }
+    modulos = [...new Set((permisos ?? []).map((p) => p.modulo as string))]
   }
+  if (!modulos.length) redirect('/mi')
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>
-      <Sidebar persona={persona} />
+      <Sidebar persona={persona} modulos={modulos} />
       <div className="flex-1 flex flex-col min-w-0">
         <header className="material sticky top-0 z-30 flex items-center justify-between gap-3 px-4 md:px-8 h-12 border-b"
           style={{ borderColor: 'var(--border)' }}>
@@ -48,7 +50,7 @@ export default async function DashboardLayout({
           {children}
         </main>
       </div>
-      <BottomNav />
+      <BottomNav modulos={modulos} />
     </div>
   )
 }

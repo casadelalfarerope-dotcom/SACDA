@@ -3,6 +3,7 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { enviarEmail, tplCumpleanios } from '@/lib/email'
 import { diasParaCumpleanios } from '@/lib/utils'
+import { integrantesMinisterio } from '@/lib/ministerios'
 
 const DIAS_AVISO_CUMPLE = 7
 
@@ -36,22 +37,8 @@ export async function procesarCumpleaniosProximos() {
 
   if (pendientes.length === 0) return { ok: true, enviados: 0 }
 
-  // Obtener diseñadores para notificar
-  const { data: rolDiseno } = await admin.from('roles').select('id').eq('nombre', 'diseniador').maybeSingle()
-
-  const diseñadores: { persona_id: string; email: string | null; nombre: string }[] = []
-  if (rolDiseno) {
-    const { data: asignados } = await admin
-      .from('roles_asignados')
-      .select('persona_id, persona:personas!roles_asignados_persona_id_fkey(email, nombre_completo)')
-      .eq('rol_id', rolDiseno.id)
-      .eq('activo', true)
-
-    for (const ra of asignados ?? []) {
-      const p = ra.persona as unknown as { email: string | null; nombre_completo: string } | null
-      if (p) diseñadores.push({ persona_id: ra.persona_id, email: p.email, nombre: p.nombre_completo })
-    }
-  }
+  // Se avisa a los integrantes del ministerio de Diseño Gráfico.
+  const diseñadores = await integrantesMinisterio(admin, 'diseno')
 
   let enviados = 0
 

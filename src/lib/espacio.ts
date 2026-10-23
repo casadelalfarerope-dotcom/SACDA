@@ -7,7 +7,7 @@ export interface ContextoEspacio {
   personaId: string
   persona: { nombre_completo: string; email: string | null; foto_url: string | null }
   tienePanel: boolean   // tiene algún permiso de ver en el panel de administración
-  esServidor: boolean   // tiene algún rol distinto de "estudiante" o turnos/tareas asignadas
+  esServidor: boolean   // integra o lidera algún ministerio, o tiene turnos/tareas asignadas
   esEstudiante: boolean // inscrito en algún curso activo
   sinLeer: number
 }
@@ -24,26 +24,27 @@ export const contextoEspacio = cache(async (): Promise<ContextoEspacio> => {
   if (!cuenta) redirect('/login?error=sin_ficha')
   const personaId = cuenta.persona_id as string
 
-  const [{ data: roles }, { count: sinLeer }, { count: inscripciones }, { count: turnos }, { count: tareas }] = await Promise.all([
-    supabase.from('roles_asignados').select('rol_id, rol:roles(nombre)').eq('persona_id', personaId).eq('activo', true),
+  const [{ data: roles }, { count: sinLeer }, { count: inscripciones }, { count: turnos }, { count: tareas }, { count: ministerios }, { count: liderazgos }] = await Promise.all([
+    supabase.from('roles_asignados').select('rol_id').eq('persona_id', personaId).eq('activo', true),
     supabase.from('notificaciones').select('id', { count: 'exact', head: true }).eq('persona_id', personaId).eq('leida', false),
     supabase.from('curso_inscripciones').select('id', { count: 'exact', head: true }).eq('persona_id', personaId).eq('activo', true),
     supabase.from('programa_asignaciones').select('id', { count: 'exact', head: true }).eq('persona_id', personaId),
     supabase.from('tareas').select('id', { count: 'exact', head: true }).eq('asignado_id', personaId).neq('tipo', 'solicitud_venta'),
+    supabase.from('grupo_miembros').select('id', { count: 'exact', head: true }).eq('persona_id', personaId).eq('activo', true),
+    supabase.from('grupos').select('id', { count: 'exact', head: true }).eq('encargado_id', personaId).eq('activo', true),
   ])
 
   const rolIds = (roles ?? []).map((r) => r.rol_id as string)
   const { count: permisos } = rolIds.length
     ? await supabase.from('permisos_modulo').select('id', { count: 'exact', head: true }).in('rol_id', rolIds).eq('puede_ver', true)
     : { count: 0 }
-  const nombres = (roles ?? []).map((r) => (r.rol as unknown as { nombre: string } | null)?.nombre)
 
   return {
     userId: user.id,
     personaId,
     persona: cuenta.persona as unknown as ContextoEspacio['persona'],
     tienePanel: (permisos ?? 0) > 0,
-    esServidor: nombres.some((n) => n && n !== 'estudiante') || (turnos ?? 0) > 0 || (tareas ?? 0) > 0,
+    esServidor: (ministerios ?? 0) > 0 || (liderazgos ?? 0) > 0 || (turnos ?? 0) > 0 || (tareas ?? 0) > 0,
     esEstudiante: (inscripciones ?? 0) > 0,
     sinLeer: sinLeer ?? 0,
   }

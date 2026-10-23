@@ -7,13 +7,14 @@ import Avatar from './ui/Avatar'
 import { IconoApp, IconoModulo } from './ui/IconoApp'
 import type { Persona } from '@/types/database'
 import { LogOut, Loader2 } from 'lucide-react'
-import { NAV_GRUPOS, isActive } from './navItems'
+import { gruposVisibles, moduloDeRuta, isActive } from './navItems'
 
 interface SidebarProps {
   persona: Persona | null
+  modulos: string[]
 }
 
-export default function Sidebar({ persona }: SidebarProps) {
+export default function Sidebar({ persona, modulos }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -22,6 +23,12 @@ export default function Sidebar({ persona }: SidebarProps) {
   useEffect(() => {
     if (!isPending) setPendingHref(null)
   }, [isPending])
+
+  // Una sección sin permiso no muestra datos (lo impide la base de datos); además se redirige al inicio.
+  useEffect(() => {
+    const modulo = moduloDeRuta(pathname)
+    if (modulo && !modulos.includes(modulo)) router.replace('/')
+  }, [pathname, modulos, router])
 
   function navigate(href: string) {
     if (href === pathname) return
@@ -52,7 +59,7 @@ export default function Sidebar({ persona }: SidebarProps) {
       </div>
 
       <nav aria-label="Navegación principal" className="flex-1 px-3 pb-4 overflow-y-auto space-y-4">
-        {NAV_GRUPOS.map((grupo, gi) => (
+        {gruposVisibles(modulos).map((grupo, gi) => (
           <div key={gi}>
             {grupo.titulo && (
               <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>

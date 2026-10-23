@@ -5,18 +5,20 @@ import { useTransition, useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { LayoutDashboard, Users, Calendar, DollarSign, Menu, X, LogOut, Loader2 } from 'lucide-react'
-import { NAV_ITEMS, isActive } from './navItems'
+import { gruposVisibles, isActive } from './navItems'
 import { IconoModulo } from './ui/IconoApp'
 
-const PRINCIPALES = [
-  { href: '/',             label: 'Inicio',     icon: LayoutDashboard },
-  { href: '/congregantes', label: 'Personas',   icon: Users },
-  { href: '/calendario',   label: 'Calendario', icon: Calendar },
-  { href: '/finanzas',     label: 'Finanzas',   icon: DollarSign },
+const TODOS_PRINCIPALES = [
+  { href: '/',             label: 'Inicio',     icon: LayoutDashboard, modulo: undefined },
+  { href: '/congregantes', label: 'Personas',   icon: Users,           modulo: 'congregantes' },
+  { href: '/calendario',   label: 'Calendario', icon: Calendar,        modulo: 'calendario' },
+  { href: '/finanzas',     label: 'Finanzas',   icon: DollarSign,      modulo: 'finanzas' },
 ]
-const SECUNDARIOS = NAV_ITEMS.filter((i) => !PRINCIPALES.some((p) => p.href === i.href))
 
-export default function BottomNav() {
+export default function BottomNav({ modulos }: { modulos: string[] }) {
+  const PRINCIPALES = TODOS_PRINCIPALES.filter((p) => !p.modulo || modulos.includes(p.modulo))
+  const SECUNDARIOS = gruposVisibles(modulos).flatMap((g) => g.items)
+    .filter((i) => !PRINCIPALES.some((p) => p.href === i.href))
   const pathname = usePathname()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()

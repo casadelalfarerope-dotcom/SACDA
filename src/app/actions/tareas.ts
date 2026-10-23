@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
 import { enviarEmail, tplTareaAsignada, tplArteAprobado } from '@/lib/email'
+import { integrantesMinisterio } from '@/lib/ministerios'
 
 export async function crearTarea(data: {
   tipo: string
@@ -128,34 +129,24 @@ export async function aprobarTarea(tarea_id: string) {
         { tarea_id, destino: 'impresiones', url_archivo: ultima.url_archivo },
       ])
 
-      // Obtener emails/personas de los roles multimedia e impresiones
-      for (const rolNombre of ['multimedia', 'impresiones']) {
-        const { data: rol } = await admin.from('roles').select('id').eq('nombre', rolNombre).maybeSingle()
-        if (!rol) continue
-
-        const { data: asignados } = await admin
-          .from('roles_asignados')
-          .select('persona_id, persona:personas!roles_asignados_persona_id_fkey(email, nombre_completo)')
-          .eq('rol_id', rol.id)
-          .eq('activo', true)
-
-        for (const ra of asignados ?? []) {
-          const p = ra.persona as unknown as { email: string | null; nombre_completo: string } | null
-          if (!p) continue
+      // Avisar a los integrantes de los ministerios Multimedia e Impresiones
+      for (const rolNombre of ['multimedia', 'impresiones'] as const) {
+        for (const ra of await integrantesMinisterio(admin, rolNombre)) {
+          const p = { email: ra.email, nombre_completo: ra.nombre }
 
           // Notificación in-app
           await admin.from('notificaciones').insert({
             persona_id: ra.persona_id,
             tipo: 'arte_distribuido',
             titulo: 'Arte listo para usar',
-            cuerpo: `El arte "${tarea.titulo}" fue aprobado y está disponible para ${rolNombre}.`,
+            cuerpo: `El arte "${tarea.titulo}" fue aprobado y está disponible para ${rolNombre === 'multimedia' ? 'Multimedia' : 'Impresiones'}.`,
             url: `/tareas/${tarea_id}`,
           })
 
           // Email
           if (p.email) {
             const { subject, html } = tplArteAprobado(
-              rolNombre as 'multimedia' | 'impresiones',
+              rolNombre,
               tarea.titulo,
               ultima.url_archivo,
               `${appUrl}/tareas/${tarea_id}`

@@ -52,14 +52,6 @@ export async function inscribirAlumnos(cursoId: string, personaIds: string[]): P
   )
   if (error) return { error: 'No se pudo inscribir.' }
 
-  const admin = createServiceClient()
-  const { data: rol } = await admin.from('roles').select('id').eq('nombre', 'estudiante').single()
-  if (rol) {
-    await admin.from('roles_asignados').upsert(
-      personaIds.map((persona_id) => ({ persona_id, rol_id: rol.id, activo: true, fecha_fin: null })),
-      { onConflict: 'persona_id,rol_id' },
-    )
-  }
   revalidatePath(`/academia/cursos/${cursoId}`)
   return { success: true }
 }

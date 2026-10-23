@@ -5,6 +5,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
 import { enviarEmail, tplTareaAsignada } from '@/lib/email'
 import { format, subDays } from 'date-fns'
+import { integrantesMinisterio } from '@/lib/ministerios'
 
 export async function crearEvento(data: {
   titulo: string
@@ -76,30 +77,11 @@ async function crearTareaDisenoPorEvento(
   // Fecha límite = fecha del evento − diasAviso
   const fechaLimite = format(subDays(new Date(fechaEvento), diasAviso), 'yyyy-MM-dd')
 
-  // Buscar a alguien con rol diseñador para asignar
-  const { data: roles } = await admin
-    .from('roles').select('id').eq('nombre', 'diseniador').maybeSingle()
-
-  let asignadoId: string | null = null
-  let asignadoEmail: string | null = null
-  let asignadoNombre: string | null = null
-
-  if (roles) {
-    const { data: asignados } = await admin
-      .from('roles_asignados')
-      .select('persona_id, persona:personas!roles_asignados_persona_id_fkey(nombre_completo, email)')
-      .eq('rol_id', roles.id)
-      .eq('activo', true)
-      .limit(1)
-      .single()
-
-    if (asignados) {
-      asignadoId = asignados.persona_id
-      const p = asignados.persona as unknown as { nombre_completo: string; email: string | null } | null
-      asignadoEmail = p?.email ?? null
-      asignadoNombre = p?.nombre_completo ?? null
-    }
-  }
+  // Se asigna al líder de Diseño Gráfico (o al primer integrante si no hay líder).
+  const [disenador] = await integrantesMinisterio(admin, 'diseno')
+  const asignadoId = disenador?.persona_id ?? null
+  const asignadoEmail = disenador?.email ?? null
+  const asignadoNombre = disenador?.nombre ?? null
 
   const { data: tarea } = await admin.from('tareas').insert({
     tipo: 'diseno',
