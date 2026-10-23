@@ -1,14 +1,28 @@
 import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
-const FROM = 'Casa del Alfarero <noreply@casadelalfarero.pe>'
-
+// Se envía por Gmail (cuenta de la iglesia con contraseña de aplicación) si está
+// configurado; si no, por Resend. Sin ninguno, el correo no sale y se avisa.
 export async function enviarEmail(to: string | string[], subject: string, html: string) {
+  const gmailUser = process.env.GMAIL_USER
+  const gmailPass = process.env.GMAIL_APP_PASSWORD
+  if (gmailUser && gmailPass) {
+    try {
+      const transporte = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } })
+      await transporte.sendMail({ from: `Casa del Alfarero <${gmailUser}>`, to, subject, html })
+      return { ok: true }
+    } catch (e) {
+      console.error('[email] Error al enviar por Gmail:', e)
+      return { ok: false }
+    }
+  }
+
   if (!process.env.RESEND_API_KEY) {
-    console.warn('[email] RESEND_API_KEY no configurada — email no enviado')
+    console.warn('[email] Sin GMAIL_USER/GMAIL_APP_PASSWORD ni RESEND_API_KEY — email no enviado')
     return { ok: false }
   }
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const { error } = await resend.emails.send({ from: FROM, to, subject, html })
+  const { error } = await resend.emails.send({ from: 'Casa del Alfarero <noreply@casadelalfarero.pe>', to, subject, html })
   if (error) console.error('[email] Error al enviar:', error)
   return { ok: !error }
 }
