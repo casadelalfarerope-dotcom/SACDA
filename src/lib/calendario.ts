@@ -32,6 +32,7 @@ export interface Instancia {
   hora_inicio: string | null
   lugar: string | null
   evento_id: string
+  fecha_original: string // fecha que le tocaba según la serie (no cambia si se reprograma)
   excepcion?: string
 }
 
@@ -47,7 +48,7 @@ export function generarInstancias(
   if (evento.tipo_recurrencia === 'ninguna' && evento.fecha_unica) {
     const fecha = new Date(evento.fecha_unica + 'T12:00:00')
     if (fecha >= desde && fecha <= hasta) {
-      instancias.push({ fecha, titulo: evento.titulo, hora_inicio: evento.hora_inicio, lugar: evento.lugar, evento_id: evento.id })
+      instancias.push({ fecha, titulo: evento.titulo, hora_inicio: evento.hora_inicio, lugar: evento.lugar, evento_id: evento.id, fecha_original: evento.fecha_unica })
     }
     return instancias
   }
@@ -68,6 +69,7 @@ export function generarInstancias(
             hora_inicio: evento.hora_inicio,
             lugar: evento.lugar,
             evento_id: evento.id,
+            fecha_original: fechaStr,
           })
         } else if (exc.tipo_excepcion === 'reprogramado' && exc.fecha_nueva) {
           const fechaNueva = new Date(exc.fecha_nueva + 'T12:00:00')
@@ -78,6 +80,7 @@ export function generarInstancias(
               hora_inicio: evento.hora_inicio,
               lugar: evento.lugar,
               evento_id: evento.id,
+              fecha_original: fechaStr,
               excepcion: 'reprogramado',
             })
           }
@@ -110,11 +113,11 @@ export function generarInstancias(
         const fechaStr = fecha.toISOString().split('T')[0]!
         const exc = excMap.get(fechaStr)
         if (!exc || exc.tipo_excepcion === 'modificado') {
-          instancias.push({ fecha, titulo: exc?.titulo_override ?? evento.titulo, hora_inicio: evento.hora_inicio, lugar: evento.lugar, evento_id: evento.id })
+          instancias.push({ fecha, titulo: exc?.titulo_override ?? evento.titulo, hora_inicio: evento.hora_inicio, lugar: evento.lugar, evento_id: evento.id, fecha_original: fechaStr })
         } else if (exc.tipo_excepcion === 'reprogramado' && exc.fecha_nueva) {
           const fechaNueva = new Date(exc.fecha_nueva + 'T12:00:00')
           if (fechaNueva >= desde && fechaNueva <= hasta) {
-            instancias.push({ fecha: fechaNueva, titulo: exc.titulo_override ?? evento.titulo, hora_inicio: evento.hora_inicio, lugar: evento.lugar, evento_id: evento.id, excepcion: 'reprogramado' })
+            instancias.push({ fecha: fechaNueva, titulo: exc.titulo_override ?? evento.titulo, hora_inicio: evento.hora_inicio, lugar: evento.lugar, evento_id: evento.id, fecha_original: fechaStr, excepcion: 'reprogramado' })
           }
         }
       }

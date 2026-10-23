@@ -40,7 +40,7 @@ export default async function MinisteriosPage() {
                         aria-hidden="true" style={{ background: tipo === 'servicio' ? '#5856d6' : '#636366' }}>{g.nombre.charAt(0)}</span>}
                       titulo={g.nombre}
                       subtitulo={[`${total} ${total === 1 ? 'miembro' : 'miembros'}`,
-                        encargado && `Encargado: ${(encargado as { nombre_completo: string }).nombre_completo.split(' ')[0]}`,
+                        encargado && `Líder: ${(encargado as { nombre_completo: string }).nombre_completo.split(' ')[0]}`,
                         subgrupos.length ? `Subgrupos: ${subgrupos.map((s) => s.nombre).join(', ')}` : null].filter(Boolean).join(' · ')}
                       detalle={g.enlace_whatsapp ? <span className="text-[13px] font-medium" style={{ color: '#1f9d55' }}>WhatsApp</span> : undefined} />
                   )

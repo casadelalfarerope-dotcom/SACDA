@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button'
 
 interface GrupoFormProps {
   grupos: { id: string; nombre: string }[]
+  personas: { id: string; nombre_completo: string }[]
   onSubmit: (data: {
     nombre: string
     descripcion?: string
@@ -22,12 +23,13 @@ interface GrupoFormProps {
     descripcion?: string | null
     tipo: 'servicio' | 'administrativo'
     grupo_padre_id?: string | null
+    encargado_id?: string | null
     enlace_whatsapp?: string | null
     activo: boolean
   }
 }
 
-export default function GrupoForm({ grupos, onSubmit, initialData }: GrupoFormProps) {
+export default function GrupoForm({ grupos, personas, onSubmit, initialData }: GrupoFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -36,6 +38,7 @@ export default function GrupoForm({ grupos, onSubmit, initialData }: GrupoFormPr
     descripcion: initialData?.descripcion ?? '',
     tipo: initialData?.tipo ?? 'servicio' as 'servicio' | 'administrativo',
     grupo_padre_id: initialData?.grupo_padre_id ?? '',
+    encargado_id: initialData?.encargado_id ?? '',
     enlace_whatsapp: initialData?.enlace_whatsapp ?? '',
     activo: initialData?.activo ?? true,
   })
@@ -52,6 +55,7 @@ export default function GrupoForm({ grupos, onSubmit, initialData }: GrupoFormPr
       ...form,
       tipo: form.tipo as 'servicio' | 'administrativo',
       grupo_padre_id: form.grupo_padre_id || undefined,
+      encargado_id: form.encargado_id || undefined,
       enlace_whatsapp: form.enlace_whatsapp || undefined,
     })
     if (result.error) {
@@ -102,6 +106,16 @@ export default function GrupoForm({ grupos, onSubmit, initialData }: GrupoFormPr
           options={grupos.map((g) => ({ value: g.id, label: g.nombre }))}
         />
       </div>
+      <Select
+        label="Líder"
+        value={form.encargado_id}
+        onChange={(e) => set('encargado_id', e.target.value)}
+        placeholder="Sin líder"
+        options={personas.map((p) => ({ value: p.id, label: p.nombre_completo }))}
+      />
+      <p className="text-[13px] -mt-3" style={{ color: 'var(--muted)' }}>
+        El líder programa a su ministerio en cada culto desde Mi espacio. Un ministerio tiene un solo líder.
+      </p>
       <Input
         label="Enlace de WhatsApp (opcional)"
         value={form.enlace_whatsapp}

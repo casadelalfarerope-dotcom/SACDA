@@ -8,9 +8,10 @@ export default async function EditarGrupoPage({ params }: { params: Promise<{ id
   const { id } = await params
   const supabase = await createClient()
 
-  const [{ data: grupo }, { data: grupos }] = await Promise.all([
+  const [{ data: grupo }, { data: grupos }, { data: personas }] = await Promise.all([
     supabase.from('grupos').select('*').eq('id', id).single(),
     supabase.from('grupos').select('id, nombre').eq('activo', true).neq('id', id).order('nombre'),
+    supabase.from('personas').select('id, nombre_completo').eq('estado', 'activo').order('nombre_completo'),
   ])
 
   if (!grupo) notFound()
@@ -21,6 +22,7 @@ export default async function EditarGrupoPage({ params }: { params: Promise<{ id
         style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
         <GrupoForm
           grupos={grupos ?? []}
+          personas={personas ?? []}
           initialData={grupo}
           onSubmit={editarGrupo.bind(null, id)}
         />

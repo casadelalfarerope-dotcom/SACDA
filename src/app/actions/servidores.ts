@@ -1,253 +1,162 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
+import { sugerirMinisterio } from '@/lib/programas'
+import { formatDate } from '@/lib/utils'
 
-export async function crearPrograma(data: {
-  titulo: string
-  fecha: string
-  evento_id?: string
-  notas?: string
-}) {
-  if (!data.titulo?.trim()) return { error: 'El título es obligatorio.' }
-  if (!data.fecha) return { error: 'La fecha es obligatoria.' }
+// Los permisos los decide la base de datos: quien tiene el módulo Servidores
+// o el líder del ministerio dueño del puesto. Si no puede, la operación no
+// afecta ninguna fila y se responde con un error.
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'No autenticado.' }
-
-  const { data: cuenta } = await supabase.from('cuentas').select('id').eq('id', user.id).single()
-
-  const { data: prog, error } = await supabase.from('programas').insert({
-    titulo: data.titulo.trim(),
-    fecha: data.fecha,
-    evento_id: data.evento_id || null,
-    notas: data.notas?.trim() || null,
-    created_by: cuenta?.id ?? null,
-  }).select().single()
-
-  if (error) return { error: 'No se pudo crear el programa.' }
+function revalidar(programaId?: string) {
   revalidatePath('/servidores')
-  return { success: true, id: prog.id }
+  if (programaId) revalidatePath(`/servidores/${programaId}`)
+  revalidatePath('/mi', 'layout')
 }
 
-export async function publicarPrograma(id: string) {
-  const supabase = await createClient()
-  const { error } = await supabase.from('programas').update({ estado: 'publicado' }).eq('id', id)
-  if (error) return { error: 'No se pudo publicar.' }
-  revalidatePath('/servidores')
-  revalidatePath(`/servidores/${id}`)
-  return { success: true }
-}
+const SIN_PERMISO = 'No tienes permiso para cambiar este ministerio.'
 
-export async function agregarAsignacion(data: {
-  programa_id: string
-  rol_servicio_id: string
-  persona_id: string
-  notas?: string
-}) {
+export async function agregarAsignacion(data: { programa_id: string; rol_servicio_id: string; persona_id: string }) {
+  if (!data.rol_servicio_id || !data.persona_id) return { error: 'Elige el puesto y la persona.' }
   const supabase = await createClient()
   const { error } = await supabase.from('programa_asignaciones').insert({
-    programa_id: data.programa_id,
-    rol_servicio_id: data.rol_servicio_id,
-    persona_id: data.persona_id,
-    notas: data.notas?.trim() || null,
+    programa_id: data.programa_id, rol_servicio_id: data.rol_servicio_id, persona_id: data.persona_id,
   })
-  if (error) return { error: 'No se pudo agregar la asignación.' }
-  revalidatePath(`/servidores/${data.programa_id}`)
+  if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudo agregar la asignación.' }
+  revalidar(data.programa_id)
   return { success: true }
 }
 
 export async function eliminarAsignacion(id: string, programa_id: string) {
   const supabase = await createClient()
-  const { error } = await supabase.from('programa_asignaciones').delete().eq('id', id)
-  if (error) return { error: 'No se pudo eliminar.' }
-  revalidatePath(`/servidores/${programa_id}`)
+  const { data, error } = await supabase.from('programa_asignaciones').delete().eq('id', id).select('id')
+  if (error || !data?.length) return { error: 'No se pudo quitar la asignación.' }
+  revalidar(programa_id)
   return { success: true }
 }
 
 export async function subirMaterial(id: string, url: string, programa_id: string) {
   const supabase = await createClient()
-  const { error } = await supabase.from('programa_asignaciones')
-    .update({ material_url: url, estado_material: 'subido' })
-    .eq('id', id)
-  if (error) return { error: 'No se pudo guardar el enlace.' }
-  revalidatePath(`/servidores/${programa_id}`)
-  revalidatePath('/mi', 'layout')
+  const { data, error } = await supabase.from('programa_asignaciones')
+    .update({ material_url: url, estado_material: 'subido' }).eq('id', id).select('id')
+  if (error || !data?.length) return { error: 'No se pudo guardar el enlace.' }
+  revalidar(programa_id)
   return { success: true }
 }
 
-export async function crearRolServicio(data: {
-  nombre: string
-  descripcion?: string
-  color?: string
-  requiere_material?: boolean
-}) {
-  if (!data.nombre?.trim()) return { error: 'El nombre es obligatorio.' }
+// Llena los puestos vacíos de un ministerio con la sugerencia (fijos o rotación).
+export async function llenarSugerencias(programaId: string, grupoId: string) {
   const supabase = await createClient()
-  const { error } = await supabase.from('roles_servicio').insert({
-    nombre: data.nombre.trim(),
-    descripcion: data.descripcion?.trim() || null,
-    color: data.color || '#6366f1',
-    requiere_material: data.requiere_material ?? false,
+  const sugerencias = await sugerirMinisterio(supabase, programaId, grupoId)
+  if (!sugerencias.length) return { error: 'No hay sugerencias: revisa que el ministerio tenga puestos e integrantes, o que no esté ya completo.' }
+  const { error } = await supabase.from('programa_asignaciones').insert(
+    sugerencias.map((s) => ({ programa_id: programaId, rol_servicio_id: s.puesto_id, persona_id: s.persona_id })),
+  )
+  if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudieron guardar las sugerencias.' }
+  revalidar(programaId)
+  return { success: true, cantidad: sugerencias.length }
+}
+
+// Publica la parte de un ministerio y avisa a sus asignados. No requiere aprobación.
+export async function publicarMinisterio(programaId: string, grupoId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Tu sesión expiró.' }
+  const { data: cuenta } = await supabase.from('cuentas').select('persona_id').eq('id', user.id).single()
+
+  const { data: puestos } = await supabase.from('roles_servicio').select('id, nombre').eq('grupo_id', grupoId)
+  const puestoIds = (puestos ?? []).map((p) => p.id as string)
+  const { data: asignados } = puestoIds.length
+    ? await supabase.from('programa_asignaciones').select('persona_id, rol_servicio_id').eq('programa_id', programaId).in('rol_servicio_id', puestoIds)
+    : { data: [] }
+  if (!asignados?.length) return { error: 'Asigna al menos a una persona antes de publicar.' }
+
+  const { error } = await supabase.from('programa_ministerios').upsert({
+    programa_id: programaId, grupo_id: grupoId, estado: 'publicado',
+    publicado_por: cuenta?.persona_id ?? null, publicado_at: new Date().toISOString(),
   })
-  if (error) return { error: 'No se pudo crear el rol.' }
-  revalidatePath('/servidores/roles')
-  return { success: true }
-}
+  if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudo publicar.' }
 
-export async function calcularSugerenciaRotacion(programa_id: string) {
-  const supabase = await createClient()
-
-  // Roles del servicio
-  const { data: roles } = await supabase
-    .from('roles_servicio')
-    .select('id, nombre')
-    .order('nombre')
-
-  if (!roles?.length) return { sugerencias: [] }
-
-  // Personas activas con su última vez que sirvieron en cada rol
-  const { data: personas } = await supabase
-    .from('personas')
-    .select('id, nombre_completo')
-    .eq('estado', 'activo')
-
-  if (!personas?.length) return { sugerencias: [] }
-
-  // Historial reciente de asignaciones (últimos 20 programas)
-  const { data: historial } = await supabase
-    .from('programa_asignaciones')
-    .select('persona_id, rol_servicio_id, programas(fecha)')
-    .order('created_at', { ascending: false })
-    .limit(300)
-
-  // Roles ya asignados en este programa (no sugerir duplicados)
-  const { data: yaAsignados } = await supabase
-    .from('programa_asignaciones')
-    .select('rol_servicio_id')
-    .eq('programa_id', programa_id)
-
-  const rolesYaAsignados = new Set((yaAsignados ?? []).map((a) => a.rol_servicio_id))
-
-  // Para cada rol, encontrar la persona que lleva más tiempo sin servirlo
-  const sugerencias = []
-  for (const rol of roles) {
-    if (rolesYaAsignados.has(rol.id)) continue
-
-    // Mapa: persona_id → fecha de su última aparición en este rol
-    const ultimaPorPersona: Record<string, string> = {}
-    for (const h of historial ?? []) {
-      if (h.rol_servicio_id !== rol.id) continue
-      if (ultimaPorPersona[h.persona_id]) continue
-      const prog = h.programas as unknown as { fecha: string } | null
-      if (prog) ultimaPorPersona[h.persona_id] = prog.fecha
-    }
-
-    // Ordenar personas: primero las que nunca han servido, luego las más antiguas
-    const ordenadas = [...personas].sort((a, b) => {
-      const ua = ultimaPorPersona[a.id]
-      const ub = ultimaPorPersona[b.id]
-      if (!ua && !ub) return a.nombre_completo.localeCompare(b.nombre_completo)
-      if (!ua) return -1
-      if (!ub) return 1
-      return ua < ub ? -1 : 1
-    })
-
-    const sugerida = ordenadas[0]
-    if (sugerida) {
-      sugerencias.push({
-        rol_servicio_id: rol.id,
-        rol_nombre: rol.nombre,
-        persona_id: sugerida.id,
-        persona_nombre: sugerida.nombre_completo,
-        ultima_vez: ultimaPorPersona[sugerida.id] ?? null,
-      })
-    }
-  }
-
-  return { sugerencias }
-}
-
-export async function confirmarRotacion(
-  programa_id: string,
-  asignaciones: { rol_servicio_id: string; persona_id: string }[]
-) {
-  if (!asignaciones.length) return { error: 'Sin asignaciones a confirmar.' }
-
-  const supabase = await createClient()
-  const rows = asignaciones.map((a) => ({
-    programa_id,
-    rol_servicio_id: a.rol_servicio_id,
+  const { data: programa } = await supabase.from('programas').select('titulo, fecha').eq('id', programaId).single()
+  const nombrePuesto = new Map((puestos ?? []).map((p) => [p.id as string, p.nombre as string]))
+  const admin = createServiceClient()
+  await admin.from('notificaciones').insert(asignados.map((a) => ({
     persona_id: a.persona_id,
-  }))
+    tipo: 'turno_asignado',
+    titulo: `Te toca servir: ${nombrePuesto.get(a.rol_servicio_id as string) ?? 'Servicio'}`,
+    cuerpo: `${programa?.titulo ?? 'Culto'} · ${programa ? formatDate(programa.fecha) : ''}`,
+    url: '/mi/servicio',
+  })))
 
-  const { error } = await supabase.from('programa_asignaciones').insert(rows)
-  if (error) return { error: 'No se pudo guardar la rotación.' }
-
-  revalidatePath(`/servidores/${programa_id}`)
+  revalidar(programaId)
   return { success: true }
 }
 
-export async function editarPrograma(id: string, data: {
-  titulo: string
-  fecha: string
-  notas?: string
-}) {
-  if (!data.titulo?.trim()) return { error: 'El título es obligatorio.' }
-  if (!data.fecha) return { error: 'La fecha es obligatoria.' }
-
+// Vuelve a borrador para corregir (los avisos ya enviados no se retiran).
+export async function despublicarMinisterio(programaId: string, grupoId: string) {
   const supabase = await createClient()
-  const { error } = await supabase.from('programas').update({
-    titulo: data.titulo.trim(),
-    fecha: data.fecha,
-    notas: data.notas?.trim() || null,
-  }).eq('id', id)
-
-  if (error) return { error: 'No se pudo actualizar el programa.' }
-  revalidatePath('/servidores')
-  revalidatePath(`/servidores/${id}`)
+  const { data, error } = await supabase.from('programa_ministerios')
+    .update({ estado: 'borrador' }).eq('programa_id', programaId).eq('grupo_id', grupoId).select('grupo_id')
+  if (error || !data?.length) return { error: SIN_PERMISO }
+  revalidar(programaId)
   return { success: true }
 }
 
-export async function aplicarRotacion(programa_id: string, rol_servicio_id: string) {
+// ---------- Puestos del ministerio ----------
+
+export async function crearPuesto(grupoId: string, datos: { nombre: string; cantidad: number; modo: 'fijo' | 'rotativo'; requiere_material: boolean }) {
+  const nombre = datos.nombre.trim()
+  if (!nombre) return { error: 'Escribe el nombre del puesto.' }
+  if (nombre.length > 60) return { error: 'El nombre es demasiado largo.' }
+  if (!(datos.cantidad >= 1 && datos.cantidad <= 20)) return { error: 'La cantidad debe estar entre 1 y 20.' }
   const supabase = await createClient()
-
-  const { data: config } = await supabase
-    .from('rotacion_configuracion')
-    .select('id, rotacion_miembros(persona_id, posicion)')
-    .eq('rol_servicio_id', rol_servicio_id)
-    .eq('activo', true)
-    .single()
-
-  if (!config) return { error: 'No hay rotación configurada para este rol.' }
-
-  const miembros = (config.rotacion_miembros as { persona_id: string; posicion: number }[])
-    .sort((a, b) => a.posicion - b.posicion)
-    .filter((m) => m)
-
-  if (!miembros.length) return { error: 'La rotación no tiene miembros.' }
-
-  const { data: ultima } = await supabase
-    .from('programa_asignaciones')
-    .select('persona_id, programas(fecha)')
-    .eq('rol_servicio_id', rol_servicio_id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single()
-
-  let siguiente = miembros[0]!
-  if (ultima) {
-    const idx = miembros.findIndex((m) => m.persona_id === ultima.persona_id)
-    siguiente = miembros[(idx + 1) % miembros.length]!
-  }
-
-  await supabase.from('programa_asignaciones').insert({
-    programa_id,
-    rol_servicio_id,
-    persona_id: siguiente.persona_id,
+  const { count } = await supabase.from('roles_servicio').select('id', { count: 'exact', head: true }).eq('grupo_id', grupoId)
+  const { error } = await supabase.from('roles_servicio').insert({
+    nombre, grupo_id: grupoId, cantidad: datos.cantidad, modo: datos.modo,
+    requiere_material: datos.requiere_material, orden: count ?? 0,
   })
+  if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudo crear el puesto.' }
+  revalidatePath(`/ministerios/${grupoId}`)
+  revalidar()
+  return { success: true }
+}
 
-  revalidatePath(`/servidores/${programa_id}`)
+export async function actualizarPuesto(id: string, grupoId: string, cambios: { cantidad?: number; modo?: 'fijo' | 'rotativo'; requiere_material?: boolean }) {
+  if (cambios.cantidad !== undefined && !(cambios.cantidad >= 1 && cambios.cantidad <= 20)) return { error: 'La cantidad debe estar entre 1 y 20.' }
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('roles_servicio').update(cambios).eq('id', id).select('id')
+  if (error || !data?.length) return { error: SIN_PERMISO }
+  revalidatePath(`/ministerios/${grupoId}`)
+  revalidar()
+  return { success: true }
+}
+
+export async function eliminarPuesto(id: string, grupoId: string) {
+  const supabase = await createClient()
+  const { count } = await supabase.from('programa_asignaciones').select('id', { count: 'exact', head: true }).eq('rol_servicio_id', id)
+  // Si ya tiene turnos registrados, se desactiva para no perder el historial.
+  const { data, error } = count
+    ? await supabase.from('roles_servicio').update({ activo: false }).eq('id', id).select('id')
+    : await supabase.from('roles_servicio').delete().eq('id', id).select('id')
+  if (error || !data?.length) return { error: SIN_PERMISO }
+  revalidatePath(`/ministerios/${grupoId}`)
+  revalidar()
+  return { success: true }
+}
+
+// Guarda quiénes pueden ocupar el puesto, en el orden de rotación.
+export async function guardarCandidatos(puestoId: string, grupoId: string, personaIds: string[]) {
+  const supabase = await createClient()
+  const { error: delError } = await supabase.from('puesto_candidatos').delete().eq('puesto_id', puestoId)
+  if (delError) return { error: SIN_PERMISO }
+  if (personaIds.length) {
+    const { error } = await supabase.from('puesto_candidatos')
+      .insert(personaIds.map((persona_id, orden) => ({ puesto_id: puestoId, persona_id, orden })))
+    if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudo guardar la lista.' }
+  }
+  revalidatePath(`/ministerios/${grupoId}`)
+  revalidar()
   return { success: true }
 }

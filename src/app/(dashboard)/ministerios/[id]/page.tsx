@@ -7,6 +7,7 @@ import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import AgregarMiembroForm from '@/components/ministerios/AgregarMiembroForm'
 import RemoverMiembroBtn from '@/components/ministerios/RemoverMiembroBtn'
+import PuestosMinisterio from '@/components/programas/PuestosMinisterio'
 
 export default async function DetalleGrupoPage({
   params,
@@ -43,6 +44,10 @@ export default async function DetalleGrupoPage({
     .order('created_at', { ascending: false })
     .limit(5)
 
+  const { data: puestos } = await supabase.from('roles_servicio')
+    .select('id, nombre, cantidad, modo, requiere_material, puesto_candidatos(persona_id, orden)')
+    .eq('grupo_id', id).eq('activo', true).order('orden')
+
   const encargado = Array.isArray(grupo.encargado) ? grupo.encargado[0] : grupo.encargado
   const padre = Array.isArray(grupo.padre) ? grupo.padre[0] : grupo.padre
 
@@ -59,7 +64,7 @@ export default async function DetalleGrupoPage({
         <Grupo>
           {enc && (
             <Fila primero inicio={<Avatar nombre={enc.nombre_completo} fotoUrl={enc.foto_url ?? null} size="sm" />}
-              titulo={enc.nombre_completo} subtitulo="Encargado" />
+              titulo={enc.nombre_completo} subtitulo="Líder del ministerio" />
           )}
           {grupo.enlace_whatsapp && (
             <Fila primero={!enc} inicio={<IconoModulo icon={MessageCircle} color="#25d366" />}>
@@ -95,6 +100,27 @@ export default async function DetalleGrupoPage({
         </Grupo>
         <Tarjeta titulo="Agregar miembro"><AgregarMiembroForm grupoId={id} /></Tarjeta>
       </div>
+
+      {grupo.tipo === 'servicio' && (() => {
+        const integrantes = (miembros ?? []).map((m) => {
+          const p = (Array.isArray(m.persona) ? m.persona[0] : m.persona) as { id: string; nombre_completo: string } | null
+          return { id: m.persona_id as string, nombre: p?.nombre_completo ?? '—' }
+        })
+        if (grupo.encargado_id && enc && !integrantes.some((x) => x.id === grupo.encargado_id)) {
+          integrantes.push({ id: grupo.encargado_id, nombre: enc.nombre_completo })
+        }
+        return (
+          <section className="space-y-1.5" aria-labelledby="puestos-titulo">
+            <h2 id="puestos-titulo" className="px-4 text-[13px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Puestos en el culto</h2>
+            <p className="px-4 text-[13px]" style={{ color: 'var(--muted)' }}>Lo que este ministerio cubre en cada culto. El líder asigna a las personas en cada programa.</p>
+            <PuestosMinisterio grupoId={id} integrantes={integrantes.sort((a, b) => a.nombre.localeCompare(b.nombre))}
+              puestos={(puestos ?? []).map((p) => ({
+                id: p.id, nombre: p.nombre, cantidad: p.cantidad, modo: p.modo, requiere_material: p.requiere_material,
+                candidatos: ((p.puesto_candidatos ?? []) as { persona_id: string; orden: number }[]).sort((a, b) => a.orden - b.orden).map((c) => c.persona_id),
+              }))} />
+          </section>
+        )
+      })()}
 
       {!!materiales?.length && (
         <Grupo titulo="Materiales recientes">

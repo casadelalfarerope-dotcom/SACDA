@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { enviarEmail, tplTareaAsignada } from '@/lib/email'
 import { format, subDays } from 'date-fns'
 import { integrantesMinisterio } from '@/lib/ministerios'
+import { asegurarProgramas } from '@/lib/programas'
 
 export async function crearEvento(data: {
   titulo: string
@@ -62,7 +63,10 @@ export async function crearEvento(data: {
     await crearTareaDisenoPorEvento(evento.id, data.titulo.trim(), data.fecha_unica, data.dias_aviso_diseno ?? 7)
   }
 
+  // Los programas de servidores siguen al calendario (cultos nuevos, cancelados o movidos).
+  await asegurarProgramas(createServiceClient())
   revalidatePath('/calendario')
+  revalidatePath('/servidores')
   return { success: true }
 }
 
@@ -145,6 +149,9 @@ export async function crearExcepcion(data: {
   }, { onConflict: 'evento_id,fecha_original' })
 
   if (error) return { error: 'No se pudo registrar la excepción.' }
+  // Los programas de servidores siguen al calendario (cultos nuevos, cancelados o movidos).
+  await asegurarProgramas(createServiceClient())
   revalidatePath('/calendario')
+  revalidatePath('/servidores')
   return { success: true }
 }
