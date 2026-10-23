@@ -81,7 +81,7 @@ export default function DarAccesoForm({ personaId, emailSugerido, tieneAcceso }:
   return (
     <form onSubmit={handleInvitar} className="animate-fade">
       <p className="text-sm mb-3" style={{ color: 'var(--muted)' }}>
-        Envía una invitación por correo. El hermano recibirá un enlace para crear su contraseña.
+        Envía una invitación por correo. Recibirá un enlace para activar su cuenta con Google o creando una contraseña.
       </p>
       <div className="flex gap-2 items-end">
         <div className="flex-1">
