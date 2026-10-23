@@ -25,7 +25,7 @@ export default async function EspacioShell({ children, espacio = 'mi' }: { child
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center gap-2">
           <RecordarEspacio espacio={espacio} />
           <Link href={inicio} className="flex items-center gap-2.5 flex-1 min-w-0">
-            <IconoApp tamano={32} texto={espacio === 'academia' ? 'TA' : 'CA'} />
+            <IconoApp tamano={32} texto={espacio === 'academia' ? 'ATA' : 'CA'} />
             <span className="min-w-0">
               <span className="block text-[15px] font-semibold leading-tight truncate" style={{ color: 'var(--foreground)' }}>Casa del Alfarero</span>
               <span className="block text-xs truncate" style={{ color: 'var(--muted)' }}>{espacio === 'academia' ? 'Academia · El Taller del Alfarero' : 'Mi espacio'}</span>
