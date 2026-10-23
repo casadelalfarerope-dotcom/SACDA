@@ -50,9 +50,9 @@ export default function ListaAsistencia({ sesionId, alumnos, habilitada }: { ses
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[14px]" role="status" style={{ color: 'var(--foreground)' }}>
-          <b style={{ color: 'var(--success)' }}>{cuenta('presente')}</b> presentes ·{' '}
-          <b style={{ color: 'var(--destructive)' }}>{cuenta('ausente')}</b> ausentes
-          {cuenta('recuperada') > 0 && <> · <b>{cuenta('recuperada')}</b> recuperadas</>}
+          <b style={{ color: 'var(--success)' }}>{cuenta('presente')}</b> {cuenta('presente') === 1 ? 'presente' : 'presentes'} ·{' '}
+          <b style={{ color: 'var(--destructive)' }}>{cuenta('ausente')}</b> {cuenta('ausente') === 1 ? 'ausente' : 'ausentes'}
+          {cuenta('recuperada') > 0 && <> · <b>{cuenta('recuperada')}</b> {cuenta('recuperada') === 1 ? 'recuperada' : 'recuperadas'}</>}
           {sinMarcar > 0 && <span style={{ color: 'var(--muted)' }}> · {sinMarcar} sin marcar</span>}
         </p>
         {habilitada && sinMarcar > 0 && (
