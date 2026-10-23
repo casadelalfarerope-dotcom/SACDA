@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { editarSesion, marcarAsistencia } from '@/app/actions/academia'
+import { editarSesion } from '@/app/actions/academia'
+import ListaAsistencia, { type AlumnoAsistencia } from '@/components/academia/ListaAsistencia'
 import FormAccion from '@/components/academia/FormAccion'
 import AccionBoton from '@/components/academia/AccionBoton'
 import RevisarResumen from '@/components/academia/RevisarResumen'
@@ -65,40 +66,17 @@ export default async function SesionPage({ params }: { params: Promise<{ id: str
       <section aria-labelledby="asis-t" className={tarjeta} style={estiloTarjeta}>
         <h2 id="asis-t" className="font-semibold" style={{ color: 'var(--foreground)' }}>Asistencia</h2>
         {!yaPaso && <p className="text-xs" style={{ color: 'var(--muted)' }}>Esta clase aún no se dicta; puedes marcar la asistencia el mismo día.</p>}
-        {!alumnos.length && <p className="text-sm" style={{ color: 'var(--muted)' }}>No hay alumnos inscritos.</p>}
-        <ul className="divide-y" style={{ borderColor: 'var(--border)' }}>
-          {alumnos.map((i) => {
+        {(() => {
+          const lista: AlumnoAsistencia[] = alumnos.map((i) => {
             const p = i.persona as unknown as { nombre_completo: string; foto_url: string | null }
-            const estado = asis.get(i.persona_id)
             const pr = prog.get(i.persona_id)
-            const visto = pr?.completado ? 'Vio la grabación completa'
+            const nota = pr?.completado ? 'Vio la grabación completa'
               : pr?.visto_declarado ? 'Declaró haber visto la grabación'
               : pr?.duracion_seg ? `Vio ${Math.round((pr.segundos_vistos / pr.duracion_seg) * 100)}% de la grabación` : null
-            return (
-              <li key={i.persona_id} className="py-3 flex flex-wrap items-center gap-3" style={{ borderColor: 'var(--border)' }}>
-                <Avatar nombre={p.nombre_completo} fotoUrl={p.foto_url} size="sm" />
-                <div className="flex-1 min-w-[10rem]">
-                  <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{p.nombre_completo}</p>
-                  {visto && <p className="text-xs" style={{ color: 'var(--muted)' }}>{visto}</p>}
-                </div>
-                {estado === 'recuperada' ? (
-                  <Badge variant="info">Recuperada (0.5)</Badge>
-                ) : (
-                  <div className="flex gap-2" role="group" aria-label={`Asistencia de ${p.nombre_completo}`}>
-                    <AccionBoton accion={marcarAsistencia.bind(null, id, i.persona_id, 'presente')}
-                      variant={estado === 'presente' ? 'primary' : 'secondary'} ariaPressed={estado === 'presente'}>
-                      Presente
-                    </AccionBoton>
-                    <AccionBoton accion={marcarAsistencia.bind(null, id, i.persona_id, 'ausente')}
-                      variant={estado === 'ausente' ? 'destructive' : 'secondary'} ariaPressed={estado === 'ausente'}>
-                      Ausente
-                    </AccionBoton>
-                  </div>
-                )}
-              </li>
-            )
-          })}
-        </ul>
+            return { id: i.persona_id, nombre: p.nombre_completo, foto: p.foto_url, estado: asis.get(i.persona_id), nota }
+          })
+          return <ListaAsistencia key={lista.map((a) => a.estado ?? '-').join()} sesionId={id} alumnos={lista} habilitada={yaPaso} />
+        })()}
         <p className="text-xs" style={{ color: 'var(--muted)' }}>
           Un alumno ausente pasa a <strong>Recuperada</strong> cuando ve la grabación y apruebas su resumen.
         </p>

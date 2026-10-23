@@ -359,3 +359,27 @@ export async function calificarRespuestaForm(respuestaId: string, datos: { punto
   if (datos.puntos === '' || Number.isNaN(puntos)) return { error: 'Escribe un puntaje.' }
   return calificarRespuesta(respuestaId, puntos)
 }
+
+// Marca como presentes a los inscritos que aún no tienen asistencia en la clase
+// (no cambia a quienes ya se marcaron como ausentes).
+export async function marcarRestantesPresentes(sesionId: string): Promise<Resultado> {
+  const yo = await personaActual()
+  const supabase = await createClient()
+  const { data: sesion } = await supabase.from('sesiones').select('tema:temas(curso_id)').eq('id', sesionId).maybeSingle()
+  const cursoId = (sesion?.tema as unknown as { curso_id: string } | null)?.curso_id
+  if (!cursoId) return { error: 'Clase no encontrada.' }
+  const [{ data: inscritos }, { data: marcadas }] = await Promise.all([
+    supabase.from('curso_inscripciones').select('persona_id').eq('curso_id', cursoId).eq('activo', true),
+    supabase.from('asistencias').select('persona_id').eq('sesion_id', sesionId),
+  ])
+  const ya = new Set((marcadas ?? []).map((m) => m.persona_id))
+  const faltan = (inscritos ?? []).filter((i) => !ya.has(i.persona_id))
+  if (!faltan.length) return { error: 'Todos ya tienen su asistencia marcada.' }
+  const ahora = new Date().toISOString()
+  const { error } = await supabase.from('asistencias').insert(faltan.map((i) => ({
+    sesion_id: sesionId, persona_id: i.persona_id, estado: 'presente', marcada_por: yo?.personaId ?? null, updated_at: ahora,
+  })))
+  if (error) return { error: 'No se pudo guardar la asistencia.' }
+  revalidatePath(`/academia/sesiones/${sesionId}`)
+  return { success: true }
+}
