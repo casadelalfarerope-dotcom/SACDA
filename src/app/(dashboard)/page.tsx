@@ -24,8 +24,8 @@ function Widget({ label, value, icon, color, href }: {
 
 const ATAJOS: { href: string; label: string; icon: LucideIcon; desde: string; hasta: string }[] = [
   { href: '/congregantes/nuevo',        label: 'Nuevo congregante',   icon: Users,        desde: '#ff9f0a', hasta: '#c45500' },
-  { href: '/miembros/visitas/nueva',    label: 'Registrar visita',    icon: UserPlus,     desde: '#30b0c7', hasta: '#0b6e80' },
-  { href: '/miembros/ausencias/nueva',  label: 'Registrar ausencia',  icon: UserX,        desde: '#ff375f', hasta: '#c1123d' },
+  { href: '/miembros',                  label: 'Pasar lista',         icon: UserPlus,     desde: '#30b0c7', hasta: '#0b6e80' },
+  { href: '/miembros/ausencias',        label: 'Ver quiénes faltaron', icon: UserX,       desde: '#ff375f', hasta: '#c1123d' },
   { href: '/miembros/ceremonias/nueva', label: 'Registrar ceremonia', icon: Church,       desde: '#7d7aff', hasta: '#4a47c4' },
   { href: '/calendario/nuevo',          label: 'Nuevo evento',        icon: CalendarPlus, desde: '#ff6259', hasta: '#c62a20' },
 ]
@@ -78,8 +78,8 @@ export default async function DashboardPage() {
       <section aria-label="Resumen" className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Widget label="Registrados" value={totalPersonas ?? 0} icon={Users} color="#ff9500" href="/congregantes" />
         <Widget label="Miembros activos" value={totalActivos ?? 0} icon={UserCheck} color="#34c759" href="/congregantes?estado=activo" />
-        <Widget label="Ausencias por atender" value={ausenciasPendientes ?? 0} icon={UserX} color="#ff2d55" href="/miembros/ausencias" />
-        <Widget label="Visitas en seguimiento" value={visitasPendientes ?? 0} icon={UserPlus} color="#30b0c7" href="/miembros/visitas" />
+        <Widget label="Faltaron · por contactar" value={ausenciasPendientes ?? 0} icon={UserX} color="#ff2d55" href="/miembros/ausencias" />
+        <Widget label="Nuevos en seguimiento" value={visitasPendientes ?? 0} icon={UserPlus} color="#30b0c7" href="/miembros/visitas" />
       </section>
 
       {cumpleanios.length > 0 && (

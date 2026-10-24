@@ -7,8 +7,9 @@ import { ChevronRight, Home } from 'lucide-react'
 const LABELS: Record<string, string> = {
   congregantes:   'Congregantes',
   miembros:       'Seguimiento',
-  ausencias:      'Ausencias',
-  visitas:        'Visitas',
+  ausencias:      'Faltaron',
+  'visitas-pastorales': 'Visitas pastorales',
+  visitas:        'Nuevos',
   ceremonias:     'Ceremonias',
   ministerios:    'Ministerios',
   calendario:     'Calendario',

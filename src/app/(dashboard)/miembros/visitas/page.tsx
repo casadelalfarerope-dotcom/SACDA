@@ -15,10 +15,10 @@ export default async function VisitasPage() {
     .order('fecha_primera_visita', { ascending: false })
 
   return (
-    <Pagina titulo="Visitas" subtitulo={`${visitas?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Seguimiento' }}
-      acciones={<BotonEnlace href="/miembros/visitas/nueva" etiqueta="Registrar visita"><Plus size={17} aria-hidden="true" /><span className="hidden sm:inline">Nueva</span></BotonEnlace>}>
+    <Pagina titulo="Nuevos" subtitulo="Personas que vinieron por primera vez"  volver={{ href: '/miembros', texto: 'Seguimiento' }}
+      acciones={<BotonEnlace href="/miembros/visitas/nueva" etiqueta="Registrar persona nueva"><Plus size={17} aria-hidden="true" /><span className="hidden sm:inline">Nueva</span></BotonEnlace>}>
       {!visitas?.length ? (
-        <Vacio icono={<UserPlus size={44} />} titulo="Sin visitas registradas" texto="Registra la primera visita con el botón +." />
+        <Vacio icono={<UserPlus size={44} />} titulo="Aún no hay personas nuevas" texto="Regístralas desde Pasar lista con “Persona nueva”, el día que vienen por primera vez." />
       ) : (
         <Grupo pie="Cambia el estado de cada visita a medida que le das seguimiento.">
           {visitas.map((v, i) => {
@@ -27,7 +27,7 @@ export default async function VisitasPage() {
               <Fila key={v.id} primero={i === 0}
                 inicio={persona ? <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" /> : undefined}
                 titulo={persona?.nombre_completo ?? '—'}
-                subtitulo={`Primera visita: ${formatDateShort(v.fecha_primera_visita)}${v.volvio ? ' · Volvió' : ''}`}
+                subtitulo={`Vino por primera vez el ${formatDateShort(v.fecha_primera_visita)}${v.volvio ? ' · Volvió' : ' · Aún no vuelve'}`}
                 detalle={<CambiarEstadoVisita id={v.id} estadoActual={v.estado as EstadoSeguimiento} volvio={v.volvio ?? false} />} />
             )
           })}

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Cake, Church, UserX, UserPlus, Download, BarChart3, ClipboardCheck } from 'lucide-react'
+import { Cake, Church, UserX, UserPlus, Download, BarChart3, ClipboardCheck, House } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/service'
 import { diasConLista, cerrarListasPendientes } from '@/lib/asistencia'
 import { hoyLima, formatDate } from '@/lib/utils'
@@ -24,7 +24,7 @@ export default async function MiembrosPage({ searchParams }: { searchParams: Pro
   const elegido = dias.find((d) => `${d.evento_id}|${d.fecha}` === diaParam) ?? dias[0]
   const [{ data: activos }, { data: vinieron }, { data: cierre }, { data: puedeCerrar }] = elegido
     ? await Promise.all([
-      supabase.from('personas').select('id, nombre_completo, foto_url').eq('estado', 'activo').order('nombre_completo'),
+      supabase.from('personas').select('id, nombre_completo, foto_url, estado').in('estado', ['activo', 'visita']).order('nombre_completo'),
       supabase.from('asistencia_culto').select('persona_id').eq('evento_id', elegido.evento_id).eq('fecha', elegido.fecha),
       supabase.from('asistencia_culto_cierres').select('evento_id').eq('evento_id', elegido.evento_id).eq('fecha', elegido.fecha).maybeSingle(),
       supabase.rpc('tiene_permiso', { p_modulo: 'miembros', p_accion: 'crear' }),
@@ -76,8 +76,7 @@ export default async function MiembrosPage({ searchParams }: { searchParams: Pro
       acciones={<>
         <BotonEnlace href="/miembros/estadisticas" variante="tintado"><BarChart3 size={15} aria-hidden="true" /> Estadísticas</BotonEnlace>
         <BotonEnlace href="/miembros/ceremonias/nueva" variante="tintado"><Church size={15} aria-hidden="true" /> Ceremonia</BotonEnlace>
-        <BotonEnlace href="/miembros/ausencias/nueva" variante="tintado"><UserX size={15} aria-hidden="true" /> Ausencia</BotonEnlace>
-        <BotonEnlace href="/miembros/visitas/nueva"><UserPlus size={15} aria-hidden="true" /> Visita</BotonEnlace>
+        <BotonEnlace href="/miembros/visitas-pastorales" variante="tintado"><House size={15} aria-hidden="true" /> Visitas pastorales</BotonEnlace>
       </>}>
 
       <section aria-labelledby="lista-titulo" className="space-y-3">
@@ -108,7 +107,7 @@ export default async function MiembrosPage({ searchParams }: { searchParams: Pro
               <b style={{ color: 'var(--foreground)' }}>{elegido.titulo}</b> · {elegido.fecha_real === hoy ? 'Hoy' : formatDate(elegido.fecha_real)}{elegido.hora ? ` · ${elegido.hora.slice(0, 5)}` : ''}
             </p>
             <PasarLista key={elegido.evento_id + elegido.fecha} eventoId={elegido.evento_id} fecha={elegido.fecha} fechaReal={elegido.fecha_real}
-              personas={(activos ?? []).map((p) => ({ id: p.id, nombre: p.nombre_completo, foto: p.foto_url }))}
+              personas={(activos ?? []).map((p) => ({ id: p.id, nombre: p.nombre_completo, foto: p.foto_url, nuevo: p.estado === 'visita' }))}
               presentesIniciales={(vinieron ?? []).map((v) => v.persona_id)} cerrada={!!cierre} puedeCerrar={puedeCerrar === true} />
           </>
         ) : (
@@ -138,7 +137,7 @@ export default async function MiembrosPage({ searchParams }: { searchParams: Pro
       </Grupo>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        <Grupo titulo="Visitas por seguir" accion={ver('/miembros/visitas')}>
+        <Grupo titulo="Nuevos · ¿volvieron?" accion={ver('/miembros/visitas')}>
           {(visitas ?? []).map((v, i) => {
             const persona = Array.isArray(v.persona) ? v.persona[0] : v.persona
             return (

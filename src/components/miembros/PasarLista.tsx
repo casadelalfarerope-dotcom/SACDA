@@ -2,12 +2,13 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Search, Lock } from 'lucide-react'
+import { Check, Search, Lock, UserPlus } from 'lucide-react'
+import Input from '@/components/ui/Input'
 import Avatar from '@/components/ui/Avatar'
 import Button from '@/components/ui/Button'
-import { marcarVino, cerrarListaAhora } from '@/app/actions/asistencia'
+import { marcarVino, cerrarListaAhora, registrarPersonaNueva } from '@/app/actions/asistencia'
 
-export interface PersonaLista { id: string; nombre: string; foto: string | null }
+export interface PersonaLista { id: string; nombre: string; foto: string | null; nuevo?: boolean }
 
 const normalizar = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
@@ -23,7 +24,9 @@ export default function PasarLista({ eventoId, fecha, fechaReal, personas, prese
   puedeCerrar: boolean
 }) {
   const router = useRouter()
+  const [lista, setLista] = useState(personas)
   const [presentes, setPresentes] = useState(() => new Set(presentesIniciales))
+  const [nueva, setNueva] = useState<{ nombre: string; telefono: string; invitado_por: string } | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [soloFaltan, setSoloFaltan] = useState(false)
   const [error, setError] = useState('')
@@ -32,8 +35,24 @@ export default function PasarLista({ eventoId, fecha, fechaReal, personas, prese
 
   const visibles = useMemo(() => {
     const q = normalizar(busqueda.trim())
-    return personas.filter((p) => (!q || normalizar(p.nombre).includes(q)) && (!soloFaltan || !presentes.has(p.id)))
-  }, [personas, busqueda, soloFaltan, presentes])
+    return lista.filter((p) => (!q || normalizar(p.nombre).includes(q)) && (!soloFaltan || !presentes.has(p.id)))
+  }, [lista, busqueda, soloFaltan, presentes])
+
+  function guardarNueva(e: React.FormEvent) {
+    e.preventDefault()
+    if (!nueva) return
+    setError('')
+    iniciar(async () => {
+      const res = await registrarPersonaNueva(eventoId, fecha, fechaReal, nueva)
+      if (res.error || !res.persona) { setError(res.error ?? 'No se pudo registrar.'); return }
+      const p = res.persona
+      setLista((l) => [...l, { id: p.id, nombre: p.nombre, foto: null, nuevo: true }].sort((a, b) => a.nombre.localeCompare(b.nombre)))
+      setPresentes((s) => new Set(s).add(p.id))
+      setAviso(`${p.nombre} quedó registrado como persona nueva y marcado como que vino.`)
+      setNueva(null)
+      router.refresh()
+    })
+  }
 
   function alternar(id: string) {
     const vino = !presentes.has(id)
@@ -53,13 +72,13 @@ export default function PasarLista({ eventoId, fecha, fechaReal, personas, prese
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p role="status" className="text-[15px]" style={{ color: 'var(--foreground)' }}>
           <b className="text-[22px] tabular-nums" style={{ color: 'var(--success)' }}>{presentes.size}</b>
-          <span style={{ color: 'var(--muted)' }}> de {personas.length} {presentes.size === 1 ? 'vino' : 'vinieron'}</span>
+          <span style={{ color: 'var(--muted)' }}> de {lista.length} {presentes.size === 1 ? 'vino' : 'vinieron'}</span>
         </p>
         {cerrada ? (
           <span className="inline-flex items-center gap-1.5 text-[13px]" style={{ color: 'var(--muted)' }}><Lock size={13} aria-hidden="true" /> Lista cerrada: los que faltaron están en “Faltaron”</span>
         ) : puedeCerrar && (
           <Button size="sm" variant="secondary" disabled={pendiente || !presentes.size} onClick={() => {
-            if (!confirm(`¿Cerrar la lista? Las ${personas.length - presentes.size} personas no marcadas quedarán como ausencias por contactar.`)) return
+            if (!confirm(`¿Cerrar la lista? Las ${lista.filter((p) => !p.nuevo).length - presentes.size} personas no marcadas quedarán como ausencias por contactar.`)) return
             iniciar(async () => {
               const res = await cerrarListaAhora(eventoId, fecha, fechaReal)
               if (res.error) setError(res.error)
@@ -85,6 +104,30 @@ export default function PasarLista({ eventoId, fecha, fechaReal, personas, prese
         </label>
       </div>
 
+      {nueva ? (
+        <form onSubmit={guardarNueva} noValidate className="rounded-2xl border p-4 space-y-3" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="text-[15px] font-semibold" style={{ color: 'var(--foreground)' }}>Persona que viene por primera vez</p>
+          <Input label="Nombre completo *" autoFocus value={nueva.nombre} onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })} placeholder="Ej. María García López" />
+          <Input label="Teléfono / WhatsApp" type="tel" inputMode="tel" value={nueva.telefono} onChange={(e) => setNueva({ ...nueva, telefono: e.target.value })} placeholder="+51 999 888 777" />
+          <div className="space-y-1.5">
+            <label htmlFor="invitado-por" className="block text-[13px] font-medium" style={{ color: 'var(--muted)' }}>¿Quién la invitó?</label>
+            <select id="invitado-por" value={nueva.invitado_por} onChange={(e) => setNueva({ ...nueva, invitado_por: e.target.value })}
+              className="w-full h-11 px-3.5 rounded-[10px] text-[15px] outline-none border border-transparent" style={{ background: 'var(--fill)', color: 'var(--foreground)' }}>
+              <option value="">Nadie / no sabe</option>
+              {lista.filter((p) => !p.nuevo).map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+            </select>
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" size="sm" loading={pendiente}>Registrar y marcar que vino</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setNueva(null)}>Cancelar</Button>
+          </div>
+        </form>
+      ) : (
+        <Button size="sm" variant="secondary" onClick={() => { setAviso(''); setNueva({ nombre: busqueda.trim(), telefono: '', invitado_por: '' }) }}>
+          <UserPlus size={14} aria-hidden="true" /> Persona nueva
+        </Button>
+      )}
+
       <ul className="rounded-2xl border overflow-hidden" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
         {visibles.map((p, i) => {
           const vino = presentes.has(p.id)
@@ -93,7 +136,10 @@ export default function PasarLista({ eventoId, fecha, fechaReal, personas, prese
               <button type="button" onClick={() => alternar(p.id)} aria-pressed={vino}
                 className="w-full flex items-center gap-3 px-4 min-h-[56px] text-left transition-colors hover:bg-[color:var(--fill)]">
                 <Avatar nombre={p.nombre} fotoUrl={p.foto} size="sm" />
-                <span className="flex-1 min-w-0 text-[15px] truncate" style={{ color: 'var(--foreground)', fontWeight: vino ? 600 : 450 }}>{p.nombre}</span>
+                <span className="flex-1 min-w-0 text-[15px] truncate" style={{ color: 'var(--foreground)', fontWeight: vino ? 600 : 450 }}>
+                  {p.nombre}
+                  {p.nuevo && <span className="ml-2 text-[11px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>Nuevo</span>}
+                </span>
                 <span className="inline-flex items-center gap-1 h-8 px-3 rounded-full text-[13px] font-semibold flex-shrink-0 transition-all"
                   style={vino
                     ? { background: 'var(--success)', color: '#fff' }
@@ -106,7 +152,7 @@ export default function PasarLista({ eventoId, fecha, fechaReal, personas, prese
         })}
         {!visibles.length && (
           <li className="px-4 py-4 text-[15px]" style={{ color: 'var(--muted)' }}>
-            {personas.length ? 'Nadie coincide con la búsqueda.' : 'No hay congregantes activos registrados.'}
+            {lista.length ? 'Nadie coincide con la búsqueda. Si es alguien que viene por primera vez, usa “Persona nueva”.' : 'No hay congregantes activos registrados.'}
           </li>
         )}
       </ul>
