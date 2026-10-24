@@ -8,18 +8,15 @@ import Button from '@/components/ui/Button'
 import type { Persona } from '@/types/database'
 import type { PersonaFormData } from '@/app/actions/congregantes'
 
-const MINISTERIOS = [
-  'Alabanza', 'Jóvenes', 'Niños', 'Intercesión', 'Multimedia',
-  'Diseño Gráfico', 'Limpieza', 'Academia', 'Coordinación', 'Impresiones',
-]
-
 interface PersonaFormProps {
   persona?: Persona
+  ministerios: { id: string; nombre: string; padre: string | null }[]
+  ministeriosActuales?: string[]
   onSubmit: (data: PersonaFormData) => Promise<{ error?: string; fields?: Record<string, string>; success?: boolean }>
   onCancel?: () => void
 }
 
-export default function PersonaForm({ persona, onSubmit, onCancel }: PersonaFormProps) {
+export default function PersonaForm({ persona, ministerios, ministeriosActuales = [], onSubmit, onCancel }: PersonaFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,7 +29,7 @@ export default function PersonaForm({ persona, onSubmit, onCancel }: PersonaForm
     telefono: persona?.telefono ?? '',
     email: persona?.email ?? '',
     direccion: persona?.direccion ?? '',
-    ministerio: persona?.ministerio ?? '',
+    ministerios: ministeriosActuales,
     estado: persona?.estado ?? 'activo',
     notas: persona?.notas ?? '',
   })
@@ -114,14 +111,25 @@ export default function PersonaForm({ persona, onSubmit, onCancel }: PersonaForm
         placeholder="Av. Ejemplo 123, Lima"
       />
 
+      <fieldset className="space-y-1.5">
+        <legend className="text-[13px] font-medium" style={{ color: 'var(--muted)' }}>Ministerios (puede estar en varios)</legend>
+        <div className="flex flex-wrap gap-1.5">
+          {ministerios.map((m) => {
+            const sel = (form.ministerios ?? []).includes(m.id)
+            return (
+              <button key={m.id} type="button" aria-pressed={sel}
+                onClick={() => setForm((prev) => ({ ...prev, ministerios: sel ? (prev.ministerios ?? []).filter((x) => x !== m.id) : [...(prev.ministerios ?? []), m.id] }))}
+                className="h-9 px-3 rounded-full text-[14px] font-medium transition-colors"
+                style={{ background: sel ? 'var(--accent)' : 'var(--fill)', color: sel ? 'var(--accent-foreground)' : 'var(--foreground)' }}>
+                {m.padre ? `${m.padre} › ${m.nombre}` : m.nombre}
+              </button>
+            )
+          })}
+          {!ministerios.length && <p className="text-[13px]" style={{ color: 'var(--muted)' }}>Aún no hay ministerios creados.</p>}
+        </div>
+      </fieldset>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Select
-          label="Ministerio"
-          value={form.ministerio ?? ''}
-          onChange={(e) => set('ministerio', e.target.value)}
-          placeholder="Sin ministerio asignado"
-          options={MINISTERIOS.map((m) => ({ value: m, label: m }))}
-        />
         <Select
           label="Estado"
           value={form.estado}

@@ -6,11 +6,6 @@ import { Pagina, Grupo, Fila, SegmentadoEnlaces, BotonEnlace, Vacio } from '@/co
 import { calcularEdad } from '@/lib/utils'
 import type { EstadoPersona } from '@/types/database'
 
-const MINISTERIOS = [
-  'Alabanza', 'Jóvenes', 'Niños', 'Intercesión', 'Multimedia',
-  'Diseño Gráfico', 'Limpieza', 'Academia', 'Coordinación', 'Impresiones',
-]
-
 const ESTADOS = [
   { valor: '', texto: 'Todos' },
   { valor: 'activo', texto: 'Activos' },
@@ -32,7 +27,12 @@ export default async function CongregantesPage({
     query = query.or(`nombre_completo.ilike.%${q}%,dni.ilike.%${q}%`)
   }
   if (params.estado) query = query.eq('estado', params.estado as EstadoPersona)
-  if (params.ministerio) query = query.eq('ministerio', params.ministerio)
+  // Filtro por ministerio (el valor es el id del ministerio): sus integrantes activos.
+  const { data: grupos } = await supabase.from('grupos').select('id, nombre').eq('activo', true).order('nombre')
+  if (params.ministerio) {
+    const { data: miembros } = await supabase.from('grupo_miembros').select('persona_id').eq('grupo_id', params.ministerio).eq('activo', true)
+    query = query.in('id', (miembros ?? []).map((m) => m.persona_id as string).concat('00000000-0000-0000-0000-000000000000'))
+  }
   const { data: personas } = await query.limit(300)
 
   const enlace = (cambios: Record<string, string>) => {
@@ -64,7 +64,7 @@ export default async function CongregantesPage({
             className="h-10 px-3 rounded-[10px] text-[15px] outline-none border border-transparent cursor-pointer"
             style={{ background: 'var(--fill)', color: 'var(--foreground)' }}>
             <option value="">Todos los ministerios</option>
-            {MINISTERIOS.map((m) => <option key={m} value={m}>{m}</option>)}
+            {(grupos ?? []).map((g) => <option key={g.id} value={g.id}>{g.nombre}</option>)}
           </select>
           {params.estado && <input type="hidden" name="estado" value={params.estado} />}
           <button type="submit" className="h-10 px-5 rounded-full text-[14px] font-semibold"
