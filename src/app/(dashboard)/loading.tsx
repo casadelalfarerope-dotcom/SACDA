@@ -1,18 +1,10 @@
+import BarraProgreso from '@/components/ui/BarraProgreso'
+
 export default function Loading() {
   return (
+    <>
+    <BarraProgreso debajoDe="panel" />
     <div className="p-4 md:p-8 max-w-3xl mx-auto animate-fade">
-      {/* Barra de progreso superior */}
-      <div className="fixed top-0 left-0 md:left-64 right-0 z-40 h-0.5" style={{ background: 'var(--border)' }}>
-        <div
-          className="h-full rounded-full"
-          style={{
-            background: 'var(--accent)',
-            width: '60%',
-            animation: 'ui-progress 1.2s ease-in-out infinite',
-          }}
-        />
-      </div>
-
       {/* Skeleton del encabezado */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -36,5 +28,6 @@ export default function Loading() {
         ))}
       </div>
     </div>
+    </>
   )
 }
