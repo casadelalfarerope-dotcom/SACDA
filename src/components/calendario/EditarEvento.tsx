@@ -64,7 +64,7 @@ export function SoloEsteDia({ eventoId, fechaOriginal, horaActual, tituloActual,
       )}
 
       <Segmentado etiqueta="Qué cambiar" valor={opcion} onChange={setOpcion} ancho opciones={[
-        { valor: 'mover', texto: 'Mover' }, { valor: 'cancelar', texto: 'Cancelar' }, { valor: 'renombrar', texto: 'Cambiar nombre' },
+        { valor: 'mover', texto: 'Mover' }, { valor: 'cancelar', texto: 'Cancelar' }, { valor: 'renombrar', texto: 'Renombrar' },
       ]} />
 
       {opcion === 'mover' && (
@@ -144,10 +144,11 @@ export function TodaLaSerie({ evento, hoy }: {
       }}>
         <Input label="Nombre *" value={f.titulo} maxLength={120} onChange={(e) => setF({ ...f, titulo: e.target.value })} />
         <Select label="Tipo" value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value as typeof f.tipo })} options={[
-          { value: 'servicio', label: 'Servicio / Culto (tiene programa de servidores)' },
+          { value: 'servicio', label: 'Servicio / Culto' },
           { value: 'actividad_especial', label: 'Actividad especial' },
           { value: 'evento_unico', label: 'Evento' },
         ]} />
+        <p className="text-[13px] -mt-1" style={{ color: 'var(--muted)' }}>Solo los de tipo Servicio / Culto tienen programa de servidores.</p>
         {evento.tipo_recurrencia === 'semanal' && (
           <fieldset className="space-y-1.5">
             <legend className="text-[13px] font-medium" style={{ color: 'var(--muted)' }}>Se repite los días</legend>
