@@ -24,6 +24,7 @@ export async function crearEvento(data: {
   fecha_unica?: string
   requiere_diseno?: boolean
   dias_aviso_diseno?: number
+  requiere_asistencia?: boolean
 }) {
   if (!data.titulo?.trim()) return { error: 'El título es obligatorio.' }
 
@@ -54,6 +55,7 @@ export async function crearEvento(data: {
     fecha_unica: data.tipo_recurrencia === 'ninguna' ? data.fecha_unica : null,
     requiere_diseno: data.requiere_diseno ?? false,
     dias_aviso_diseno: data.dias_aviso_diseno ?? 7,
+    requiere_asistencia: data.requiere_asistencia ?? data.tipo === 'servicio',
   }).select().single()
 
   if (error) return { error: 'No se pudo crear el evento.' }
@@ -164,6 +166,7 @@ async function trasCambioDeCalendario() {
   await asegurarProgramas(createServiceClient())
   revalidatePath('/calendario', 'layout')
   revalidatePath('/servidores')
+  revalidatePath('/miembros', 'layout')
   revalidatePath('/mi', 'layout')
 }
 
@@ -187,6 +190,7 @@ export async function editarEvento(id: string, data: {
   lugar?: string
   dias_semana?: string[]
   fecha_unica?: string
+  requiere_asistencia?: boolean
 }) {
   if (!data.titulo?.trim()) return { error: 'El título es obligatorio.' }
   if (data.hora_inicio && data.hora_fin && data.hora_fin <= data.hora_inicio) return { error: 'La hora de fin debe ser después de la de inicio.' }
@@ -203,6 +207,7 @@ export async function editarEvento(id: string, data: {
     hora_inicio: data.hora_inicio || null,
     hora_fin: data.hora_fin || null,
     lugar: data.lugar?.trim() || null,
+    ...(data.requiere_asistencia !== undefined ? { requiere_asistencia: data.requiere_asistencia } : {}),
     ...(actual.tipo_recurrencia === 'semanal' ? { dias_semana: data.dias_semana } : {}),
     ...(actual.tipo_recurrencia === 'ninguna' ? { fecha_unica: data.fecha_unica } : {}),
   }).eq('id', id).select('id')

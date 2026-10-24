@@ -1,14 +1,35 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Cake, Church, UserX, UserPlus, Download } from 'lucide-react'
+import { Cake, Church, UserX, UserPlus, Download, BarChart3, ClipboardCheck } from 'lucide-react'
+import { createServiceClient } from '@/lib/supabase/service'
+import { diasConLista, cerrarListasPendientes } from '@/lib/asistencia'
+import { hoyLima, formatDate } from '@/lib/utils'
+import PasarLista from '@/components/miembros/PasarLista'
 import { diasParaCumpleanios, formatDateShort } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila, BotonEnlace } from '@/components/ui/ios'
 
-export default async function MiembrosPage() {
+export default async function MiembrosPage({ searchParams }: { searchParams: Promise<{ dia?: string }> }) {
   const supabase = await createClient()
+  const { dia: diaParam } = await searchParams
+
+  // Pasar lista: el culto de hoy (o el último que pasó). Las listas de días
+  // anteriores se cierran solas y generan las ausencias.
+  await cerrarListasPendientes(createServiceClient())
+  const hoy = hoyLima()
+  const hace = new Date(hoy + 'T12:00:00Z'); hace.setUTCDate(hace.getUTCDate() - 21)
+  const dias = (await diasConLista(supabase, hace.toISOString().slice(0, 10), hoy)).filter((d) => d.fecha_real <= hoy).reverse()
+  const elegido = dias.find((d) => `${d.evento_id}|${d.fecha}` === diaParam) ?? dias[0]
+  const [{ data: activos }, { data: vinieron }, { data: cierre }, { data: puedeCerrar }] = elegido
+    ? await Promise.all([
+      supabase.from('personas').select('id, nombre_completo, foto_url').eq('estado', 'activo').order('nombre_completo'),
+      supabase.from('asistencia_culto').select('persona_id').eq('evento_id', elegido.evento_id).eq('fecha', elegido.fecha),
+      supabase.from('asistencia_culto_cierres').select('evento_id').eq('evento_id', elegido.evento_id).eq('fecha', elegido.fecha).maybeSingle(),
+      supabase.rpc('tiene_permiso', { p_modulo: 'miembros', p_accion: 'crear' }),
+    ])
+    : [{ data: [] }, { data: [] }, { data: null }, { data: false }] as const
 
   // Cumpleaños próximos (30 días)
   const { data: todasPersonas } = await supabase
@@ -51,12 +72,49 @@ export default async function MiembrosPage() {
   const ver = (href: string) => <Link href={href} className="text-[15px] normal-case" style={{ color: 'var(--accent)' }}>Ver todas</Link>
 
   return (
-    <Pagina titulo="Seguimiento" subtitulo="Cumpleaños, visitas, ausencias y ceremonias"
+    <Pagina titulo="Seguimiento" subtitulo="Asistencia a los cultos, cumpleaños, visitas y ausencias"
       acciones={<>
+        <BotonEnlace href="/miembros/estadisticas" variante="tintado"><BarChart3 size={15} aria-hidden="true" /> Estadísticas</BotonEnlace>
         <BotonEnlace href="/miembros/ceremonias/nueva" variante="tintado"><Church size={15} aria-hidden="true" /> Ceremonia</BotonEnlace>
         <BotonEnlace href="/miembros/ausencias/nueva" variante="tintado"><UserX size={15} aria-hidden="true" /> Ausencia</BotonEnlace>
         <BotonEnlace href="/miembros/visitas/nueva"><UserPlus size={15} aria-hidden="true" /> Visita</BotonEnlace>
       </>}>
+
+      <section aria-labelledby="lista-titulo" className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-2 px-1">
+          <h2 id="lista-titulo" className="text-[22px] font-bold" style={{ color: 'var(--foreground)' }}>
+            <ClipboardCheck size={20} aria-hidden="true" className="inline -mt-1 mr-1.5" style={{ color: 'var(--accent)' }} />
+            Pasar lista
+          </h2>
+          {dias.length > 1 && (
+            <details className="relative">
+              <summary className="cursor-pointer text-[15px] font-medium" style={{ color: 'var(--accent)' }}>Otro culto</summary>
+              <ul className="material absolute right-0 mt-2 w-72 max-h-80 overflow-y-auto rounded-2xl border p-1.5 z-20" style={{ borderColor: 'var(--border)', boxShadow: 'var(--shadow-float)' }}>
+                {dias.map((d) => (
+                  <li key={d.evento_id + d.fecha}>
+                    <Link href={`/miembros?dia=${d.evento_id}|${d.fecha}`} className="block px-3 py-2 rounded-[10px] text-[14px] hover:bg-[color:var(--fill)]"
+                      style={{ color: 'var(--foreground)', fontWeight: d === elegido ? 650 : 450 }}>
+                      {d.titulo} · {d.fecha_real === hoy ? 'Hoy' : formatDate(d.fecha_real)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
+        {elegido ? (
+          <>
+            <p className="px-1 text-[15px]" style={{ color: 'var(--muted)' }}>
+              <b style={{ color: 'var(--foreground)' }}>{elegido.titulo}</b> · {elegido.fecha_real === hoy ? 'Hoy' : formatDate(elegido.fecha_real)}{elegido.hora ? ` · ${elegido.hora.slice(0, 5)}` : ''}
+            </p>
+            <PasarLista key={elegido.evento_id + elegido.fecha} eventoId={elegido.evento_id} fecha={elegido.fecha} fechaReal={elegido.fecha_real}
+              personas={(activos ?? []).map((p) => ({ id: p.id, nombre: p.nombre_completo, foto: p.foto_url }))}
+              presentesIniciales={(vinieron ?? []).map((v) => v.persona_id)} cerrada={!!cierre} puedeCerrar={puedeCerrar === true} />
+          </>
+        ) : (
+          <p className="px-1 text-[15px]" style={{ color: 'var(--muted)' }}>No hay cultos con asistencia en las últimas semanas. Activa “Tomar asistencia” en los eventos del Calendario.</p>
+        )}
+      </section>
 
       <Grupo pie="Excel con las visitas que faltan contactar y las ausencias por atender, con teléfono y dirección, para entregar a quien hará el seguimiento.">
         <li>
@@ -93,7 +151,7 @@ export default async function MiembrosPage() {
           {!visitas?.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Sin visitas pendientes</span>} />}
         </Grupo>
 
-        <Grupo titulo="Ausencias por atender" accion={ver('/miembros/ausencias')}>
+        <Grupo titulo="Faltaron · por contactar" accion={ver('/miembros/ausencias')}>
           {(ausencias ?? []).map((a, i) => {
             const persona = Array.isArray(a.persona) ? a.persona[0] : a.persona
             return (

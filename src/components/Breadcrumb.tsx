@@ -30,6 +30,7 @@ const LABELS: Record<string, string> = {
   sesiones:       'Clase',
   examenes:       'Examen',
   evento:         'Evento',
+  estadisticas:   'Estadísticas',
   nueva:          'Nueva',
   nuevo:          'Nuevo',
   editar:         'Editar',

@@ -4,6 +4,8 @@ import { formatDateShort } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
 import { Pagina, Grupo, Fila, BotonEnlace, Vacio } from '@/components/ui/ios'
 import CambiarEstadoAusencia from '@/components/miembros/CambiarEstadoAusencia'
+import MotivoAusencia from '@/components/miembros/MotivoAusencia'
+import Badge from '@/components/ui/Badge'
 import type { EstadoAusencia } from '@/types/database'
 
 export default async function AusenciasPage() {
@@ -14,8 +16,15 @@ export default async function AusenciasPage() {
     .select('*, persona:personas!ausencias_persona_id_fkey(id, nombre_completo, foto_url), encargado:personas!ausencias_seguimiento_por_fkey(nombre_completo)')
     .order('fecha', { ascending: false })
 
+  // Faltas seguidas: ausencias desde la última vez que la persona vino a un culto.
+  const { data: asistencias } = await supabase.from('asistencia_culto').select('persona_id, fecha')
+  const ultimaVez = new Map<string, string>()
+  for (const a of asistencias ?? []) if ((ultimaVez.get(a.persona_id) ?? '') < a.fecha) ultimaVez.set(a.persona_id, a.fecha)
+  const seguidas = new Map<string, number>()
+  for (const a of ausencias ?? []) if (a.evento_id && a.fecha > (ultimaVez.get(a.persona_id) ?? '')) seguidas.set(a.persona_id, (seguidas.get(a.persona_id) ?? 0) + 1)
+
   return (
-    <Pagina titulo="Ausencias" subtitulo={`${ausencias?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Seguimiento' }}
+    <Pagina titulo="Faltaron" subtitulo={`${ausencias?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Seguimiento' }}
       acciones={<BotonEnlace href="/miembros/ausencias/nueva" etiqueta="Registrar ausencia"><Plus size={17} aria-hidden="true" /><span className="hidden sm:inline">Nueva</span></BotonEnlace>}>
       {!ausencias?.length ? (
         <Vacio icono={<UserX size={44} />} titulo="Sin ausencias registradas" texto="Registra una ausencia con el botón +." />
@@ -28,8 +37,13 @@ export default async function AusenciasPage() {
               <Fila key={a.id} primero={i === 0}
                 inicio={persona ? <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" /> : undefined}
                 titulo={persona?.nombre_completo ?? '—'}
-                subtitulo={[formatDateShort(a.fecha), a.motivo, encargado && `Encargado: ${encargado.nombre_completo}`].filter(Boolean).join(' · ')}
-                detalle={<CambiarEstadoAusencia id={a.id} estadoActual={a.estado as EstadoAusencia} />} />
+                subtitulo={[formatDateShort(a.fecha), encargado && `Encargado: ${encargado.nombre_completo}`].filter(Boolean).join(' · ')}
+                detalle={<CambiarEstadoAusencia id={a.id} estadoActual={a.estado as EstadoAusencia} />}>
+                {(seguidas.get(a.persona_id) ?? 0) >= 2 && a.estado === 'pendiente' && (
+                  <span className="block mt-1"><Badge variant="error">Faltó {seguidas.get(a.persona_id)} cultos seguidos</Badge></span>
+                )}
+                <MotivoAusencia id={a.id} motivo={a.motivo} />
+              </Fila>
             )
           })}
         </Grupo>

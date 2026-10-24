@@ -123,6 +123,7 @@ export function TodaLaSerie({ evento, hoy }: {
     id: string; titulo: string; descripcion: string | null; tipo: 'servicio' | 'actividad_especial' | 'evento_unico'
     hora_inicio: string | null; hora_fin: string | null; lugar: string | null
     tipo_recurrencia: string; dias_semana: string[] | null; fecha_unica: string | null; fecha_fin_serie: string | null
+    requiere_asistencia: boolean
   }
   hoy: string
 }) {
@@ -132,6 +133,7 @@ export function TodaLaSerie({ evento, hoy }: {
     titulo: evento.titulo, descripcion: evento.descripcion ?? '', tipo: evento.tipo,
     hora_inicio: evento.hora_inicio?.slice(0, 5) ?? '', hora_fin: evento.hora_fin?.slice(0, 5) ?? '', lugar: evento.lugar ?? '',
     dias_semana: evento.dias_semana ?? [], fecha_unica: evento.fecha_unica ?? '',
+    requiere_asistencia: evento.requiere_asistencia,
   })
   const [fin, setFin] = useState(evento.fecha_fin_serie ?? '')
   const esSerie = evento.tipo_recurrencia !== 'ninguna'
@@ -174,6 +176,14 @@ export function TodaLaSerie({ evento, hoy }: {
           <Input label="Hora de inicio" type="time" value={f.hora_inicio} onChange={(e) => setF({ ...f, hora_inicio: e.target.value })} />
           <Input label="Hora de fin" type="time" value={f.hora_fin} onChange={(e) => setF({ ...f, hora_fin: e.target.value })} />
         </div>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" checked={f.requiere_asistencia} className="w-4 h-4 mt-0.5" style={{ accentColor: 'var(--accent)' }}
+            onChange={(e) => setF({ ...f, requiere_asistencia: e.target.checked })} />
+          <span>
+            <span className="block text-[15px]" style={{ color: 'var(--foreground)' }}>Tomar asistencia</span>
+            <span className="block text-[13px]" style={{ color: 'var(--muted)' }}>Aparece en Seguimiento para pasar lista.</span>
+          </span>
+        </label>
         <Input label="Lugar" value={f.lugar} onChange={(e) => setF({ ...f, lugar: e.target.value })} placeholder="Ej. Templo principal" />
         <Button type="submit" loading={pendiente}>Guardar cambios{esSerie ? ' de la serie' : ''}</Button>
       </form>

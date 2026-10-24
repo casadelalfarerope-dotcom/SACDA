@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Mic2 } from 'lucide-react'
+import { Mic2, ClipboardCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate, hoyLima } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
@@ -22,7 +22,7 @@ export default async function EventoPage({ params, searchParams }: { params: Pro
   const supabase = await createClient()
 
   const { data: evento } = await supabase.from('eventos')
-    .select('id, titulo, descripcion, tipo, hora_inicio, hora_fin, lugar, tipo_recurrencia, dias_semana, semana_del_mes, dia_semana_mes, fecha_unica, fecha_inicio_serie, fecha_fin_serie')
+    .select('id, titulo, descripcion, tipo, hora_inicio, hora_fin, lugar, tipo_recurrencia, dias_semana, semana_del_mes, dia_semana_mes, fecha_unica, fecha_inicio_serie, fecha_fin_serie, requiere_asistencia')
     .eq('id', id).maybeSingle()
   if (!evento) notFound()
 
@@ -56,6 +56,9 @@ export default async function EventoPage({ params, searchParams }: { params: Pro
           <Fila titulo="Este día" detalle={<Badge variant={excepcion.tipo_excepcion === 'cancelado' ? 'error' : 'warning'}>
             {excepcion.tipo_excepcion === 'cancelado' ? 'Cancelado' : excepcion.tipo_excepcion === 'reprogramado' ? `Movido desde el ${formatDate(fechaOriginal!)}` : 'Con cambios'}
           </Badge>} />
+        )}
+        {evento.requiere_asistencia && fechaOriginal && (
+          <Fila href={`/miembros?dia=${id}|${fechaOriginal}`} inicio={<IconoModulo icon={ClipboardCheck} color="#30b0c7" />} titulo="Pasar lista de este día" />
         )}
         {programa && (
           <Fila href={`/servidores/${programa.id}`} inicio={<IconoModulo icon={Mic2} color="#ff2d55" />} titulo="Programa de servidores"

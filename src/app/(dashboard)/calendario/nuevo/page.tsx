@@ -33,10 +33,16 @@ export default function NuevoEventoPage() {
     dia_semana_mes: '',
     requiere_diseno: false,
     dias_aviso_diseno: '7',
+    requiere_asistencia: false,
   })
+  // Los cultos de servicio toman asistencia por defecto (se puede desmarcar).
+  const [asistenciaTocada, setAsistenciaTocada] = useState(false)
 
   function set(field: string, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }))
+    setForm((prev) => ({
+      ...prev, [field]: value,
+      ...(field === 'tipo' && !asistenciaTocada ? { requiere_asistencia: value === 'servicio' } : {}),
+    }))
   }
 
   function toggleDia(dia: string) {
@@ -140,6 +146,15 @@ export default function NuevoEventoPage() {
           <Input label="Hora de fin" type="time" value={form.hora_fin} onChange={(e) => set('hora_fin', e.target.value)} />
         </div>
         <Input label="Lugar" value={form.lugar} onChange={(e) => set('lugar', e.target.value)} placeholder="Ej. Templo principal" />
+
+        <label className="flex items-start gap-3 cursor-pointer rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-secondary)' }}>
+          <input type="checkbox" checked={form.requiere_asistencia} className="w-4 h-4 mt-0.5 rounded" style={{ accentColor: 'var(--accent)' }}
+            onChange={(e) => { setAsistenciaTocada(true); setForm((prev) => ({ ...prev, requiere_asistencia: e.target.checked })) }} />
+          <span>
+            <span className="block text-sm font-medium" style={{ color: 'var(--foreground)' }}>Tomar asistencia</span>
+            <span className="block text-xs mt-0.5" style={{ color: 'var(--muted)' }}>Aparecerá en Seguimiento para pasar lista ese día.</span>
+          </span>
+        </label>
 
         {/* Diseño */}
         <div className="rounded-xl border p-4 space-y-3" style={{ borderColor: 'var(--border)', background: 'var(--surface-secondary)' }}>
