@@ -29,12 +29,13 @@ const LABELS: Record<string, string> = {
   temas:          'Tema',
   sesiones:       'Clase',
   examenes:       'Examen',
+  evento:         'Evento',
   nueva:          'Nueva',
   nuevo:          'Nuevo',
   editar:         'Editar',
 }
 
-const SIN_LISTADO = new Set(['cursos', 'temas', 'sesiones', 'examenes'])
+const SIN_LISTADO = new Set(['cursos', 'temas', 'sesiones', 'examenes', 'evento'])
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 

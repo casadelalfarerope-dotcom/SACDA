@@ -23,7 +23,7 @@ export async function asegurarProgramas(admin: SupabaseClient) {
 
   const ids = (eventos ?? []).map((e) => e.id as string)
   const [{ data: excepciones }, { data: existentes }] = await Promise.all([
-    admin.from('evento_excepciones').select('evento_id, fecha_original, tipo_excepcion, fecha_nueva, titulo_override').in('evento_id', ids),
+    admin.from('evento_excepciones').select('evento_id, fecha_original, tipo_excepcion, fecha_nueva, titulo_override, hora_nueva_inicio').in('evento_id', ids),
     // Todos los programas futuros ligados al calendario: si su evento dejó de ser
     // un culto (o se borró), se tratan como cancelados.
     admin.from('programas').select('id, evento_id, fecha_original, fecha, titulo, hora_inicio, cancelado')

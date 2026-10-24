@@ -47,9 +47,15 @@ export default async function CalendarioPage({
     excepcionesPorEvento[exc.evento_id]!.push(exc)
   }
 
-  const todasInstancias = (eventos ?? []).flatMap((ev) =>
+  // Los días cancelados también se muestran (tachados) para poder deshacer el cambio.
+  const cancelados = (excepciones ?? []).filter((x) => x.tipo_excepcion === 'cancelado').flatMap((x) => {
+    const ev = (eventos ?? []).find((e) => e.id === x.evento_id)
+    return ev ? [{ fecha: new Date(x.fecha_original + 'T12:00:00'), titulo: ev.titulo, hora_inicio: ev.hora_inicio, lugar: ev.lugar, evento_id: ev.id, fecha_original: x.fecha_original as string, excepcion: 'cancelado' }] : []
+  })
+  const tipoExcepcion = new Map((excepciones ?? []).map((x) => [`${x.evento_id}|${x.fecha_original}`, x.tipo_excepcion as string]))
+  const todasInstancias = [...(eventos ?? []).flatMap((ev) =>
     generarInstancias(ev, excepcionesPorEvento[ev.id] ?? [], desde, hasta)
-  ).sort((a, b) => a.fecha.getTime() - b.fecha.getTime())
+  ), ...cancelados].sort((a, b) => a.fecha.getTime() - b.fecha.getTime())
 
   // Agrupar por fecha
   const porFecha: Record<string, typeof todasInstancias> = {}
@@ -146,12 +152,15 @@ export default async function CalendarioPage({
               <Grupo key={f} titulo={`${DIAS_SEMANA[d.getDay()]} ${d.getDate()} de ${MESES[mes]}`}>
                 {porFecha[f]!.map((inst, k) => {
                   const programa = programaDe.get(`${inst.evento_id}|${inst.fecha_original}`)
+                  const cambio = tipoExcepcion.get(`${inst.evento_id}|${inst.fecha_original}`)
+                  const cancelado = cambio === 'cancelado'
                   return (
-                  <Fila key={k} primero={k === 0} href={programa ? `/servidores/${programa.id}` : undefined}
+                  <Fila key={k} primero={k === 0} href={`/calendario/evento/${inst.evento_id}?fecha=${inst.fecha_original}`}
                     inicio={<span className="block w-1 h-9 rounded-full" aria-hidden="true"
-                      style={{ background: inst.excepcion ? 'var(--warning)' : 'var(--accent)' }} />}
-                    titulo={inst.titulo}
-                    subtitulo={[inst.lugar, inst.excepcion ? 'Modificado' : null,
+                      style={{ background: cancelado ? 'var(--muted)' : cambio ? 'var(--warning)' : 'var(--accent)' }} />}
+                    titulo={cancelado ? <span className="line-through" style={{ color: 'var(--muted)' }}>{inst.titulo}</span> : inst.titulo}
+                    subtitulo={cancelado ? 'Cancelado este día' : [inst.lugar,
+                      cambio === 'reprogramado' ? (inst.fecha_original !== inst.fecha.toISOString().slice(0, 10) ? `Movido desde el ${inst.fecha_original.slice(8, 10)}/${inst.fecha_original.slice(5, 7)}` : 'Hora cambiada') : cambio === 'modificado' ? 'Con cambios' : null,
                       programa && (programa.publicados ? `Servidores: ${programa.publicados} ${programa.publicados === 1 ? 'ministerio publicó' : 'ministerios publicaron'}` : 'Servidores sin publicar')]
                       .filter(Boolean).join(' · ') || undefined}
                     detalle={inst.hora_inicio ? <span className="tabular-nums">{inst.hora_inicio.slice(0, 5)}</span> : 'Todo el día'} />

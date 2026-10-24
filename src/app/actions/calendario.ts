@@ -136,6 +136,9 @@ export async function crearExcepcion(data: {
   notas?: string
 }) {
   if (!data.evento_id || !data.fecha_original) return { error: 'Datos incompletos.' }
+  if (data.tipo_excepcion === 'reprogramado' && !data.fecha_nueva) return { error: 'Elige la nueva fecha.' }
+  if (data.tipo_excepcion === 'reprogramado' && data.fecha_nueva === data.fecha_original && !data.hora_nueva_inicio)
+    return { error: 'La nueva fecha es la misma; cambia la fecha o la hora.' }
 
   const supabase = await createClient()
   const { error } = await supabase.from('evento_excepciones').upsert({
@@ -153,5 +156,80 @@ export async function crearExcepcion(data: {
   await asegurarProgramas(createServiceClient())
   revalidatePath('/calendario')
   revalidatePath('/servidores')
+  return { success: true }
+}
+
+async function trasCambioDeCalendario() {
+  // Los programas de servidores siguen al calendario (cultos nuevos, cancelados o movidos).
+  await asegurarProgramas(createServiceClient())
+  revalidatePath('/calendario', 'layout')
+  revalidatePath('/servidores')
+  revalidatePath('/mi', 'layout')
+}
+
+// Deshace el cambio de un día: vuelve a la fecha, hora y nombre normales.
+export async function eliminarExcepcion(eventoId: string, fechaOriginal: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('evento_excepciones').delete()
+    .eq('evento_id', eventoId).eq('fecha_original', fechaOriginal).select('id')
+  if (error || !data?.length) return { error: 'No se pudo deshacer el cambio.' }
+  await trasCambioDeCalendario()
+  return { success: true }
+}
+
+// Edita la serie completa (o el evento único).
+export async function editarEvento(id: string, data: {
+  titulo: string
+  descripcion?: string
+  tipo: 'servicio' | 'actividad_especial' | 'evento_unico'
+  hora_inicio?: string
+  hora_fin?: string
+  lugar?: string
+  dias_semana?: string[]
+  fecha_unica?: string
+}) {
+  if (!data.titulo?.trim()) return { error: 'El título es obligatorio.' }
+  if (data.hora_inicio && data.hora_fin && data.hora_fin <= data.hora_inicio) return { error: 'La hora de fin debe ser después de la de inicio.' }
+  const supabase = await createClient()
+  const { data: actual } = await supabase.from('eventos').select('tipo_recurrencia').eq('id', id).maybeSingle()
+  if (!actual) return { error: 'Evento no encontrado.' }
+  if (actual.tipo_recurrencia === 'semanal' && !data.dias_semana?.length) return { error: 'Elige al menos un día de la semana.' }
+  if (actual.tipo_recurrencia === 'ninguna' && !data.fecha_unica) return { error: 'Indica la fecha del evento.' }
+
+  const { data: filas, error } = await supabase.from('eventos').update({
+    titulo: data.titulo.trim(),
+    descripcion: data.descripcion?.trim() || null,
+    tipo: data.tipo,
+    hora_inicio: data.hora_inicio || null,
+    hora_fin: data.hora_fin || null,
+    lugar: data.lugar?.trim() || null,
+    ...(actual.tipo_recurrencia === 'semanal' ? { dias_semana: data.dias_semana } : {}),
+    ...(actual.tipo_recurrencia === 'ninguna' ? { fecha_unica: data.fecha_unica } : {}),
+  }).eq('id', id).select('id')
+  if (error || !filas?.length) return { error: 'No tienes permiso para editar este evento.' }
+  await trasCambioDeCalendario()
+  return { success: true }
+}
+
+// La serie deja de repetirse después de esa fecha (los días anteriores quedan).
+export async function terminarSerie(id: string, fechaFin: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaFin)) return { error: 'Elige la fecha del último día.' }
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('eventos').update({ fecha_fin_serie: fechaFin }).eq('id', id).select('id')
+  if (error || !data?.length) return { error: 'No se pudo terminar la serie.' }
+  await trasCambioDeCalendario()
+  return { success: true }
+}
+
+export async function eliminarEvento(id: string) {
+  const supabase = await createClient()
+  const { data: permitido } = await supabase.rpc('tiene_permiso', { p_modulo: 'calendario', p_accion: 'eliminar' })
+  if (permitido !== true) return { error: 'No tienes permiso para eliminar eventos.' }
+  // Sus programas de servidores futuros se eliminan; los pasados quedan como historial.
+  const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(new Date())
+  await createServiceClient().from('programas').delete().eq('evento_id', id).gte('fecha', hoy)
+  const { data, error } = await supabase.from('eventos').delete().eq('id', id).select('id')
+  if (error || !data?.length) return { error: 'No se pudo eliminar el evento.' }
+  await trasCambioDeCalendario()
   return { success: true }
 }
