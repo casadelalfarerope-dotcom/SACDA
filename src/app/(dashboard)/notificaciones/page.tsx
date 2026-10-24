@@ -10,7 +10,7 @@ const TIPO: Record<string, { icon: LucideIcon; color: string }> = {
   turno_asignado:      { icon: Mic2,          color: '#ff2d55' },
   cumpleanios:         { icon: Cake,          color: '#ff9500' },
   cumpleanios_proximo: { icon: Cake,          color: '#ff9500' },
-  tarea_asignada:      { icon: ClipboardList, color: '#007aff' },
+  tarea_asignada:      { icon: ClipboardList, color: '#a35d2d' },
   tarea_aprobada:      { icon: CheckCircle2,  color: '#34c759' },
   tarea_rechazada:     { icon: Undo2,         color: '#ff3b30' },
   arte_distribuido:    { icon: Image,         color: '#af52de' },
@@ -19,7 +19,7 @@ const TIPO: Record<string, { icon: LucideIcon; color: string }> = {
   tarea_diseno:        { icon: Palette,       color: '#ff2d55' },
   mantenimiento:       { icon: Wrench,        color: '#8e8e93' },
   solicitud_venta:     { icon: ShoppingBag,   color: '#00c7be' },
-  general:             { icon: Bell,          color: '#007aff' },
+  general:             { icon: Bell,          color: '#a35d2d' },
 }
 
 export default async function NotificacionesPage() {

@@ -9,7 +9,7 @@ import { IconoModulo } from '@/components/ui/IconoApp'
 export type ModuloEspacio = 'inicio' | 'servicio' | 'solicitudes' | 'aportes' | 'academia' | 'calendario'
 
 const MODULOS: Record<ModuloEspacio, { href: string; label: string; icon: LucideIcon; color: string; rutas: string[] }> = {
-  inicio:      { href: '/mi',             label: 'Inicio',      icon: Home,        color: '#007aff', rutas: [] },
+  inicio:      { href: '/mi',             label: 'Inicio',      icon: Home,        color: '#a35d2d', rutas: [] },
   servicio:    { href: '/mi/ministerios', label: 'Ministerios', icon: Mic2,        color: '#ff2d55', rutas: ['/mi/tareas', '/mi/servicio'] },
   solicitudes: { href: '/mi/solicitudes', label: 'Solicitudes', icon: ShoppingBag, color: '#00c7be', rutas: [] },
   aportes:     { href: '/mi/aportes',     label: 'Mis aportes', icon: Wallet,      color: '#34c759', rutas: [] },

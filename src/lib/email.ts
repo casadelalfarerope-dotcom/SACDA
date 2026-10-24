@@ -35,7 +35,7 @@ export function tplCumpleanios(nombre: string, dias: number) {
     subject: `Cumpleaños de ${nombre.split(' ')[0]} — ${cuando}`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="color:#0071e3;margin-bottom:8px">🎂 Cumpleaños próximo</h2>
+        <h2 style="color:#9a5528;margin-bottom:8px">🎂 Cumpleaños próximo</h2>
         <p style="color:#1d1d1f;font-size:16px">
           <strong>${nombre}</strong> cumple años ${cuando}.
         </p>
@@ -44,7 +44,7 @@ export function tplCumpleanios(nombre: string, dias: number) {
         </p>
         <a href="${process.env.NEXT_PUBLIC_APP_URL ?? ''}/congregantes"
            style="display:inline-block;margin-top:16px;padding:10px 20px;
-                  background:#0071e3;color:#fff;border-radius:10px;text-decoration:none;font-size:14px">
+                  background:#9a5528;color:#fff;border-radius:10px;text-decoration:none;font-size:14px">
           Ver perfil
         </a>
         <hr style="margin:24px 0;border:none;border-top:1px solid #d2d2d7"/>
@@ -58,7 +58,7 @@ export function tplTareaAsignada(nombrePersona: string, tituloTarea: string, lim
     subject: `Nueva tarea asignada: ${tituloTarea}`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="color:#0071e3;margin-bottom:8px">📋 Tarea asignada</h2>
+        <h2 style="color:#9a5528;margin-bottom:8px">📋 Tarea asignada</h2>
         <p style="color:#1d1d1f;font-size:16px">
           Hola <strong>${nombrePersona.split(' ')[0]}</strong>, se te asignó una tarea:
         </p>
@@ -68,7 +68,7 @@ export function tplTareaAsignada(nombrePersona: string, tituloTarea: string, lim
         </div>
         <a href="${url}"
            style="display:inline-block;padding:10px 20px;
-                  background:#0071e3;color:#fff;border-radius:10px;text-decoration:none;font-size:14px">
+                  background:#9a5528;color:#fff;border-radius:10px;text-decoration:none;font-size:14px">
           Ver tarea
         </a>
         <hr style="margin:24px 0;border:none;border-top:1px solid #d2d2d7"/>
@@ -89,7 +89,7 @@ export function tplArteAprobado(destino: 'multimedia' | 'impresiones', tituloTar
         </p>
         <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
           <a href="${urlArchivo}"
-             style="padding:10px 20px;background:#0071e3;color:#fff;border-radius:10px;text-decoration:none;font-size:14px">
+             style="padding:10px 20px;background:#9a5528;color:#fff;border-radius:10px;text-decoration:none;font-size:14px">
             Descargar arte
           </a>
           <a href="${urlTarea}"
@@ -116,7 +116,7 @@ export function tplInvitacion(nombre: string, enlace: string) {
         </p>
         <a href="${enlace}"
            style="display:inline-block;margin-top:16px;padding:12px 24px;
-                  background:#0071e3;color:#fff;border-radius:999px;text-decoration:none;font-size:15px;font-weight:600">
+                  background:#9a5528;color:#fff;border-radius:999px;text-decoration:none;font-size:15px;font-weight:600">
           Activar mi cuenta
         </a>
         <p style="color:#86868b;font-size:13px;margin-top:20px">

@@ -28,7 +28,7 @@ export default async function ConfiguracionPage() {
       </section>
 
       <Grupo titulo="Cuenta">
-        <Fila primero inicio={<IconoModulo icon={LogIn} color="#007aff" />} titulo="Inicio de sesión"
+        <Fila primero inicio={<IconoModulo icon={LogIn} color="#a35d2d" />} titulo="Inicio de sesión"
           detalle={conGoogle ? 'Google y correo' : 'Correo y contraseña'} />
         <Fila href="/cambiar-contrasena" inicio={<IconoModulo icon={KeyRound} color="#8e8e93" />} titulo="Cambiar contraseña" />
       </Grupo>
@@ -36,7 +36,7 @@ export default async function ConfiguracionPage() {
       <Grupo titulo="Notificaciones" pie="Las notificaciones dentro de la app están siempre activas. El correo se usa cuando tu ficha tiene uno registrado.">
         <Fila primero inicio={<IconoModulo icon={Bell} color="#ff3b30" />} titulo="En la app" subtitulo="Campana en la barra superior"
           detalle={<Badge variant="success">Activo</Badge>} />
-        <Fila inicio={<IconoModulo icon={Mail} color="#007aff" />} titulo="Correo"
+        <Fila inicio={<IconoModulo icon={Mail} color="#a35d2d" />} titulo="Correo"
           subtitulo={persona?.email ?? 'Sin correo en tu ficha'}
           detalle={<Badge variant={persona?.email ? 'success' : 'muted'}>{persona?.email ? 'Activo' : 'Inactivo'}</Badge>} />
       </Grupo>

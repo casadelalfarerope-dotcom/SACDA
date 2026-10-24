@@ -113,7 +113,7 @@ export default function InvitacionPage() {
         {estado === 'elegir' && (
           <div className="space-y-6">
             <div className="flex flex-col items-center text-center gap-3">
-              <IconoApp tamano={56} />
+              <IconoApp tamano={56} animacion="entrada" />
               <h1 className="text-[26px] font-bold" style={{ color: 'var(--foreground)' }}>¡Bienvenido!</h1>
               <p className="text-[15px]" style={{ color: 'var(--muted)' }}>
                 Tu cuenta{email ? <> para <b style={{ color: 'var(--foreground)' }}>{email}</b></> : null} está lista.

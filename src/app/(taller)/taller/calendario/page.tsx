@@ -91,7 +91,7 @@ export default async function CalendarioAcademiaPage({ searchParams }: { searchP
                   {d}
                 </span>
                 <span className="flex gap-0.5 h-1.5" aria-hidden="true">
-                  {items.some((x) => x.tipo === 'clase') && <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#007aff' }} />}
+                  {items.some((x) => x.tipo === 'clase') && <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#a35d2d' }} />}
                   {items.some((x) => x.tipo === 'examen') && <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#ff9500' }} />}
                 </span>
               </span>
@@ -99,7 +99,7 @@ export default async function CalendarioAcademiaPage({ searchParams }: { searchP
           })}
         </div>
         <div className="flex gap-4 justify-center text-[12px]" style={{ color: 'var(--muted)' }}>
-          <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: '#007aff' }} /> Clase</span>
+          <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: '#a35d2d' }} /> Clase</span>
           <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: '#ff9500' }} /> Fin de plazo de examen</span>
         </div>
       </section>
@@ -112,7 +112,7 @@ export default async function CalendarioAcademiaPage({ searchParams }: { searchP
           <Grupo key={f} titulo={`${f === hoy ? 'Hoy · ' : ''}${DIAS[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]!.toLowerCase()}`}>
             {porDia.get(f)!.map((x, i) => (
               <Fila key={x.tipo + x.id} primero={i === 0} href={x.href}
-                inicio={<IconoModulo icon={x.tipo === 'clase' ? Video : ClipboardCheck} color={x.tipo === 'clase' ? '#007aff' : '#ff9500'} tamano={36} />}
+                inicio={<IconoModulo icon={x.tipo === 'clase' ? Video : ClipboardCheck} color={x.tipo === 'clase' ? '#a35d2d' : '#ff9500'} tamano={36} />}
                 titulo={x.titulo}
                 subtitulo={`${x.curso} · ${x.tipo === 'clase' ? `Clase${x.hora ? ` a las ${x.hora}` : ''}` : `Plazo hasta las ${x.hora}`}`}
                 detalle={x.tipo === 'examen' ? <Badge variant={x.estado === 'rendido' ? 'success' : f < hoy ? 'muted' : 'warning'}>{x.estado === 'rendido' ? 'Rendido' : f < hoy ? 'Venció' : 'Por rendir'}</Badge> : undefined} />

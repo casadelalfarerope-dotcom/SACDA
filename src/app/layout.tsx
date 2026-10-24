@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import Logo from '@/components/ui/Logo'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
@@ -17,8 +18,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f2f2f7' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+    { media: '(prefers-color-scheme: light)', color: '#f6efe4' },
+    { media: '(prefers-color-scheme: dark)', color: '#15100c' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -37,6 +38,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: temaInicial }} />
       </head>
       <body>
+        {/* Bienvenida al abrir la app: el logo se arma y la pantalla se desvanece sola (solo CSS). */}
+        <div id="bienvenida" aria-hidden="true">
+          <Logo tamano={96} animacion="entrada" />
+          <p>Casa del Alfarero</p>
+        </div>
         {children}
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {

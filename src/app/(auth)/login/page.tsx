@@ -81,7 +81,7 @@ export default function LoginPage() {
       style={{ background: 'var(--background)' }}>
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
-          <IconoApp tamano={76} className="mx-auto mb-5" />
+          <IconoApp tamano={76} className="mx-auto mb-5" animacion="entrada" />
           <h1 className="text-[28px] font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>
             Casa del Alfarero
           </h1>

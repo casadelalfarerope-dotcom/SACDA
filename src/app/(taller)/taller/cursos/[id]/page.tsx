@@ -81,7 +81,7 @@ export default async function TallerCursoPage({ params }: { params: Promise<{ id
               </Fila>
             )}
             {materiales.map((m) => (
-              <Fila key={m.id} primero={n++ === 0} inicio={<IconoModulo icon={FileText} color="#007aff" />}>
+              <Fila key={m.id} primero={n++ === 0} inicio={<IconoModulo icon={FileText} color="#a35d2d" />}>
                 <a href={m.url} target="_blank" rel="noopener noreferrer" className="block text-[15px] font-medium truncate" style={{ color: 'var(--accent)' }}>{m.titulo}</a>
               </Fila>
             ))}

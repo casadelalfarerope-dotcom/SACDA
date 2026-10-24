@@ -125,7 +125,7 @@ export default async function DetalleGrupoPage({
       {!!materiales?.length && (
         <Grupo titulo="Materiales recientes">
           {materiales.map((mat, i) => (
-            <Fila key={mat.id} primero={i === 0} inicio={<IconoModulo icon={ExternalLink} color="#007aff" />} subtitulo={<span className="capitalize">{mat.tipo}</span>}>
+            <Fila key={mat.id} primero={i === 0} inicio={<IconoModulo icon={ExternalLink} color="#a35d2d" />} subtitulo={<span className="capitalize">{mat.tipo}</span>}>
               <a href={mat.url} target="_blank" rel="noopener noreferrer" className="block text-[15px] font-medium truncate" style={{ color: 'var(--accent)' }}>{mat.titulo}</a>
             </Fila>
           ))}

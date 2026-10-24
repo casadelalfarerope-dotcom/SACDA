@@ -67,7 +67,7 @@ export default async function TutorialPage({ params }: { params: Promise<{ id: s
         </div>
       ) : tut.url_contenido ? (
         <Grupo>
-          <Fila primero inicio={<IconoModulo icon={ExternalLink} color="#007aff" />}>
+          <Fila primero inicio={<IconoModulo icon={ExternalLink} color="#a35d2d" />}>
             <a href={tut.url_contenido} target="_blank" rel="noopener noreferrer" className="block text-[15px] font-medium" style={{ color: 'var(--accent)' }}>
               Abrir contenido
             </a>

@@ -194,7 +194,7 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
             </Fila>
           )}
           {(materiales ?? []).map((m, i) => (
-            <Fila key={m.id} primero={!grupo.enlace_whatsapp && i === 0} inicio={<IconoModulo icon={ExternalLink} color="#007aff" />}>
+            <Fila key={m.id} primero={!grupo.enlace_whatsapp && i === 0} inicio={<IconoModulo icon={ExternalLink} color="#a35d2d" />}>
               <a href={m.url} target="_blank" rel="noopener noreferrer" className="block text-[15px] font-medium truncate" style={{ color: 'var(--accent)' }}>{m.titulo}</a>
             </Fila>
           ))}

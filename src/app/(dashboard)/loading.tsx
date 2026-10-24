@@ -1,3 +1,5 @@
+import Logo from '@/components/ui/Logo'
+
 export default function Loading() {
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto animate-fade">
@@ -13,6 +15,7 @@ export default function Loading() {
         />
       </div>
 
+      <div className="flex justify-center py-2" style={{ color: 'var(--accent)', opacity: 0.55 }}><Logo tamano={44} animacion="cargando" /></div>
       {/* Skeleton del encabezado */}
       <div className="flex items-center justify-between mb-6">
         <div>

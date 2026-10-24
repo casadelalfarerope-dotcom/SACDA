@@ -48,7 +48,7 @@ export default async function AcademiaPage() {
             const esHoy = c.fecha === hoy
             return (
               <Fila key={c.id} href={`/academia/sesiones/${c.id}`} primero={i === 0}
-                inicio={<IconoModulo icon={Video} color={esHoy ? '#ff3b30' : '#007aff'} tamano={36} />}
+                inicio={<IconoModulo icon={Video} color={esHoy ? '#ff3b30' : '#a35d2d'} tamano={36} />}
                 titulo={c.tema!.titulo}
                 subtitulo={`${c.tema!.curso.nombre} · ${esHoy ? 'Hoy' : formatDate(c.fecha)}${c.hora_inicio ? ` · ${c.hora_inicio.slice(0, 5)}` : ''}`}
                 detalle={c.fecha > hoy ? <Badge variant="muted">Próxima</Badge>

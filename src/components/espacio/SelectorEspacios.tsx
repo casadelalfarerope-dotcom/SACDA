@@ -9,7 +9,7 @@ import { IconoModulo } from '@/components/ui/IconoApp'
 export type Espacio = 'mi' | 'academia' | 'admin'
 
 const ESPACIOS: Record<Espacio, { href: string; label: string; icon: LucideIcon; color: string }> = {
-  mi:       { href: '/mi',     label: 'Mi espacio',     icon: Home,       color: '#007aff' },
+  mi:       { href: '/mi',     label: 'Mi espacio',     icon: Home,       color: '#a35d2d' },
   academia: { href: '/taller', label: 'Academia',       icon: School,     color: '#af52de' },
   admin:    { href: '/',       label: 'Administración', icon: LayoutGrid, color: '#636366' },
 }

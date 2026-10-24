@@ -68,7 +68,7 @@ export default async function TareaPage({ params }: { params: Promise<{ id: stri
       {(entregas ?? []).length > 0 && (
         <Grupo titulo="Entregas">
           {(entregas ?? []).map((e, i) => (
-            <Fila key={e.id} primero={i === 0} inicio={<IconoModulo icon={Link2} color="#007aff" />}
+            <Fila key={e.id} primero={i === 0} inicio={<IconoModulo icon={Link2} color="#a35d2d" />}
               subtitulo={[e.notas, formatDate(e.created_at)].filter(Boolean).join(' · ')}>
               <a href={e.url_archivo} target="_blank" rel="noopener noreferrer"
                 className="block text-[15px] font-medium hover:underline break-all" style={{ color: 'var(--accent)' }}>

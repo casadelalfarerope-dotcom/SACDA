@@ -11,7 +11,7 @@ export interface NavGrupo { titulo: string | null; items: NavItem[] }
 
 export const NAV_GRUPOS: NavGrupo[] = [
   { titulo: null, items: [
-    { href: '/',             label: 'Inicio',       icon: LayoutDashboard, color: '#007aff' },
+    { href: '/',             label: 'Inicio',       icon: LayoutDashboard, color: '#a35d2d' },
   ] },
   { titulo: 'Personas', items: [
     { href: '/congregantes', label: 'Congregantes', icon: Users,           color: '#ff9500', modulo: 'congregantes' },

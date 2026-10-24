@@ -37,7 +37,7 @@ export default async function CeremoniasPage() {
               .filter(Boolean).join(', ')
             return (
               <Fila key={c.id} primero={i === 0}
-                inicio={<IconoModulo icon={Church} color={c.tipo === 'boda' ? '#ff2d55' : c.tipo === 'dedicacion' ? '#ff9500' : '#007aff'} />}
+                inicio={<IconoModulo icon={Church} color={c.tipo === 'boda' ? '#ff2d55' : c.tipo === 'dedicacion' ? '#ff9500' : '#a35d2d'} />}
                 titulo={nombres || (tipoLabel[c.tipo] ?? c.tipo)}
                 subtitulo={[formatDateShort(c.fecha), c.officiante && `Oficia: ${c.officiante}`].filter(Boolean).join(' · ')}
                 detalle={<Badge label={tipoLabel[c.tipo] ?? c.tipo} variant={tipoVariant[c.tipo] ?? 'default'} />} />
