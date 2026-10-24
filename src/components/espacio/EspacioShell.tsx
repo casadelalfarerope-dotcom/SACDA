@@ -13,6 +13,7 @@ export default async function EspacioShell({ children, espacio = 'mi' }: { child
   const modulos: ModuloEspacio[] = espacio === 'academia' ? ['academia', 'calendario'] : [
     'inicio',
     ...(ctx.esServidor ? ['servicio' as const] : []),
+    ...(ctx.visitasPendientes > 0 ? ['visitas' as const] : []),
     'solicitudes',
     'aportes',
   ]

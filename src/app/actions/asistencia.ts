@@ -118,5 +118,6 @@ export async function actualizarVisitaPastoral(id: string, estado: 'programada' 
     .update({ estado, ...(nota !== undefined ? { nota: nota.trim() || null } : {}) }).eq('id', id).select('id')
   if (error || !data?.length) return { error: 'No se pudo actualizar la visita.' }
   revalidatePath('/miembros', 'layout')
+  revalidatePath('/mi', 'layout')
   return { success: true }
 }

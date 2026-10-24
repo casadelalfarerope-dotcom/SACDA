@@ -9,6 +9,7 @@ export interface ContextoEspacio {
   tienePanel: boolean   // tiene algún permiso de ver en el panel de administración
   esServidor: boolean   // integra o lidera algún ministerio, o tiene turnos/tareas asignadas
   esEstudiante: boolean // inscrito en algún curso activo
+  visitasPendientes: number // visitas pastorales programadas donde es el responsable
   sinLeer: number
 }
 
@@ -24,7 +25,7 @@ export const contextoEspacio = cache(async (): Promise<ContextoEspacio> => {
   if (!cuenta) redirect('/login?error=sin_ficha')
   const personaId = cuenta.persona_id as string
 
-  const [{ data: roles }, { count: sinLeer }, { count: inscripciones }, { count: turnos }, { count: tareas }, { count: ministerios }, { count: liderazgos }] = await Promise.all([
+  const [{ data: roles }, { count: sinLeer }, { count: inscripciones }, { count: turnos }, { count: tareas }, { count: ministerios }, { count: liderazgos }, { count: visitas }] = await Promise.all([
     supabase.from('roles_asignados').select('rol_id').eq('persona_id', personaId).eq('activo', true),
     supabase.from('notificaciones').select('id', { count: 'exact', head: true }).eq('persona_id', personaId).eq('leida', false),
     supabase.from('curso_inscripciones').select('id', { count: 'exact', head: true }).eq('persona_id', personaId).eq('activo', true),
@@ -32,6 +33,7 @@ export const contextoEspacio = cache(async (): Promise<ContextoEspacio> => {
     supabase.from('tareas').select('id', { count: 'exact', head: true }).eq('asignado_id', personaId).neq('tipo', 'solicitud_venta'),
     supabase.from('grupo_miembros').select('id', { count: 'exact', head: true }).eq('persona_id', personaId).eq('activo', true),
     supabase.from('grupos').select('id', { count: 'exact', head: true }).eq('encargado_id', personaId).eq('activo', true),
+    supabase.from('visitas_pastorales').select('id', { count: 'exact', head: true }).eq('responsable_id', personaId).eq('estado', 'programada'),
   ])
 
   const rolIds = (roles ?? []).map((r) => r.rol_id as string)
@@ -46,6 +48,7 @@ export const contextoEspacio = cache(async (): Promise<ContextoEspacio> => {
     tienePanel: (permisos ?? 0) > 0,
     esServidor: (ministerios ?? 0) > 0 || (liderazgos ?? 0) > 0 || (turnos ?? 0) > 0 || (tareas ?? 0) > 0,
     esEstudiante: (inscripciones ?? 0) > 0,
+    visitasPendientes: visitas ?? 0,
     sinLeer: sinLeer ?? 0,
   }
 })
@@ -60,6 +63,7 @@ export function enlaceEspacio(url: string | null): string | undefined {
   if (url.startsWith('/servidores')) return '/mi/ministerios'
   if (url.startsWith('/capacitacion')) return '/mi/ministerios'
   if (url.startsWith('/ventas')) return '/mi/solicitudes'
+  if (url.startsWith('/miembros/visitas-pastorales')) return '/mi/visitas'
   return undefined
 }
 
