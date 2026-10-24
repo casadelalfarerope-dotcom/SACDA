@@ -15,7 +15,7 @@ export default function MotivoAusencia({ id, motivo }: { id: string; motivo: str
 
   if (!editando) {
     return (
-      <button type="button" onClick={() => setEditando(true)} className="inline-flex items-center gap-1 text-[13px] mt-0.5"
+      <button type="button" onClick={() => setEditando(true)} className="flex items-center gap-1 text-[13px] mt-0.5 text-left"
         style={{ color: motivo ? 'var(--muted)' : 'var(--accent)' }}>
         {motivo ? <>Motivo: {motivo}</> : <><Pencil size={12} aria-hidden="true" /> Agregar motivo</>}
       </button>

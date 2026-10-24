@@ -17,10 +17,10 @@ export default function ProgramarVisita({ personaId, ausenciaId, motivoSugerido,
   const [hecho, setHecho] = useState(false)
   const [pendiente, iniciar] = useTransition()
 
-  if (hecho) return <span role="status" className="text-[13px] mt-1 inline-block" style={{ color: 'var(--success)' }}>Visita programada.</span>
+  if (hecho) return <span role="status" className="text-[13px] mt-1 block" style={{ color: 'var(--success)' }}>Visita programada.</span>
   if (!abierto) {
     return (
-      <button type="button" onClick={() => setAbierto(true)} className="inline-flex items-center gap-1 text-[13px] mt-1" style={{ color: 'var(--accent)' }}>
+      <button type="button" onClick={() => setAbierto(true)} className="flex items-center gap-1 text-[13px] mt-1" style={{ color: 'var(--accent)' }}>
         <House size={12} aria-hidden="true" /> Programar visita
       </button>
     )
