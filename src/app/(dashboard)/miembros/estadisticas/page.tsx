@@ -15,17 +15,19 @@ function Barras({ datos, etiqueta }: { datos: { clave: string; etiqueta: string;
   const max = Math.max(1, ...datos.map((d) => d.valor))
   return (
     <figure aria-label={etiqueta} className="rounded-2xl border p-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-      <div className="flex items-end gap-1.5 h-48 overflow-x-auto" role="list">
-        {datos.map((d) => (
-          <div key={d.clave} role="listitem" title={d.detalle} aria-label={d.detalle} className="flex-1 min-w-[26px] h-full flex flex-col items-center justify-end gap-1 group">
-            <span className="text-[11px] font-semibold tabular-nums" style={{ color: 'var(--foreground)' }}>{d.valor}</span>
-            <span className="w-full max-w-[34px] rounded-t-[4px] transition-[filter] group-hover:brightness-110"
-              style={{ height: `${Math.max(2, (d.valor / max) * 100)}%`, background: 'var(--accent)' }} />
-          </div>
-        ))}
-      </div>
-      <div className="flex gap-1.5 mt-1.5 border-t pt-1.5" style={{ borderColor: 'var(--border)' }} aria-hidden="true">
-        {datos.map((d) => <span key={d.clave} className="flex-1 min-w-[26px] text-center text-[10.5px] truncate" style={{ color: 'var(--muted)' }}>{d.etiqueta}</span>)}
+      {/* Barra, valor y fecha van juntos en cada columna; si no caben, todo se desliza de lado. */}
+      <div className="overflow-x-auto -mx-1 px-1">
+        <ul className="flex items-end gap-1.5 h-56 min-w-full w-max">
+          {datos.map((d) => (
+            <li key={d.clave} title={d.detalle} aria-label={d.detalle} className="flex-1 min-w-[30px] h-full flex flex-col items-center justify-end gap-1 group">
+              <span className="text-[11px] font-semibold tabular-nums" style={{ color: 'var(--foreground)' }}>{d.valor}</span>
+              <span className="w-full max-w-[34px] rounded-t-[4px] transition-[filter] group-hover:brightness-110"
+                style={{ height: `${Math.max(2, (d.valor / max) * 75)}%`, background: 'var(--accent)' }} />
+              <span className="w-full text-center text-[10.5px] whitespace-nowrap pt-1 border-t" aria-hidden="true"
+                style={{ color: 'var(--muted)', borderColor: 'var(--border)' }}>{d.etiqueta}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </figure>
   )

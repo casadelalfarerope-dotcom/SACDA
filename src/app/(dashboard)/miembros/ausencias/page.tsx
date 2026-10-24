@@ -22,6 +22,9 @@ export default async function AusenciasPage() {
   for (const a of asistencias ?? []) if ((ultimaVez.get(a.persona_id) ?? '') < a.fecha) ultimaVez.set(a.persona_id, a.fecha)
   const seguidas = new Map<string, number>()
   for (const a of ausencias ?? []) if (a.evento_id && a.fecha > (ultimaVez.get(a.persona_id) ?? '')) seguidas.set(a.persona_id, (seguidas.get(a.persona_id) ?? 0) + 1)
+  // La alerta se muestra solo en la ausencia más reciente de cada persona (vienen ordenadas por fecha, la más nueva primero).
+  const ultimaAusencia = new Map<string, string>()
+  for (const a of ausencias ?? []) if (!ultimaAusencia.has(a.persona_id)) ultimaAusencia.set(a.persona_id, a.id)
 
   return (
     <Pagina titulo="Faltaron" subtitulo={`${ausencias?.length ?? 0} registros`} volver={{ href: '/miembros', texto: 'Seguimiento' }}
@@ -39,7 +42,7 @@ export default async function AusenciasPage() {
                 titulo={persona?.nombre_completo ?? '—'}
                 subtitulo={[formatDateShort(a.fecha), encargado && `Encargado: ${encargado.nombre_completo}`].filter(Boolean).join(' · ')}
                 detalle={<CambiarEstadoAusencia id={a.id} estadoActual={a.estado as EstadoAusencia} />}>
-                {(seguidas.get(a.persona_id) ?? 0) >= 2 && a.estado === 'pendiente' && (
+                {(seguidas.get(a.persona_id) ?? 0) >= 2 && a.estado === 'pendiente' && ultimaAusencia.get(a.persona_id) === a.id && (
                   <span className="block mt-1"><Badge variant="error">Faltó {seguidas.get(a.persona_id)} cultos seguidos</Badge></span>
                 )}
                 <MotivoAusencia id={a.id} motivo={a.motivo} />
