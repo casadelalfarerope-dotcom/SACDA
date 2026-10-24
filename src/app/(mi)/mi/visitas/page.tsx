@@ -1,4 +1,4 @@
-import { House, Phone, MapPin } from 'lucide-react'
+import { HeartHandshake, Phone, MapPin } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/service'
 import { contextoEspacio } from '@/lib/espacio'
 import { formatDate, hoyLima } from '@/lib/utils'
@@ -24,14 +24,15 @@ export default async function MisVisitasPage() {
 
   return (
     <Pagina ancho="estrecho" titulo="Mis visitas" subtitulo="Visitas pastorales que te asignaron">
-      {!lista.length && <Vacio icono={<House size={44} />} titulo="No tienes visitas asignadas" />}
+      {!lista.length && <Vacio icono={<HeartHandshake size={44} />} titulo="No tienes visitas asignadas" />}
 
       {pendientes.length > 0 && (
         <Grupo titulo="Por hacer" pie="Después de la visita, márcala como realizada y cuenta brevemente cómo le fue.">
           {pendientes.map((v, i) => (
             <Fila key={v.id} primero={i === 0} inicio={<Avatar nombre={v.p.nombre_completo} fotoUrl={v.p.foto_url} size="sm" />}
-              titulo={v.p.nombre_completo} subtitulo={[formatDate(v.fecha), v.motivo].filter(Boolean).join(' · ')}
+              titulo={v.p.nombre_completo} subtitulo={formatDate(v.fecha)}
               detalle={v.fecha < hoy ? <Badge variant="error">Atrasada</Badge> : v.fecha === hoy ? <Badge variant="warning">Hoy</Badge> : undefined}>
+              {v.motivo && <p className="text-[14px] mt-1" style={{ color: 'var(--foreground)' }}>{v.motivo}</p>}
               {v.p.telefono && (
                 <a href={`tel:${v.p.telefono.replace(/\s/g, '')}`} className="flex items-center gap-1 text-[13px] mt-1" style={{ color: 'var(--accent)' }}>
                   <Phone size={12} aria-hidden="true" /> {v.p.telefono}
@@ -53,8 +54,10 @@ export default async function MisVisitasPage() {
         <Grupo titulo="Anteriores">
           {hechas.map((v, i) => (
             <Fila key={v.id} primero={i === 0} titulo={v.p.nombre_completo}
-              subtitulo={[formatDate(v.fecha), v.nota].filter(Boolean).join(' · ')}
-              detalle={<Badge variant={v.estado === 'realizada' ? 'success' : 'muted'}>{v.estado === 'realizada' ? 'Realizada' : 'Cancelada'}</Badge>} />
+              subtitulo={formatDate(v.fecha)}
+              detalle={<Badge variant={v.estado === 'realizada' ? 'success' : 'muted'}>{v.estado === 'realizada' ? 'Realizada' : 'Cancelada'}</Badge>}>
+              {v.nota && <p className="text-[14px] mt-1" style={{ color: 'var(--foreground)' }}>{v.nota}</p>}
+            </Fila>
           ))}
         </Grupo>
       )}
