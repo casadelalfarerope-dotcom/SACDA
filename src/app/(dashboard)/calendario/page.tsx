@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Cake } from 'lucide-react'
+import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila, BotonEnlace, Vacio } from '@/components/ui/ios'
 import { generarInstancias } from '@/lib/calendario'
 
@@ -24,7 +25,7 @@ export default async function CalendarioPage({
 
   const supabase = await createClient()
 
-  const [{ data: eventos }, { data: excepciones }, { data: programas }] = await Promise.all([
+  const [{ data: eventos }, { data: excepciones }, { data: programas }, { data: personas }] = await Promise.all([
     supabase.from('eventos').select('*').or(
       `tipo_recurrencia.neq.ninguna,and(tipo_recurrencia.eq.ninguna,fecha_unica.gte.${desde.toISOString().split('T')[0]},fecha_unica.lte.${hasta.toISOString().split('T')[0]})`
     ),
@@ -34,7 +35,20 @@ export default async function CalendarioPage({
     // Programas de servidores de los cultos de este mes (con lo que ya publicó cada ministerio).
     supabase.from('programas').select('id, evento_id, fecha_original, programa_ministerios(estado)')
       .not('evento_id', 'is', null).eq('cancelado', false),
+    // Cumpleaños de los congregantes activos (solo si puede ver Congregantes).
+    supabase.from('personas').select('id, nombre_completo, fecha_nacimiento').eq('estado', 'activo').not('fecha_nacimiento', 'is', null),
   ])
+  const mesTxt = String(mes + 1).padStart(2, '0')
+  const cumplePorFecha: Record<string, { id: string; nombre: string; edad: number }[]> = {}
+  for (const p of personas ?? []) {
+    const fn = p.fecha_nacimiento as string
+    if (fn.slice(5, 7) !== mesTxt) continue
+    let dia = fn.slice(8, 10)
+    // 29 de febrero en año no bisiesto: se celebra el 28.
+    if (mesTxt === '02' && dia === '29' && new Date(anio, 1, 29).getMonth() !== 1) dia = '28'
+    const k = `${anio}-${mesTxt}-${dia}`
+    ;(cumplePorFecha[k] ??= []).push({ id: p.id, nombre: p.nombre_completo, edad: anio - Number(fn.slice(0, 4)) })
+  }
   const programaDe = new Map((programas ?? []).map((p) => [`${p.evento_id}|${p.fecha_original}`, {
     id: p.id as string,
     publicados: ((p.programa_ministerios ?? []) as { estado: string }[]).filter((m) => m.estado === 'publicado').length,
@@ -76,7 +90,7 @@ export default async function CalendarioPage({
   const diasEnMes = new Date(anio, mes + 1, 0).getDate()
 
   const DIAS_LETRA = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
-  const fechasConEventos = Object.keys(porFecha).sort()
+  const fechasConEventos = [...new Set([...Object.keys(porFecha), ...Object.keys(cumplePorFecha)])].sort()
   const navBtn = 'w-9 h-9 flex items-center justify-center rounded-full transition-[filter] hover:brightness-95'
   const navEstilo = { background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }
 
@@ -106,22 +120,24 @@ export default async function CalendarioPage({
             const dia = i + 1
             const fechaStr = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
             const instDia = porFecha[fechaStr] ?? []
+            const cumpleDia = cumplePorFecha[fechaStr] ?? []
             const esHoy = hoy.getDate() === dia && hoy.getMonth() === mes && hoy.getFullYear() === anio
             const finDeSemana = (primerDia + i) % 7 === 0 || (primerDia + i) % 7 === 6
             return (
               <div key={dia} className="flex flex-col items-center min-h-[52px] md:min-h-[76px] px-0.5"
-                aria-label={`${dia} de ${MESES[mes]}${instDia.length ? `, ${instDia.length} evento${instDia.length > 1 ? 's' : ''}` : ''}`}>
+                aria-label={`${dia} de ${MESES[mes]}${instDia.length ? `, ${instDia.length} evento${instDia.length > 1 ? 's' : ''}` : ''}${cumpleDia.length ? `, ${cumpleDia.length} cumpleaños` : ''}`}>
                 <span className="w-8 h-8 flex items-center justify-center rounded-full text-[15px] tabular-nums"
                   style={esHoy
                     ? { background: '#ff3b30', color: '#fff', fontWeight: 700 }
                     : { color: finDeSemana ? 'var(--muted)' : 'var(--foreground)', fontWeight: 500 }}>
                   {dia}
                 </span>
-                {instDia.length > 0 && (
+                {(instDia.length > 0 || cumpleDia.length > 0) && (
                   <span className="flex md:hidden gap-0.5 mt-1" aria-hidden="true">
                     {instDia.slice(0, 3).map((inst, k) => (
                       <span key={k} className="w-1.5 h-1.5 rounded-full" style={{ background: inst.excepcion ? 'var(--warning)' : 'var(--muted)' }} />
                     ))}
+                    {cumpleDia.length > 0 && <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#e0559a' }} />}
                   </span>
                 )}
                 <span className="hidden md:block w-full mt-0.5 space-y-0.5">
@@ -135,6 +151,12 @@ export default async function CalendarioPage({
                     </span>
                   ))}
                   {instDia.length > 2 && <span className="block text-[11px] px-1.5" style={{ color: 'var(--muted)' }}>+{instDia.length - 2} más</span>}
+                  {cumpleDia.length > 0 && (
+                    <span className="block truncate px-1.5 py-px rounded-md text-[11px] font-medium"
+                      style={{ background: 'color-mix(in srgb, #e0559a 16%, transparent)', color: '#c23b80' }}>
+                      🎂 {cumpleDia.length === 1 ? cumpleDia[0]!.nombre.split(' ')[0] : `${cumpleDia.length} cumpleaños`}
+                    </span>
+                  )}
                 </span>
               </div>
             )
@@ -150,12 +172,17 @@ export default async function CalendarioPage({
             const d = new Date(`${f}T12:00:00`)
             return (
               <Grupo key={f} titulo={`${DIAS_SEMANA[d.getDay()]} ${d.getDate()} de ${MESES[mes]}`}>
-                {porFecha[f]!.map((inst, k) => {
+                {cumplePorFecha[f]?.map((c, k) => (
+                  <Fila key={c.id} primero={k === 0} href={`/congregantes/${c.id}`}
+                    inicio={<IconoModulo icon={Cake} color="#e0559a" />}
+                    titulo={`Cumpleaños de ${c.nombre}`} subtitulo={c.edad > 0 ? `Cumple ${c.edad} años` : undefined} />
+                ))}
+                {(porFecha[f] ?? []).map((inst, k) => {
                   const programa = programaDe.get(`${inst.evento_id}|${inst.fecha_original}`)
                   const cambio = tipoExcepcion.get(`${inst.evento_id}|${inst.fecha_original}`)
                   const cancelado = cambio === 'cancelado'
                   return (
-                  <Fila key={k} primero={k === 0} href={`/calendario/evento/${inst.evento_id}?fecha=${inst.fecha_original}`}
+                  <Fila key={k} primero={k === 0 && !cumplePorFecha[f]?.length} href={`/calendario/evento/${inst.evento_id}?fecha=${inst.fecha_original}`}
                     inicio={<span className="block w-1 h-9 rounded-full" aria-hidden="true"
                       style={{ background: cancelado ? 'var(--muted)' : cambio ? 'var(--warning)' : 'var(--accent)' }} />}
                     titulo={cancelado ? <span className="line-through" style={{ color: 'var(--muted)' }}>{inst.titulo}</span> : inst.titulo}
