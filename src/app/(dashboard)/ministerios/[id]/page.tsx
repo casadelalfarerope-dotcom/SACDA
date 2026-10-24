@@ -19,7 +19,7 @@ export default async function DetalleGrupoPage({
 
   const { data: grupo } = await supabase
     .from('grupos')
-    .select(`*, encargado:personas(id, nombre_completo, foto_url), padre:grupos!grupo_padre_id(id, nombre)`)
+    .select(`*, encargado:personas(id, nombre_completo, foto_url)`)
     .eq('id', id)
     .single()
 
@@ -49,7 +49,10 @@ export default async function DetalleGrupoPage({
     .eq('grupo_id', id).eq('activo', true).order('orden')
 
   const encargado = Array.isArray(grupo.encargado) ? grupo.encargado[0] : grupo.encargado
-  const padre = Array.isArray(grupo.padre) ? grupo.padre[0] : grupo.padre
+  // El ministerio "padre" se busca aparte (la relación de la tabla consigo misma es ambigua).
+  const { data: padre } = grupo.grupo_padre_id
+    ? await supabase.from('grupos').select('id, nombre').eq('id', grupo.grupo_padre_id).maybeSingle()
+    : { data: null }
 
   const enc = encargado as { nombre_completo: string; foto_url?: string | null } | null
   return (
