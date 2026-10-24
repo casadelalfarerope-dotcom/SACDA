@@ -7,7 +7,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { Segmentado } from '@/components/ui/ios'
-import { crearExcepcion, eliminarExcepcion, editarEvento, terminarSerie, eliminarEvento } from '@/app/actions/calendario'
+import { crearExcepcion, eliminarExcepcion, editarEvento, terminarSerie, reanudarSerie, eliminarEvento } from '@/app/actions/calendario'
 
 type Resultado = { error?: string; success?: boolean }
 
@@ -181,6 +181,15 @@ export function TodaLaSerie({ evento, hoy }: {
         <div className="space-y-3 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
           <p className="text-[15px] font-semibold" style={{ color: 'var(--foreground)' }}>Terminar la serie</p>
           <p className="text-[13px]" style={{ color: 'var(--muted)' }}>La serie deja de repetirse después de esta fecha. Los días anteriores se conservan.</p>
+          {evento.fecha_fin_serie && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl p-3" style={{ background: 'var(--fill)' }}>
+              <p className="text-[14px]" style={{ color: 'var(--foreground)' }}>Hoy la serie termina el {new Date(evento.fecha_fin_serie + 'T12:00:00Z').toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}.</p>
+              <Button size="sm" variant="secondary" loading={pendiente}
+                onClick={() => ejecutar(() => reanudarSerie(evento.id), 'Listo: la serie vuelve a repetirse sin fecha de término.', () => setFin(''))}>
+                <Undo2 size={14} aria-hidden="true" /> Seguir repitiéndose sin fecha de término
+              </Button>
+            </div>
+          )}
           <div className="flex flex-wrap items-end gap-2">
             <div className="flex-1 min-w-[10rem]"><Input label="Último día" type="date" min={hoy} value={fin} onChange={(e) => setFin(e.target.value)} /></div>
             <Button variant="secondary" loading={pendiente} disabled={!fin}

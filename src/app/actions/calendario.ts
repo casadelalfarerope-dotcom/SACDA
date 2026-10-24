@@ -211,6 +211,15 @@ export async function editarEvento(id: string, data: {
   return { success: true }
 }
 
+// Quita la fecha de término: la serie vuelve a repetirse sin fin.
+export async function reanudarSerie(id: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('eventos').update({ fecha_fin_serie: null }).eq('id', id).select('id')
+  if (error || !data?.length) return { error: 'No se pudo reanudar la serie.' }
+  await trasCambioDeCalendario()
+  return { success: true }
+}
+
 // La serie deja de repetirse después de esa fecha (los días anteriores quedan).
 export async function terminarSerie(id: string, fechaFin: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaFin)) return { error: 'Elige la fecha del último día.' }
