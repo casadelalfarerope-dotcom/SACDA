@@ -26,7 +26,7 @@ function activo(m: ModuloEspacio, pathname: string) {
 
 // Barra lateral en escritorio y barra inferior en celular: solo cambian los
 // módulos; la campana y el perfil viven en la barra superior.
-export default function EspacioNav({ modulos }: { modulos: ModuloEspacio[] }) {
+export default function EspacioNav({ modulos, marca }: { modulos: ModuloEspacio[]; marca: React.ReactNode }) {
   const pathname = usePathname()
   // Módulo tocado mientras carga: se resalta al instante y muestra un indicador.
   const [cargando, setCargando] = useState<ModuloEspacio | null>(null)
@@ -36,8 +36,11 @@ export default function EspacioNav({ modulos }: { modulos: ModuloEspacio[] }) {
 
   return (
     <>
-      {modulos.length > 0 && <nav aria-label="Módulos" className="hidden md:block w-60 flex-shrink-0 px-3 py-5">
-        <ul className="space-y-0.5 sticky top-20">
+      {/* Escritorio: barra lateral fija a la izquierda, como en Administración. */}
+      <aside className="material hidden md:flex flex-col w-64 h-screen sticky top-0 border-r flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
+        <div className="px-5 pt-5 pb-4">{marca}</div>
+        <nav aria-label="Módulos" className="flex-1 px-3 pb-4 overflow-y-auto">
+        <ul className="space-y-0.5">
           {modulos.map((m) => {
             const { href, label, icon, color } = MODULOS[m]
             const act = resaltado(m)
@@ -59,7 +62,8 @@ export default function EspacioNav({ modulos }: { modulos: ModuloEspacio[] }) {
             )
           })}
         </ul>
-      </nav>}
+        </nav>
+      </aside>
 
       {modulos.length > 1 && (
         <nav aria-label="Módulos"
