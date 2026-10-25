@@ -1,3 +1,4 @@
+import { etiquetaMedio } from '@/lib/etiquetas'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { crearExcel, respuestaExcel } from '@/lib/excel'
@@ -30,12 +31,13 @@ export async function GET(req: NextRequest) {
     DNI: (a.persona as { dni: string | null } | null)?.dni ?? '',
     Tipo: a.tipo,
     Monto: Number(a.monto),
+    Medio: etiquetaMedio(a.medio),
     Fecha: a.fecha,
     Concepto: a.concepto ?? '',
   }))
 
-  const buf = await crearExcel([{ nombre: 'Aportes', filas, anchos: [32, 12, 10, 10, 12, 30],
-    columnas: ['Nombre', 'DNI', 'Tipo', 'Monto', 'Fecha', 'Concepto'] }])
+  const buf = await crearExcel([{ nombre: 'Aportes', filas, anchos: [32, 12, 10, 10, 14, 12, 30],
+    columnas: ['Nombre', 'DNI', 'Tipo', 'Monto', 'Medio', 'Fecha', 'Concepto'] }])
   const nombre = mes ? `aportes-${mes}.xlsx` : anio ? `aportes-${anio}.xlsx` : 'aportes.xlsx'
   return respuestaExcel(buf, nombre)
 }

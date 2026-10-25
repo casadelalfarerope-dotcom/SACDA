@@ -7,6 +7,8 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { Segmentado } from '@/components/ui/ios'
+import SelectorMedio from '@/components/finanzas/SelectorMedio'
+import type { Medio } from '@/lib/etiquetas'
 import { hoyLima } from '@/lib/utils'
 import { guardarFondo, registrarMovimientoFondo, traspasarFondos, eliminarMovimientoFondo } from '@/app/actions/fondos'
 
@@ -67,7 +69,7 @@ export function EditarFondo(props: Omit<Parameters<typeof FormFondo>[0], 'alTerm
 // negativo se pide confirmación (se permite, pero no es lo ideal).
 export function FormMovimiento({ fondoId, saldo }: { fondoId: string; saldo: number }) {
   const router = useRouter()
-  const vacio = { tipo: 'ingreso' as 'ingreso' | 'egreso', concepto: '', monto: '', fecha: hoyLima() }
+  const vacio = { tipo: 'ingreso' as 'ingreso' | 'egreso', concepto: '', monto: '', fecha: hoyLima(), medio: 'efectivo' as Medio }
   const [datos, setDatos] = useState(vacio)
   const [error, setError] = useState('')
   const [aviso, setAviso] = useState('')
@@ -82,7 +84,7 @@ export function FormMovimiento({ fondoId, saldo }: { fondoId: string; saldo: num
         const res = await registrarMovimientoFondo({ fondo_id: fondoId, ...datos })
         if (res.error) { setError(res.error); return }
         setAviso(datos.tipo === 'ingreso' ? 'Ingreso registrado.' : 'Gasto registrado.')
-        setDatos({ ...vacio, tipo: datos.tipo })
+        setDatos({ ...vacio, tipo: datos.tipo, medio: datos.medio })
         router.refresh()
       })
     }}>
@@ -94,6 +96,8 @@ export function FormMovimiento({ fondoId, saldo }: { fondoId: string; saldo: num
         <Input label="Monto (S/) *" inputMode="decimal" value={datos.monto} onChange={(e) => setDatos({ ...datos, monto: e.target.value })} placeholder="0.00" />
         <Input label="Fecha *" type="date" value={datos.fecha} onChange={(e) => setDatos({ ...datos, fecha: e.target.value })} />
       </div>
+      <SelectorMedio name="medio-fondo" valor={datos.medio} onChange={(medio) => setDatos({ ...datos, medio })}
+        etiqueta={datos.tipo === 'ingreso' ? '¿Cómo llegó el dinero?' : '¿Cómo se pagó?'} />
       {error && <p role="alert" className="text-[13px]" style={{ color: 'var(--error)' }}>{error}</p>}
       {aviso && <p role="status" className="text-[13px]" style={{ color: 'var(--success)' }}>{aviso}</p>}
       <Button type="submit" size="sm" loading={pendiente}>Registrar</Button>

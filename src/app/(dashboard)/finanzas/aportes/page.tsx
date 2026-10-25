@@ -1,4 +1,4 @@
-import { etiquetaTipoAporte } from '@/lib/etiquetas'
+import { etiquetaTipoAporte, etiquetaMedio } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
 import { Plus, Download } from 'lucide-react'
 import { Pagina, Grupo, Fila, SegmentadoEnlaces, BotonEnlace, Vacio } from '@/components/ui/ios'
@@ -70,7 +70,7 @@ export default async function AportesPage({
             <Fila key={a.id} primero={i === 0}
               inicio={<span className="block w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: tipoColor[a.tipo] ?? '#8e8e93' }} />}
               titulo={(a.personas as { nombre_completo: string } | null)?.nombre_completo ?? 'Anónimo'}
-              subtitulo={`${etiquetaTipoAporte(a.tipo)} · ${formatDate(a.fecha)}${a.concepto ? ` · ${a.concepto}` : ''}`}
+              subtitulo={`${etiquetaTipoAporte(a.tipo)} · ${etiquetaMedio(a.medio)} · ${formatDate(a.fecha)}${a.concepto ? ` · ${a.concepto}` : ''}`}
               detalle={<span className="font-semibold tabular-nums" style={{ color: 'var(--success)' }}>+{fmt(Number(a.monto))}</span>} />
           ))}
         </Grupo>

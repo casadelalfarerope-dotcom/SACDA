@@ -10,7 +10,8 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import SelectFondo from '@/components/fondos/SelectFondo'
 import { Pagina, Segmentado, Grupo, Fila } from '@/components/ui/ios'
-import { etiquetaTipoAporte } from '@/lib/etiquetas'
+import { etiquetaTipoAporte, etiquetaMedio, esDigital, type Medio } from '@/lib/etiquetas'
+import SelectorMedio from '@/components/finanzas/SelectorMedio'
 
 type Persona = { id: string; nombre_completo: string; foto_url: string | null }
 type Tipo = 'diezmo' | 'ofrenda' | 'pacto' | 'otro'
@@ -25,12 +26,13 @@ export default function NuevoAportePage() {
   const [busqueda, setBusqueda] = useState('')
   const [persona, setPersona] = useState<Persona | null>(null)
   const [tipo, setTipo] = useState<Tipo>('diezmo')
+  const [medio, setMedio] = useState<Medio>('efectivo')
   const [monto, setMonto] = useState('')
   const [fecha, setFecha] = useState(hoyLima())
   const [concepto, setConcepto] = useState('')
   const [masOpciones, setMasOpciones] = useState(false)
   const [error, setError] = useState('')
-  const [registrados, setRegistrados] = useState<{ nombre: string; tipo: Tipo; monto: number }[]>([])
+  const [registrados, setRegistrados] = useState<{ nombre: string; tipo: Tipo; monto: number; medio: Medio }[]>([])
   const [pendiente, iniciar] = useTransition()
   const buscador = useRef<HTMLInputElement>(null)
   const campoMonto = useRef<HTMLInputElement>(null)
@@ -60,15 +62,16 @@ export default function NuevoAportePage() {
     const fondo = new FormData(formulario.current!).get('fondo_id') as string | null
     setError('')
     iniciar(async () => {
-      const res = await registrarAporte({ persona_id: persona.id, tipo, monto, fecha, concepto, fondo_id: fondo ?? '' })
+      const res = await registrarAporte({ persona_id: persona.id, tipo, monto, fecha, concepto, fondo_id: fondo ?? '', medio })
       if (res.error) { setError(res.error); return }
-      setRegistrados((r) => [{ nombre: persona.nombre_completo, tipo, monto: Number(monto) }, ...r])
+      setRegistrados((r) => [{ nombre: persona.nombre_completo, tipo, monto: Number(monto), medio }, ...r])
       setPersona(null); setMonto(''); setConcepto('')
       setTimeout(() => buscador.current?.focus(), 0)
     })
   }
 
   const total = registrados.reduce((s, r) => s + r.monto, 0)
+  const enDigital = registrados.filter((r) => esDigital(r.medio)).reduce((s, r) => s + r.monto, 0)
 
   return (
     <Pagina ancho="estrecho" titulo="Registrar aportes" subtitulo="Busca al hermano, elige el tipo y escribe el monto"
@@ -127,6 +130,9 @@ export default function NuevoAportePage() {
           </span>
         </label>
 
+        {/* 4. Medio de pago (se mantiene para el siguiente) */}
+        <SelectorMedio name="medio-aporte" valor={medio} onChange={setMedio} />
+
         {/* Más opciones: fecha, fondo y nota */}
         <button type="button" onClick={() => setMasOpciones(!masOpciones)} aria-expanded={masOpciones}
           className="flex items-center gap-1 text-[14px]" style={{ color: 'var(--accent)' }}>
@@ -146,10 +152,10 @@ export default function NuevoAportePage() {
       </form>
 
       {registrados.length > 0 && (
-        <Grupo titulo={`Registrados ahora (${registrados.length})`} pie={`Total: ${soles(total)}`}>
+        <Grupo titulo={`Registrados ahora (${registrados.length})`} pie={`Total: ${soles(total)} · Efectivo: ${soles(total - enDigital)} · Digital: ${soles(enDigital)}`}>
           {registrados.map((r, i) => (
             <Fila key={i} primero={i === 0} inicio={<Check size={18} aria-hidden="true" style={{ color: 'var(--success)' }} />}
-              titulo={r.nombre} subtitulo={etiquetaTipoAporte(r.tipo)}
+              titulo={r.nombre} subtitulo={`${etiquetaTipoAporte(r.tipo)} · ${etiquetaMedio(r.medio)}`}
               detalle={<span className="font-semibold tabular-nums" style={{ color: 'var(--success)' }}>+{soles(r.monto)}</span>} />
           ))}
         </Grupo>

@@ -1,4 +1,4 @@
-import { CATEGORIAS_GASTO, etiquetaCategoriaGasto } from '@/lib/etiquetas'
+import { CATEGORIAS_GASTO, etiquetaCategoriaGasto, etiquetaMedio } from '@/lib/etiquetas'
 import { createClient } from '@/lib/supabase/server'
 import { Plus, Download } from 'lucide-react'
 import { Pagina, Grupo, Fila, SegmentadoEnlaces, BotonEnlace, Vacio } from '@/components/ui/ios'
@@ -71,7 +71,7 @@ export default async function GastosPage({
             <Fila key={g.id} primero={i === 0}
               inicio={<span className="block w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: catColor[g.categoria] ?? '#8e8e93' }} />}
               titulo={g.concepto}
-              subtitulo={`${etiquetaCategoriaGasto(g.categoria)} · ${formatDate(g.fecha)}`}
+              subtitulo={`${etiquetaCategoriaGasto(g.categoria)} · ${etiquetaMedio(g.medio)} · ${formatDate(g.fecha)}`}
               detalle={<span className="font-semibold tabular-nums" style={{ color: 'var(--foreground)' }}>−{fmt(Number(g.monto))}</span>} />
           ))}
         </Grupo>

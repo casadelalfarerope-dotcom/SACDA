@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { MEDIOS_VALIDOS } from '@/lib/etiquetas'
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/
 
@@ -39,7 +40,7 @@ export async function guardarFondo(datos: { id?: string; nombre: string; descrip
 }
 
 // Ingreso o egreso suelto de un fondo (Tesorería o el líder del ministerio).
-export async function registrarMovimientoFondo(datos: { fondo_id: string; tipo: 'ingreso' | 'egreso'; concepto: string; monto: string; fecha: string }) {
+export async function registrarMovimientoFondo(datos: { fondo_id: string; tipo: 'ingreso' | 'egreso'; concepto: string; monto: string; fecha: string; medio?: string }) {
   const concepto = datos.concepto.trim()
   if (concepto.length < 3) return { error: 'Escribe el concepto (por ejemplo: “Venta de postres”).' }
   const monto = leerMonto(datos.monto)
@@ -49,6 +50,7 @@ export async function registrarMovimientoFondo(datos: { fondo_id: string; tipo: 
   if (!personaId) return { error: 'Tu sesión expiró.' }
   const { error } = await supabase.from('fondo_movimientos').insert({
     fondo_id: datos.fondo_id, tipo: datos.tipo, concepto, monto, fecha: datos.fecha, registrado_por: personaId,
+    medio: (MEDIOS_VALIDOS as string[]).includes(datos.medio ?? '') ? datos.medio : 'efectivo',
   })
   if (error) return { error: error.code === '42501' ? 'No tienes permiso para registrar en este fondo.' : 'No se pudo registrar.' }
   refrescar()

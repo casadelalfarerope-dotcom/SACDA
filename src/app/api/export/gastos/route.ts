@@ -1,3 +1,4 @@
+import { etiquetaMedio } from '@/lib/etiquetas'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { crearExcel, respuestaExcel } from '@/lib/excel'
@@ -28,13 +29,14 @@ export async function GET(req: NextRequest) {
   const filas = gastos.map((g) => ({
     Concepto: g.concepto,
     Monto: Number(g.monto),
+    Medio: etiquetaMedio(g.medio),
     Fecha: g.fecha,
     Categoría: g.categoria,
     Descripción: g.descripcion ?? '',
   }))
 
-  const buf = await crearExcel([{ nombre: 'Gastos', filas, anchos: [30, 10, 12, 15, 40],
-    columnas: ['Concepto', 'Monto', 'Fecha', 'Categoría', 'Descripción'] }])
+  const buf = await crearExcel([{ nombre: 'Gastos', filas, anchos: [30, 10, 14, 12, 15, 40],
+    columnas: ['Concepto', 'Monto', 'Medio', 'Fecha', 'Categoría', 'Descripción'] }])
   const nombre = mes ? `gastos-${mes}.xlsx` : anio ? `gastos-${anio}.xlsx` : 'gastos.xlsx'
   return respuestaExcel(buf, nombre)
 }

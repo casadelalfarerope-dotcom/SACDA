@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { registrarMovimiento } from '@/app/actions/finanzas'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import SelectorMedio from './SelectorMedio'
 
 export default function AgregarMovimientoForm({ actividadId }: { actividadId: string }) {
   const router = useRouter()
@@ -25,6 +26,7 @@ export default function AgregarMovimientoForm({ actividadId }: { actividadId: st
       concepto: fd.get('concepto') as string,
       monto: fd.get('monto') as string,
       fecha: fd.get('fecha') as string,
+      medio: fd.get('medio') as string,
     })
     if (res.error) { setError(res.error); setLoading(false); return }
     ;(e.target as HTMLFormElement).reset()
@@ -60,6 +62,7 @@ export default function AgregarMovimientoForm({ actividadId }: { actividadId: st
             className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel} />
         </div>
       </div>
+      <SelectorMedio />
       {error && <p className="text-xs" style={{ color: 'var(--error)' }}>{error}</p>}
       <Button type="submit" size="sm" loading={loading}>Agregar</Button>
     </form>

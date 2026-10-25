@@ -40,3 +40,17 @@ const ESTADO_TAREA: Record<string, { label: string; variant: VarianteEstado }> =
   rechazado:   { label: 'Rechazada',   variant: 'error' },
 }
 export const estadoTarea = (v: string) => ESTADO_TAREA[v] ?? { label: capitalizar(v), variant: 'muted' as const }
+
+// Medio de pago: efectivo es físico; los demás son digitales.
+export type Medio = 'efectivo' | 'yape' | 'plin' | 'transferencia' | 'tarjeta' | 'otro'
+export const MEDIOS_DIGITALES: { value: Medio; label: string }[] = [
+  { value: 'yape', label: 'Yape' },
+  { value: 'plin', label: 'Plin' },
+  { value: 'transferencia', label: 'Transferencia' },
+  { value: 'tarjeta', label: 'Tarjeta' },
+  { value: 'otro', label: 'Otro' },
+]
+export const MEDIOS_VALIDOS: Medio[] = ['efectivo', ...MEDIOS_DIGITALES.map((m) => m.value)]
+export const etiquetaMedio = (v: string | null | undefined) =>
+  !v || v === 'efectivo' ? 'Efectivo' : MEDIOS_DIGITALES.find((m) => m.value === v)?.label ?? capitalizar(v)
+export const esDigital = (v: string | null | undefined) => !!v && v !== 'efectivo'

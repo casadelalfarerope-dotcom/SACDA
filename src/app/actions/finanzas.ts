@@ -2,6 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { MEDIOS_VALIDOS, type Medio } from '@/lib/etiquetas'
+
+const medioValido = (m?: string): Medio => (MEDIOS_VALIDOS as string[]).includes(m ?? '') ? m as Medio : 'efectivo'
 
 export async function registrarAporte(data: {
   persona_id: string
@@ -10,6 +13,7 @@ export async function registrarAporte(data: {
   fecha: string
   concepto?: string
   fondo_id?: string
+  medio?: string
 }) {
   const monto = parseFloat(data.monto)
   if (!data.persona_id) return { error: 'Selecciona una persona.' }
@@ -26,6 +30,7 @@ export async function registrarAporte(data: {
     fecha: data.fecha,
     concepto: data.concepto?.trim() || null,
     fondo_id: data.fondo_id || null,
+    medio: medioValido(data.medio),
     registrado_por: user?.id ?? null,
   })
   if (error) return { error: 'No se pudo registrar el aporte.' }
@@ -41,6 +46,7 @@ export async function registrarGasto(data: {
   categoria: string
   descripcion?: string
   fondo_id?: string
+  medio?: string
 }) {
   const monto = parseFloat(data.monto)
   if (!data.concepto?.trim()) return { error: 'El concepto es obligatorio.' }
@@ -57,6 +63,7 @@ export async function registrarGasto(data: {
     categoria: data.categoria,
     descripcion: data.descripcion?.trim() || null,
     fondo_id: data.fondo_id || null,
+    medio: medioValido(data.medio),
     registrado_por: user?.id ?? null,
   })
   if (error) return { error: 'No se pudo registrar el gasto.' }
@@ -98,6 +105,7 @@ export async function registrarMovimiento(data: {
   concepto: string
   monto: string
   fecha: string
+  medio?: string
 }) {
   const monto = parseFloat(data.monto)
   if (!data.concepto?.trim()) return { error: 'El concepto es obligatorio.' }
@@ -110,6 +118,7 @@ export async function registrarMovimiento(data: {
     concepto: data.concepto.trim(),
     monto,
     fecha: data.fecha,
+    medio: medioValido(data.medio),
   })
   if (error) return { error: 'No se pudo registrar.' }
   revalidatePath(`/finanzas/actividades/${data.actividad_id}`)
