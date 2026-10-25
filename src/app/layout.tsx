@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { Suspense } from 'react'
 import Logo from '@/components/ui/Logo'
+import ProgresoNavegacion from '@/components/ui/ProgresoNavegacion'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
@@ -43,6 +45,7 @@ export default function RootLayout({
           <Logo tamano={96} animacion="entrada" />
           <p>Casa del Alfarero</p>
         </div>
+        <Suspense fallback={null}><ProgresoNavegacion /></Suspense>
         {children}
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {

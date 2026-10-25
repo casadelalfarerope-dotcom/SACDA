@@ -302,3 +302,11 @@ main :is(a, button).border:not(.rounded-2xl):not(.rounded-3xl):is([style*="backg
   .logo-cargando .logo-techo, .logo-cargando .logo-vasija { animation: none; }
   #bienvenida { animation-delay: 0.2s; }
 }
+
+/* Respuesta táctil inmediata: los botones y enlaces se hunden al tocarlos, y el
+   enlace que está cargando queda atenuado hasta que llega la nueva pantalla. */
+a, button { -webkit-tap-highlight-color: transparent; }
+a:active, button:not(:disabled):active { opacity: .6; transition: opacity 0s; }
+a[data-cargando] { opacity: .55; animation: ui-pulso 1s ease-in-out infinite; }
+@keyframes ui-pulso { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { a[data-cargando] { animation: none; } }

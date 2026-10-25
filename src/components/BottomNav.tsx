@@ -45,6 +45,7 @@ export default function BottomNav({ modulos }: { modulos: string[] }) {
   function navigate(href: string) {
     if (href === pathname) { setMasAbierto(false); return }
     setPendingHref(href)
+    window.dispatchEvent(new Event('sacda:navegando'))
     startTransition(() => {
       router.push(href)
     })
