@@ -6,8 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import Avatar from './ui/Avatar'
 import { IconoApp, IconoModulo } from './ui/IconoApp'
 import type { Persona } from '@/types/database'
-import { LogOut, Loader2 } from 'lucide-react'
-import { gruposVisibles, moduloDeRuta, isActive } from './navItems'
+import { LogOut, Loader2, ChevronRight } from 'lucide-react'
+import { gruposVisibles, moduloDeRuta, isActive, subActiva } from './navItems'
 
 interface SidebarProps {
   persona: Persona | null
@@ -19,6 +19,11 @@ export default function Sidebar({ persona, modulos }: SidebarProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [pendingHref, setPendingHref] = useState<string | null>(null)
+  // Módulos con secciones internas abiertos a mano (el del módulo actual siempre se abre).
+  const [abiertos, setAbiertos] = useState<Set<string>>(new Set())
+  const alternar = (href: string, abierto: boolean) => setAbiertos((s) => {
+    const n = new Set(s); if (abierto) n.delete(href); else n.add(href); return n
+  })
 
   useEffect(() => {
     if (!isPending) setPendingHref(null)
@@ -33,6 +38,7 @@ export default function Sidebar({ persona, modulos }: SidebarProps) {
   function navigate(href: string) {
     if (href === pathname) return
     setPendingHref(href)
+    window.dispatchEvent(new Event('sacda:navegando'))
     startTransition(() => {
       router.push(href)
     })
@@ -67,17 +73,20 @@ export default function Sidebar({ persona, modulos }: SidebarProps) {
               </p>
             )}
             <ul className="space-y-0.5">
-              {grupo.items.map(({ href, label, icon, color }) => {
+              {grupo.items.map(({ href, label, icon, color, sub }) => {
                 const active = isActive(href, pathname)
                 const pending = pendingHref === href && isPending
+                const abierto = !!sub && (abiertos.has(href) !== active)
+                const actual = sub && active ? subActiva(sub, pathname) : undefined
                 return (
                   <li key={href}>
+                    <div className="relative">
                     <button
                       type="button"
                       aria-current={active ? 'page' : undefined}
                       onClick={() => navigate(href)}
                       disabled={pending}
-                      className="w-full flex items-center gap-3 px-2.5 py-1.5 rounded-[10px] text-[14px] text-left transition-colors hover:bg-[color:var(--fill)]"
+                      className={`w-full flex items-center gap-3 px-2.5 py-1.5 rounded-[10px] text-[14px] text-left transition-colors hover:bg-[color:var(--fill)] ${sub ? 'pr-9' : ''}`}
                       style={{
                         background: active ? 'color-mix(in srgb, var(--accent) 14%, transparent)' : undefined,
                         color: active ? 'var(--accent)' : 'var(--foreground)',
@@ -88,6 +97,33 @@ export default function Sidebar({ persona, modulos }: SidebarProps) {
                         : <IconoModulo icon={icon} color={color} />}
                       <span className="truncate">{label}</span>
                     </button>
+                    {sub && (
+                      <button type="button" onClick={() => alternar(href, abierto)} aria-expanded={abierto}
+                        aria-label={`${abierto ? 'Ocultar' : 'Ver'} secciones de ${label}`}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center hover:bg-[color:var(--fill)]"
+                        style={{ color: 'var(--muted)' }}>
+                        <ChevronRight size={15} aria-hidden="true" className="transition-transform" style={{ transform: abierto ? 'rotate(90deg)' : undefined }} />
+                      </button>
+                    )}
+                    </div>
+                    {sub && abierto && (
+                      <ul className="mt-0.5 mb-1 ml-[22px] pl-3 border-l space-y-0.5" style={{ borderColor: 'var(--border)' }}>
+                        {sub.map((s) => {
+                          const marcado = actual === s.href
+                          const cargando = pendingHref === s.href && isPending
+                          return (
+                            <li key={s.href}>
+                              <button type="button" onClick={() => navigate(s.href)} aria-current={marcado ? 'page' : undefined}
+                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[8px] text-[13.5px] text-left transition-colors hover:bg-[color:var(--fill)]"
+                                style={{ color: marcado ? 'var(--accent)' : 'var(--foreground)', fontWeight: marcado ? 600 : 450 }}>
+                                <span className="truncate">{s.label}</span>
+                                {cargando && <Loader2 size={13} className="animate-spin ml-auto" aria-hidden="true" />}
+                              </button>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
                   </li>
                 )
               })}

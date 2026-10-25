@@ -6,7 +6,9 @@ import {
 
 // color: tono del sistema de Apple para el ícono del módulo (estilo Ajustes de iOS).
 // modulo: nombre en el panel de permisos; sin módulo = visible para todo el que entra al panel.
-export interface NavItem { href: string; label: string; icon: LucideIcon; color: string; modulo?: string }
+export interface SubItem { href: string; label: string }
+// sub: secciones internas del módulo (se muestran en el menú y en la ruta de navegación).
+export interface NavItem { href: string; label: string; icon: LucideIcon; color: string; modulo?: string; sub?: SubItem[] }
 export interface NavGrupo { titulo: string | null; items: NavItem[] }
 
 export const NAV_GRUPOS: NavGrupo[] = [
@@ -15,7 +17,14 @@ export const NAV_GRUPOS: NavGrupo[] = [
   ] },
   { titulo: 'Personas', items: [
     { href: '/congregantes', label: 'Congregantes', icon: Users,           color: '#ff9500', modulo: 'congregantes' },
-    { href: '/miembros',     label: 'Seguimiento',  icon: UserCheck,       color: '#30b0c7', modulo: 'miembros' },
+    { href: '/miembros',     label: 'Seguimiento',  icon: UserCheck,       color: '#30b0c7', modulo: 'miembros', sub: [
+      { href: '/miembros',                    label: 'Pasar lista' },
+      { href: '/miembros/ausencias',          label: 'Faltaron' },
+      { href: '/miembros/visitas',            label: 'Nuevos' },
+      { href: '/miembros/visitas-pastorales', label: 'Visitas pastorales' },
+      { href: '/miembros/ceremonias',         label: 'Ceremonias' },
+      { href: '/miembros/estadisticas',       label: 'Estadísticas' },
+    ] },
     { href: '/ministerios',  label: 'Ministerios',  icon: BookOpen,        color: '#5856d6', modulo: 'ministerios' },
   ] },
   { titulo: 'Actividades', items: [
@@ -29,7 +38,13 @@ export const NAV_GRUPOS: NavGrupo[] = [
     { href: '/capacitacion', label: 'Capacitación', icon: GraduationCap,   color: '#32ade6', modulo: 'capacitacion' },
   ] },
   { titulo: 'Administración', items: [
-    { href: '/finanzas',     label: 'Finanzas',     icon: DollarSign,      color: '#34c759', modulo: 'finanzas' },
+    { href: '/finanzas',     label: 'Finanzas',     icon: DollarSign,      color: '#34c759', modulo: 'finanzas', sub: [
+      { href: '/finanzas',             label: 'Resumen' },
+      { href: '/finanzas/aportes',     label: 'Aportes' },
+      { href: '/finanzas/gastos',      label: 'Gastos' },
+      { href: '/finanzas/fondos',      label: 'Fondos' },
+      { href: '/finanzas/actividades', label: 'Actividades' },
+    ] },
     { href: '/inventario',   label: 'Inventario',   icon: Package,         color: '#a2845e', modulo: 'inventario' },
     { href: '/roles',        label: 'Roles',        icon: Shield,          color: '#636366', modulo: 'roles' },
   ] },
@@ -43,6 +58,13 @@ export const NAV_ITEMS: NavItem[] = NAV_GRUPOS.flatMap((g) => g.items)
 
 export function isActive(href: string, pathname: string) {
   return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/')
+}
+
+// Sección interna activa: la más específica que coincide con la ruta
+// ("/miembros/visitas-pastorales" no debe marcar "/miembros/visitas").
+export function subActiva(sub: SubItem[], pathname: string) {
+  return sub.filter((s) => pathname === s.href || pathname.startsWith(s.href + '/'))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href
 }
 
 // Grupos del menú filtrados por los módulos que la persona puede ver.
