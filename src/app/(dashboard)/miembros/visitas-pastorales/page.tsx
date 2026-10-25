@@ -28,8 +28,10 @@ export default async function VisitasPastoralesPage() {
           {programadas.map((v, i) => (
             <Fila key={v.id} primero={i === 0} inicio={<Avatar nombre={v.p.nombre_completo} fotoUrl={v.p.foto_url} size="sm" />}
               titulo={v.p.nombre_completo}
-              subtitulo={[formatDate(v.fecha), v.r ? `Va: ${v.r}` : 'Sin responsable', v.motivo].filter(Boolean).join(' · ')}
+              subtitulo={formatDate(v.fecha)}
               detalle={v.fecha < hoy ? <Badge variant="error">Atrasada</Badge> : v.fecha === hoy ? <Badge variant="warning">Hoy</Badge> : undefined}>
+              <span className="block text-[13px] mt-0.5" style={{ color: 'var(--muted)' }}>{v.r ? `Va: ${v.r}` : 'Sin responsable'}</span>
+              {v.motivo && <p className="text-[14px] mt-1" style={{ color: 'var(--foreground)' }}>{v.motivo}</p>}
               {(v.p.telefono || v.p.direccion) && (
                 <span className="block text-[13px] mt-0.5" style={{ color: 'var(--muted)' }}>{[v.p.telefono, v.p.direccion].filter(Boolean).join(' · ')}</span>
               )}
@@ -44,8 +46,11 @@ export default async function VisitasPastoralesPage() {
           {hechas.map((v, i) => (
             <Fila key={v.id} primero={i === 0} inicio={<Avatar nombre={v.p.nombre_completo} fotoUrl={v.p.foto_url} size="sm" />}
               titulo={v.p.nombre_completo}
-              subtitulo={[formatDate(v.fecha), v.r && `Fue: ${v.r}`, v.nota].filter(Boolean).join(' · ')}
-              detalle={<Badge variant={v.estado === 'realizada' ? 'success' : 'muted'}>{v.estado === 'realizada' ? 'Realizada' : 'Cancelada'}</Badge>} />
+              subtitulo={formatDate(v.fecha)}
+              detalle={<Badge variant={v.estado === 'realizada' ? 'success' : 'muted'}>{v.estado === 'realizada' ? 'Realizada' : 'Cancelada'}</Badge>}>
+              {v.r && <span className="block text-[13px] mt-0.5" style={{ color: 'var(--muted)' }}>{v.estado === 'realizada' ? 'Fue' : 'Iba a ir'}: {v.r}</span>}
+              {(v.nota || v.motivo) && <p className="text-[14px] mt-1" style={{ color: 'var(--foreground)' }}>{v.nota || v.motivo}</p>}
+            </Fila>
           ))}
         </Grupo>
       )}
