@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
 import { IconoApp } from '@/components/ui/IconoApp'
-import { contextoEspacio } from '@/lib/espacio'
+import { contextoEspacio, MOSTRAR_APORTES } from '@/lib/espacio'
 import EspacioNav, { type ModuloEspacio } from './EspacioNav'
 import MenuPerfil from './MenuPerfil'
 import SelectorEspacios, { RecordarEspacio, type Espacio } from './SelectorEspacios'
@@ -13,9 +13,10 @@ export default async function EspacioShell({ children, espacio = 'mi' }: { child
   const modulos: ModuloEspacio[] = espacio === 'academia' ? ['academia', 'calendario'] : [
     'inicio',
     ...(ctx.esServidor ? ['servicio' as const] : []),
+    ...(ctx.esServidor ? ['capacitacion' as const] : []),
     ...(ctx.visitasPendientes > 0 ? ['visitas' as const] : []),
     'solicitudes',
-    'aportes',
+    ...(MOSTRAR_APORTES ? ['aportes' as const] : []),
   ]
   const disponibles: Espacio[] = ['mi', ...(ctx.esEstudiante || espacio === 'academia' ? ['academia' as const] : []), ...(ctx.tienePanel ? ['admin' as const] : [])]
   const inicio = espacio === 'academia' ? '/taller' : '/mi'

@@ -1,6 +1,7 @@
 import { Wallet } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { contextoEspacio } from '@/lib/espacio'
+import { redirect } from 'next/navigation'
+import { contextoEspacio, MOSTRAR_APORTES } from '@/lib/espacio'
 import { etiquetaTipoAporte } from '@/lib/etiquetas'
 import { formatDate, hoyLima } from '@/lib/utils'
 import { Pagina, Grupo, Fila, SegmentadoEnlaces, Vacio } from '@/components/ui/ios'
@@ -9,6 +10,7 @@ const soles = (n: number) => `S/ ${n.toLocaleString('es-PE', { minimumFractionDi
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 export default async function MisAportesPage({ searchParams }: { searchParams: Promise<{ anio?: string }> }) {
+  if (!MOSTRAR_APORTES) redirect('/mi')
   const ctx = await contextoEspacio()
   const supabase = await createClient()
   const anioActual = Number(hoyLima().slice(0, 4))

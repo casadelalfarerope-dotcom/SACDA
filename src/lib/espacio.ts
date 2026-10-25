@@ -2,6 +2,9 @@ import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
+// "Mis aportes" está oculto por ahora en Mi espacio. Cambiar a true para mostrarlo.
+export const MOSTRAR_APORTES = false
+
 export interface ContextoEspacio {
   userId: string
   personaId: string
@@ -61,7 +64,7 @@ export function enlaceEspacio(url: string | null): string | undefined {
   const tarea = url.match(/^\/tareas\/([0-9a-f-]{36})/)
   if (tarea) return `/mi/tareas/${tarea[1]}`
   if (url.startsWith('/servidores')) return '/mi/ministerios'
-  if (url.startsWith('/capacitacion')) return '/mi/ministerios'
+  if (url.startsWith('/capacitacion')) return '/mi/capacitacion'
   if (url.startsWith('/ventas')) return '/mi/solicitudes'
   if (url.startsWith('/miembros/visitas-pastorales')) return '/mi/visitas'
   return undefined

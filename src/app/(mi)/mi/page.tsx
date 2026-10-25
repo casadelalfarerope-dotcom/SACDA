@@ -1,6 +1,6 @@
 import { CalendarCheck, ClipboardList, ShoppingBag, School, Wallet } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { contextoEspacio } from '@/lib/espacio'
+import { contextoEspacio, MOSTRAR_APORTES } from '@/lib/espacio'
 import { misTurnos } from '@/lib/programas'
 import { estadoTarea } from '@/lib/etiquetas'
 import { formatDate, hoyLima } from '@/lib/utils'
@@ -67,8 +67,10 @@ export default async function MiInicioPage() {
         )}
         <Fila primero={!ctx.esEstudiante} href="/mi/solicitudes" inicio={<IconoModulo icon={ShoppingBag} color="#00c7be" tamano={36} />}
           titulo="Pedir permiso para vender" subtitulo="Después del culto" />
-        <Fila href="/mi/aportes" inicio={<IconoModulo icon={Wallet} color="#34c759" tamano={36} />}
-          titulo="Mis aportes" subtitulo="Diezmos, ofrendas y pactos" />
+        {MOSTRAR_APORTES && (
+          <Fila href="/mi/aportes" inicio={<IconoModulo icon={Wallet} color="#34c759" tamano={36} />}
+            titulo="Mis aportes" subtitulo="Diezmos, ofrendas y pactos" />
+        )}
       </Grupo>
 
       {!!solicitudes?.length && (
