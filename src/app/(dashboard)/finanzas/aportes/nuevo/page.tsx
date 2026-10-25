@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
-import { Search, X, Check, ChevronDown } from 'lucide-react'
+import { Search, X, Check, ChevronDown, Mail } from 'lucide-react'
 import { registrarAporte } from '@/app/actions/finanzas'
 import { createClient } from '@/lib/supabase/client'
 import { hoyLima } from '@/lib/utils'
@@ -14,6 +14,8 @@ import { etiquetaTipoAporte, etiquetaMedio, esDigital, type Medio } from '@/lib/
 import SelectorMedio from '@/components/finanzas/SelectorMedio'
 
 type Persona = { id: string; nombre_completo: string; foto_url: string | null }
+// Sobre sin nombre: se registra sin persona.
+const ANONIMO: Persona = { id: '', nombre_completo: 'Anónimo (sobre sin nombre)', foto_url: null }
 type Tipo = 'diezmo' | 'ofrenda' | 'pacto' | 'otro'
 
 const normalizar = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -58,13 +60,13 @@ export default function NuevoAportePage() {
 
   function registrar(e: React.FormEvent) {
     e.preventDefault()
-    if (!persona) { setError('Busca y elige al hermano.'); return }
+    if (!persona) { setError('Busca y elige al hermano, o marca que es anónimo.'); return }
     const fondo = new FormData(formulario.current!).get('fondo_id') as string | null
     setError('')
     iniciar(async () => {
       const res = await registrarAporte({ persona_id: persona.id, tipo, monto, fecha, concepto, fondo_id: fondo ?? '', medio })
       if (res.error) { setError(res.error); return }
-      setRegistrados((r) => [{ nombre: persona.nombre_completo, tipo, monto: Number(monto), medio }, ...r])
+      setRegistrados((r) => [{ nombre: persona.id ? persona.nombre_completo : 'Anónimo', tipo, monto: Number(monto), medio }, ...r])
       setPersona(null); setMonto(''); setConcepto('')
       setTimeout(() => buscador.current?.focus(), 0)
     })
@@ -80,7 +82,9 @@ export default function NuevoAportePage() {
         {/* 1. Hermano */}
         {persona ? (
           <div className="flex items-center gap-3 rounded-[12px] p-2.5" style={{ background: 'var(--fill)' }}>
-            <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" />
+            {persona.id
+              ? <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" />
+              : <span className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--surface)', color: 'var(--muted)' }}><Mail size={16} aria-hidden="true" /></span>}
             <span className="flex-1 min-w-0 text-[16px] font-semibold truncate" style={{ color: 'var(--foreground)' }}>{persona.nombre_completo}</span>
             <button type="button" onClick={() => { setPersona(null); setTimeout(() => buscador.current?.focus(), 0) }}
               aria-label="Cambiar de hermano" className="w-8 h-8 rounded-full flex items-center justify-center" style={{ color: 'var(--muted)' }}>
@@ -112,6 +116,11 @@ export default function NuevoAportePage() {
                 {!resultados.length && <li className="px-3 py-3 text-[14px]" style={{ color: 'var(--muted)' }}>Nadie coincide. Revisa el nombre o regístralo en Personas.</li>}
               </ul>
             )}
+            <button type="button" onClick={() => elegir(ANONIMO)}
+              className="mt-2 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[14px] font-medium"
+              style={{ color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }}>
+              <Mail size={15} aria-hidden="true" /> Sobre sin nombre (anónimo)
+            </button>
           </div>
         )}
 

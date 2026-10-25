@@ -16,7 +16,6 @@ export async function registrarAporte(data: {
   medio?: string
 }) {
   const monto = parseFloat(data.monto)
-  if (!data.persona_id) return { error: 'Selecciona una persona.' }
   if (isNaN(monto) || monto <= 0) return { error: 'El monto debe ser mayor a 0.' }
   if (!data.fecha) return { error: 'La fecha es obligatoria.' }
 
@@ -24,7 +23,7 @@ export async function registrarAporte(data: {
   const { data: { user } } = await supabase.auth.getUser()
 
   const { error } = await supabase.from('aportes').insert({
-    persona_id: data.persona_id,
+    persona_id: data.persona_id || null, // vacío = sobre sin nombre (anónimo)
     tipo: data.tipo,
     monto,
     fecha: data.fecha,

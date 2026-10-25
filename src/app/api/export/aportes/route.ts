@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   if (!aportes) return NextResponse.json({ error: 'Sin datos' }, { status: 500 })
 
   const filas = aportes.map((a) => ({
-    Nombre: (a.persona as { nombre_completo: string } | null)?.nombre_completo ?? '',
+    Nombre: (a.persona as { nombre_completo: string } | null)?.nombre_completo ?? 'Anónimo',
     DNI: (a.persona as { dni: string | null } | null)?.dni ?? '',
     Tipo: a.tipo,
     Monto: Number(a.monto),
