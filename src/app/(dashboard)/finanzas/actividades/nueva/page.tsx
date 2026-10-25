@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { crearActividad } from '@/app/actions/finanzas'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import SelectFondo from '@/components/fondos/SelectFondo'
 import { Pagina } from '@/components/ui/ios'
 
 export default function NuevaActividadPage() {
@@ -23,6 +24,7 @@ export default function NuevaActividadPage() {
       nombre: fd.get('nombre') as string,
       fecha: fd.get('fecha') as string,
       descripcion: fd.get('descripcion') as string,
+      fondo_id: fd.get('fondo_id') as string,
     })
     if (res.error) { setError(res.error); setLoading(false); return }
     router.push(`/finanzas/actividades/${res.id}`)
@@ -33,6 +35,7 @@ export default function NuevaActividadPage() {
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="nombre" label="Nombre" placeholder="Pollada, Bazar, Bingo..." required />
+          <SelectFondo label="¿Para qué fondo es la ganancia?" />
           <div>
             <label htmlFor="nueva-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
               Fecha <span style={{ color: 'var(--error)' }}>*</span>

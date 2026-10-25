@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { registrarGasto } from '@/app/actions/finanzas'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import SelectFondo from '@/components/fondos/SelectFondo'
 
 import { CATEGORIAS_GASTO } from '@/lib/etiquetas'
 import { Pagina } from '@/components/ui/ios'
@@ -27,6 +28,7 @@ export default function NuevoGastoPage() {
       fecha: fd.get('fecha') as string,
       categoria: fd.get('categoria') as string,
       descripcion: fd.get('descripcion') as string,
+      fondo_id: fd.get('fondo_id') as string,
     })
     if (res.error) { setError(res.error); setLoading(false); return }
     router.push('/finanzas')
@@ -40,6 +42,7 @@ export default function NuevoGastoPage() {
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <Input name="concepto" label="Concepto" placeholder="Pago de luz, compra de cables..." required />
           <Input name="monto" label="Monto (S/.)" type="number" step="0.01" min="0.01" placeholder="0.00" required />
+          <SelectFondo label="¿De qué fondo sale?" />
           <div>
             <label htmlFor="nuevo-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
               Categoría <span style={{ color: 'var(--error)' }}>*</span>

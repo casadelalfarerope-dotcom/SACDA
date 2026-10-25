@@ -87,7 +87,10 @@ export default async function FinanzasPage({
 
   return (
     <Pagina titulo="Finanzas" subtitulo="Aportes, gastos y actividades"
-      acciones={<BotonEnlace href="/finanzas/actividades" variante="tintado">Actividades</BotonEnlace>}>
+      acciones={<span className="flex gap-2">
+        <BotonEnlace href="/finanzas/fondos" variante="tintado">Fondos</BotonEnlace>
+        <BotonEnlace href="/finanzas/actividades" variante="tintado">Actividades</BotonEnlace>
+      </span>}>
       <FinanzasTabs
         aportesMes={aportesMes}
         gastosMes={gastosMes}

@@ -9,6 +9,7 @@ export async function registrarAporte(data: {
   monto: string
   fecha: string
   concepto?: string
+  fondo_id?: string
 }) {
   const monto = parseFloat(data.monto)
   if (!data.persona_id) return { error: 'Selecciona una persona.' }
@@ -24,6 +25,7 @@ export async function registrarAporte(data: {
     monto,
     fecha: data.fecha,
     concepto: data.concepto?.trim() || null,
+    fondo_id: data.fondo_id || null,
     registrado_por: user?.id ?? null,
   })
   if (error) return { error: 'No se pudo registrar el aporte.' }
@@ -38,6 +40,7 @@ export async function registrarGasto(data: {
   fecha: string
   categoria: string
   descripcion?: string
+  fondo_id?: string
 }) {
   const monto = parseFloat(data.monto)
   if (!data.concepto?.trim()) return { error: 'El concepto es obligatorio.' }
@@ -53,6 +56,7 @@ export async function registrarGasto(data: {
     fecha: data.fecha,
     categoria: data.categoria,
     descripcion: data.descripcion?.trim() || null,
+    fondo_id: data.fondo_id || null,
     registrado_por: user?.id ?? null,
   })
   if (error) return { error: 'No se pudo registrar el gasto.' }
@@ -66,6 +70,7 @@ export async function crearActividad(data: {
   fecha: string
   descripcion?: string
   evento_id?: string
+  fondo_id?: string
 }) {
   if (!data.nombre?.trim()) return { error: 'El nombre es obligatorio.' }
   if (!data.fecha) return { error: 'La fecha es obligatoria.' }
@@ -78,6 +83,7 @@ export async function crearActividad(data: {
     fecha: data.fecha,
     descripcion: data.descripcion?.trim() || null,
     evento_id: data.evento_id || null,
+    fondo_id: data.fondo_id || null,
     created_by: user?.id ?? null,
   }).select().single()
 

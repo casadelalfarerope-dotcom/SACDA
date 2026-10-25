@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { Mic2, MessageCircle, ExternalLink, Users, ClipboardList, GraduationCap, CheckCircle2 } from 'lucide-react'
+import { Mic2, PiggyBank, MessageCircle, ExternalLink, Users, ClipboardList, GraduationCap, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { contextoEspacio, misMinisterios } from '@/lib/espacio'
@@ -14,6 +14,7 @@ import PuestosMinisterio from '@/components/programas/PuestosMinisterio'
 import { NuevaTareaForm, NuevoTutorialForm } from '@/components/espacio/FormulariosLider'
 import MarcarVistoBtn from '@/components/servidores/MarcarVistoBtn'
 import { estadoTarea } from '@/lib/etiquetas'
+import { saldosFondos, soles } from '@/lib/fondos'
 
 const fechaCorta = (f: string, h: string | null) => `${formatDate(f)}${h ? ` · ${h.slice(0, 5)}` : ''}`
 
@@ -57,6 +58,12 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
     admin.from('tutoriales').select('id, titulo, url_contenido, descripcion').eq('grupo_id', id).eq('publicado', true).order('created_at', { ascending: false }),
     admin.from('tutorial_progreso').select('tutorial_id').eq('persona_id', ctx.personaId).eq('visto', true),
   ])
+  // Fondos del ministerio: solo el líder los ve y maneja.
+  const { data: fondosGrupo } = mio.esLider
+    ? await admin.from('fondos').select('id, nombre, meta').eq('grupo_id', id).eq('activo', true).order('nombre')
+    : { data: [] }
+  const saldos = fondosGrupo?.length ? await saldosFondos(admin) : null
+
   const tareasVisibles = (tareasGrupo ?? []).filter((t) => mio.esLider || t.asignado_id === ctx.personaId)
   const vistos = new Set((progreso ?? []).map((p) => p.tutorial_id))
 
@@ -76,6 +83,20 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
     <Pagina ancho="estrecho" titulo={mio.nombre} volver={{ href: '/mi/ministerios', texto: 'Mis ministerios' }}
       subtitulo={mio.esLider ? 'Eres el líder de este ministerio' : mio.padre ? `Subgrupo de ${mio.padre}` : undefined}>
       {grupo.descripcion && <p className="text-[15px]" style={{ color: 'var(--foreground)' }}>{grupo.descripcion}</p>}
+
+      {!!fondosGrupo?.length && (
+        <Grupo titulo="Fondo del ministerio" pie="Registra lo que entra (ventas, ofrendas de la reunión) y lo que se gasta.">
+          {fondosGrupo.map((f, i) => {
+            const saldo = saldos?.get(f.id)?.saldo ?? 0
+            return (
+              <Fila key={f.id} primero={i === 0} href={`/mi/ministerios/${id}/fondo/${f.id}`}
+                inicio={<IconoModulo icon={PiggyBank} color="#34c759" />} titulo={f.nombre}
+                subtitulo={f.meta ? `Meta ${soles(Number(f.meta))}` : undefined}
+                detalle={<span className="font-semibold tabular-nums" style={{ color: saldo < 0 ? 'var(--error)' : 'var(--foreground)' }}>{soles(saldo)}</span>} />
+            )
+          })}
+        </Grupo>
+      )}
 
       {mio.esLider ? (
         <section className="space-y-2" aria-labelledby="prog-titulo">
