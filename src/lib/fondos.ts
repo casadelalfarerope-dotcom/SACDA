@@ -80,7 +80,7 @@ export async function movimientosDeFondo(admin: SupabaseClient, fondoId: string)
     }),
     ...(movs ?? []).map((m) => ({
       id: m.id, origen: 'movimiento' as const, concepto: m.concepto,
-      detalle: m.traspaso ? 'Traspaso' : nombre(m.persona),
+      detalle: m.traspaso ? null : nombre(m.persona),
       monto: m.tipo === 'ingreso' ? Number(m.monto) : -Number(m.monto), fecha: m.fecha, traspaso: m.traspaso,
       registradoPor: m.registrado_por, enlace: null,
     })),
