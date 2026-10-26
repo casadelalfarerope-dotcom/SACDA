@@ -21,8 +21,9 @@ type Modo = 'fijo' | 'rotativo'
 const MODOS: { valor: Modo; texto: string }[] = [{ valor: 'rotativo', texto: 'Rota' }, { valor: 'fijo', texto: 'Fijo' }]
 
 // Puestos que el ministerio cubre en cada culto (Predicación, Sonido…).
-export default function PuestosMinisterio({ grupoId, puestos, integrantes }: {
+export default function PuestosMinisterio({ grupoId, puestos, integrantes, eventoId }: {
   grupoId: string
+  eventoId?: string // puestos solo de ese evento del ministerio
   puestos: PuestoEditable[]
   integrantes: { id: string; nombre: string }[]
 }) {
@@ -99,7 +100,7 @@ export default function PuestosMinisterio({ grupoId, puestos, integrantes }: {
       <form className="rounded-2xl border p-4 space-y-3" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
         onSubmit={(e) => {
           e.preventDefault()
-          ejecutar(() => crearPuesto(grupoId, nuevo), () => setNuevo({ nombre: '', cantidad: 1, modo: 'rotativo', requiere_material: false }))
+          ejecutar(() => crearPuesto(grupoId, nuevo, eventoId), () => setNuevo({ nombre: '', cantidad: 1, modo: 'rotativo', requiere_material: false }))
         }}>
         <p className="text-[15px] font-semibold" style={{ color: 'var(--foreground)' }}>Agregar puesto</p>
         <Input label="Nombre" placeholder="Ej. Palabra de ofrenda" maxLength={60} value={nuevo.nombre}

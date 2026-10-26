@@ -46,7 +46,7 @@ export default async function DetalleGrupoPage({
 
   const { data: puestos } = await supabase.from('roles_servicio')
     .select('id, nombre, cantidad, modo, requiere_material, puesto_candidatos(persona_id, orden)')
-    .eq('grupo_id', id).eq('activo', true).order('orden')
+    .eq('grupo_id', id).eq('activo', true).is('evento_id', null).order('orden')
 
   const encargado = Array.isArray(grupo.encargado) ? grupo.encargado[0] : grupo.encargado
   // El ministerio "padre" se busca aparte (la relación de la tabla consigo misma es ambigua).

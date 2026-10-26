@@ -11,17 +11,17 @@ export default async function ProgramarCultoPage({ params }: { params: Promise<{
   const { id, programaId } = await params
   const ctx = await contextoEspacio()
   const mio = (await misMinisterios(ctx.personaId)).find((m) => m.id === id)
-  if (!mio?.esLider) notFound()
+  if (!mio || !(mio.esLider || mio.gestiona)) notFound()
 
   const supabase = await createClient()
   const { data: programa } = await supabase.from('programas')
-    .select('id, titulo, fecha, hora_inicio, cancelado').eq('id', programaId).maybeSingle()
+    .select('id, titulo, fecha, hora_inicio, cancelado, evento_id, grupo_id').eq('id', programaId).maybeSingle()
   if (!programa) notFound()
 
   const [parte] = await cargarPrograma(supabase, programaId, [id])
 
   return (
-    <Pagina ancho="estrecho" titulo={programa.titulo} volver={{ href: `/mi/ministerios/${id}`, texto: mio.nombre }}
+    <Pagina ancho="estrecho" titulo={programa.titulo} volver={programa.grupo_id ? { href: `/mi/ministerios/${id}/agenda/turnos/${programa.evento_id}`, texto: 'Turnos' } : { href: `/mi/ministerios/${id}`, texto: mio.nombre }}
       subtitulo={`${formatDate(programa.fecha)}${programa.hora_inicio ? ` · ${programa.hora_inicio.slice(0, 5)}` : ''}`}>
       {parte ? (
         <ParteMinisterio programaId={programaId} grupo={parte.grupo} estado={parte.estado}

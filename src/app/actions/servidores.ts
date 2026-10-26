@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { sugerirMinisterio, asignacionesAnteriores } from '@/lib/programas'
+import { sugerirMinisterio, asignacionesAnteriores, asegurarProgramas } from '@/lib/programas'
 import { hoyLima } from '@/lib/utils'
 import { formatDate } from '@/lib/utils'
 
@@ -75,14 +75,16 @@ export async function repetirAnterior(programaId: string, grupoId: string) {
 
 // Completa con sugerencia, en orden de fecha, los cultos de los próximos días
 // que el ministerio aún no llenó. No publica: el líder revisa y publica.
-export async function completarProximos(grupoId: string, dias = 31) {
+export async function completarProximos(grupoId: string, dias = 31, eventoId?: string) {
   const supabase = await createClient()
   const hoy = hoyLima()
   const hasta = new Date(hoy + 'T12:00:00Z')
   hasta.setUTCDate(hasta.getUTCDate() + dias)
-  const { data: programas } = await supabase.from('programas').select('id')
+  let consulta = supabase.from('programas').select('id')
     .gte('fecha', hoy).lte('fecha', hasta.toISOString().slice(0, 10)).eq('cancelado', false)
-    .order('fecha').order('hora_inicio')
+  // Solo las fechas de un evento del ministerio, o solo los cultos de la iglesia.
+  consulta = eventoId ? consulta.eq('evento_id', eventoId) : consulta.is('grupo_id', null)
+  const { data: programas } = await consulta.order('fecha').order('hora_inicio')
   let total = 0
   for (const p of programas ?? []) {
     const sugerencias = await sugerirMinisterio(supabase, p.id, grupoId)
@@ -93,7 +95,7 @@ export async function completarProximos(grupoId: string, dias = 31) {
     if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudieron completar los cultos.' }
     total += sugerencias.length
   }
-  if (!total) return { error: 'Los próximos cultos ya están completos.' }
+  if (!total) return { error: eventoId ? 'Las próximas fechas ya están completas.' : 'Los próximos cultos ya están completos.' }
   revalidar()
   return { success: true, cantidad: total }
 }
@@ -145,7 +147,8 @@ export async function despublicarMinisterio(programaId: string, grupoId: string)
 
 // ---------- Puestos del ministerio ----------
 
-export async function crearPuesto(grupoId: string, datos: { nombre: string; cantidad: number; modo: 'fijo' | 'rotativo'; requiere_material: boolean }) {
+// eventoId: puesto solo para ese evento del ministerio (sin él, es un puesto de los cultos).
+export async function crearPuesto(grupoId: string, datos: { nombre: string; cantidad: number; modo: 'fijo' | 'rotativo'; requiere_material: boolean }, eventoId?: string) {
   const nombre = datos.nombre.trim()
   if (!nombre) return { error: 'Escribe el nombre del puesto.' }
   if (nombre.length > 60) return { error: 'El nombre es demasiado largo.' }
@@ -153,10 +156,12 @@ export async function crearPuesto(grupoId: string, datos: { nombre: string; cant
   const supabase = await createClient()
   const { count } = await supabase.from('roles_servicio').select('id', { count: 'exact', head: true }).eq('grupo_id', grupoId)
   const { error } = await supabase.from('roles_servicio').insert({
-    nombre, grupo_id: grupoId, cantidad: datos.cantidad, modo: datos.modo,
+    nombre, grupo_id: grupoId, evento_id: eventoId ?? null, cantidad: datos.cantidad, modo: datos.modo,
     requiere_material: datos.requiere_material, orden: count ?? 0,
   })
   if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudo crear el puesto.' }
+  // Un evento con su primer puesto empieza a generar sus fechas para programar.
+  if (eventoId) await asegurarProgramas(createServiceClient())
   revalidatePath(`/ministerios/${grupoId}`)
   revalidar()
   return { success: true }

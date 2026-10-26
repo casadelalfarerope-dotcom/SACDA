@@ -17,9 +17,16 @@ export async function asegurarProgramas(admin: SupabaseClient) {
   const hoy = hoyLima()
   const hasta = sumarDias(hoy, DIAS_PROGRAMACION)
 
-  const { data: eventos } = await admin.from('eventos')
-    .select('id, titulo, tipo, hora_inicio, hora_fin, lugar, tipo_recurrencia, fecha_unica, fecha_inicio_serie, fecha_fin_serie, dias_semana, semana_del_mes, dia_semana_mes')
-    .eq('tipo', 'servicio').is('grupo_id', null)
+  const campos = 'id, titulo, tipo, grupo_id, hora_inicio, hora_fin, lugar, tipo_recurrencia, fecha_unica, fecha_inicio_serie, fecha_fin_serie, dias_semana, semana_del_mes, dia_semana_mes'
+  // Cultos de la iglesia y eventos de ministerio que tienen puestos propios.
+  const { data: conPuestos } = await admin.from('roles_servicio').select('evento_id').eq('activo', true).not('evento_id', 'is', null)
+  const idsMinisterio = [...new Set((conPuestos ?? []).map((p) => p.evento_id as string))]
+  const [{ data: cultos }, { data: deMinisterio }] = await Promise.all([
+    admin.from('eventos').select(campos).eq('tipo', 'servicio').is('grupo_id', null),
+    idsMinisterio.length ? admin.from('eventos').select(campos).in('id', idsMinisterio) : Promise.resolve({ data: [] }),
+  ])
+  const eventos = [...(cultos ?? []), ...(deMinisterio ?? [])]
+  const grupoDe = new Map(eventos.map((e) => [e.id as string, (e.grupo_id as string | null) ?? null]))
 
   const ids = (eventos ?? []).map((e) => e.id as string)
   const [{ data: excepciones }, { data: existentes }] = await Promise.all([
@@ -50,7 +57,7 @@ export async function asegurarProgramas(admin: SupabaseClient) {
     const hora = i.hora_inicio
     const actual = porClave.get(k)
     if (!actual) {
-      nuevos.push({ evento_id: i.evento_id, fecha_original: i.fecha_original, fecha, titulo: i.titulo, hora_inicio: hora, estado: 'borrador' })
+      nuevos.push({ evento_id: i.evento_id, grupo_id: grupoDe.get(i.evento_id) ?? null, fecha_original: i.fecha_original, fecha, titulo: i.titulo, hora_inicio: hora, estado: 'borrador' })
     } else if (actual.fecha !== fecha || actual.titulo !== i.titulo || actual.cancelado || (actual.hora_inicio ?? null) !== (hora ?? null)) {
       await admin.from('programas').update({ fecha, titulo: i.titulo, hora_inicio: hora, cancelado: false }).eq('id', actual.id)
     }
@@ -68,6 +75,18 @@ export async function asegurarProgramas(admin: SupabaseClient) {
 
 export interface Sugerencia { puesto_id: string; persona_id: string }
 
+// Los puestos de un programa: en un culto, los puestos de culto (sin evento);
+// en un evento del ministerio, solo los puestos de ese evento.
+export async function eventoDelPrograma(db: SupabaseClient, programaId: string): Promise<string | null> {
+  const { data: p } = await db.from('programas').select('evento_id, grupo_id').eq('id', programaId).maybeSingle()
+  return p?.grupo_id && p.evento_id ? (p.evento_id as string) : null
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function conEvento<T>(consulta: T, eventoId: string | null): T {
+  const q = consulta as unknown as { eq: (c: string, v: string) => T; is: (c: string, v: null) => T }
+  return eventoId ? q.eq('evento_id', eventoId) : q.is('evento_id', null)
+}
+
 // Sugiere quién ocupa cada puesto vacío de un ministerio en un programa:
 // · fijo: los mismos del último culto en que se llenó ese puesto;
 // · rotativo: los siguientes en la lista de candidatos (o de integrantes)
@@ -75,7 +94,7 @@ export interface Sugerencia { puesto_id: string; persona_id: string }
 export async function sugerirMinisterio(db: SupabaseClient, programaId: string, grupoId: string): Promise<Sugerencia[]> {
   const [{ data: programa }, { data: puestos }, { data: grupo }, { data: miembros }] = await Promise.all([
     db.from('programas').select('id, fecha').eq('id', programaId).single(),
-    db.from('roles_servicio').select('id, cantidad, modo').eq('grupo_id', grupoId).eq('activo', true).order('orden'),
+    conEvento(db.from('roles_servicio').select('id, cantidad, modo').eq('grupo_id', grupoId).eq('activo', true).order('orden'), await eventoDelPrograma(db, programaId)),
     db.from('grupos').select('encargado_id').eq('id', grupoId).single(),
     db.from('grupo_miembros').select('persona_id, persona:personas(nombre_completo)').eq('grupo_id', grupoId).eq('activo', true),
   ])
@@ -154,7 +173,7 @@ export async function cargarPrograma(db: SupabaseClient, programaId: string, gru
   if (grupoIds) qPuestos = qPuestos.in('grupo_id', grupoIds)
 
   const [{ data: puestos }, { data: asignaciones }, { data: estados }] = await Promise.all([
-    qPuestos,
+    conEvento(qPuestos, await eventoDelPrograma(db, programaId)),
     db.from('programa_asignaciones').select('id, rol_servicio_id, persona_id, material_url, persona:personas(nombre_completo)').eq('programa_id', programaId),
     db.from('programa_ministerios').select('grupo_id, estado').eq('programa_id', programaId),
   ])
@@ -233,7 +252,7 @@ export async function misTurnos(db: SupabaseClient, personaId: string): Promise<
 export async function asignacionesAnteriores(db: SupabaseClient, programaId: string, grupoId: string): Promise<Sugerencia[]> {
   const [{ data: programa }, { data: puestos }] = await Promise.all([
     db.from('programas').select('fecha').eq('id', programaId).single(),
-    db.from('roles_servicio').select('id, cantidad').eq('grupo_id', grupoId).eq('activo', true),
+    conEvento(db.from('roles_servicio').select('id, cantidad').eq('grupo_id', grupoId).eq('activo', true), await eventoDelPrograma(db, programaId)),
   ])
   if (!programa || !puestos?.length) return []
   const puestoIds = puestos.map((p) => p.id as string)

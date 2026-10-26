@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { CalendarDays, ClipboardCheck } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/service'
@@ -59,6 +60,12 @@ export default async function AgendaMinisterioPage({ params }: { params: Promise
   const totalListas = resumen[0]?.total ?? 0
   const promedio = totalListas ? Math.round((resumen.reduce((s, r) => s + r.vino, 0) / totalListas) * 10) / 10 : 0
 
+  // Eventos que ya tienen puestos propios (turnos).
+  const { data: conPuestos } = mio.gestiona && proximas.length
+    ? await admin.from('roles_servicio').select('evento_id').eq('activo', true).in('evento_id', [...new Set(proximas.map((r) => r.evento_id))])
+    : { data: [] }
+  const turnos = new Set((conPuestos ?? []).map((p) => p.evento_id as string))
+
   const enlaceLista = (eventoId: string, fecha: string) => `/mi/ministerios/${id}/agenda/${eventoId}/${fecha}`
 
   return (
@@ -74,7 +81,14 @@ export default async function AgendaMinisterioPage({ params }: { params: Promise
               titulo={r.titulo}
               subtitulo={[diaLargo(r.fecha_real), horario(r.hora, r.hora_fin), r.lugar].filter(Boolean).join(' · ')}
               detalle={esHoy ? <Badge variant="warning">{mio.gestiona && r.requiere_asistencia ? 'Pasar lista' : 'Hoy'}</Badge> : undefined}>
-              {mio.gestiona && !esHoy && <AccionesReunion eventoId={r.evento_id} fecha={r.fecha} recurrente={r.recurrente} />}
+              {mio.gestiona && (
+                <span className="flex flex-wrap items-center gap-x-3">
+                  <Link href={`/mi/ministerios/${id}/agenda/turnos/${r.evento_id}`} className="text-[13px] font-medium mt-1.5" style={{ color: 'var(--accent)' }}>
+                    {turnos.has(r.evento_id) ? 'Turnos' : 'Agregar turnos'}
+                  </Link>
+                  {!esHoy && <AccionesReunion eventoId={r.evento_id} fecha={r.fecha} recurrente={r.recurrente} />}
+                </span>
+              )}
             </Fila>
           )
         })}

@@ -17,9 +17,9 @@ export default async function ServidoresPage() {
   const hoy = hoyLima()
   const [{ data: programas }, { data: ministerios }] = await Promise.all([
     supabase.from('programas').select('id, titulo, fecha, hora_inicio, cancelado, programa_ministerios(estado)')
-      .gte('fecha', hoy).order('fecha').order('hora_inicio'),
+      .gte('fecha', hoy).is('grupo_id', null).order('fecha').order('hora_inicio'),
     // Ministerios que tienen puestos en el culto.
-    supabase.from('roles_servicio').select('grupo_id').eq('activo', true).not('grupo_id', 'is', null),
+    supabase.from('roles_servicio').select('grupo_id').eq('activo', true).not('grupo_id', 'is', null).is('evento_id', null),
   ])
   const totalMinisterios = new Set((ministerios ?? []).map((m) => m.grupo_id)).size
 

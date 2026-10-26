@@ -39,7 +39,7 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
     admin.from('grupos').select('id, nombre').eq('grupo_padre_id', id).eq('activo', true),
     admin.from('grupo_materiales').select('id, titulo, url').eq('grupo_id', id).order('created_at', { ascending: false }).limit(5),
     admin.from('roles_servicio').select('id, nombre, cantidad, modo, requiere_material, puesto_candidatos(persona_id, orden)')
-      .eq('grupo_id', id).eq('activo', true).order('orden'),
+      .eq('grupo_id', id).eq('activo', true).is('evento_id', null).order('orden'),
   ])
   if (!grupo) notFound()
   const lider = grupo.lider as unknown as { nombre_completo: string; foto_url: string | null } | null
@@ -47,7 +47,7 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
 
   // Próximos cultos con el avance de este ministerio.
   const [{ data: programas }, { data: asignaciones }, { data: estados }] = await Promise.all([
-    admin.from('programas').select('id, titulo, fecha, hora_inicio').gte('fecha', hoy).eq('cancelado', false)
+    admin.from('programas').select('id, titulo, fecha, hora_inicio').gte('fecha', hoy).eq('cancelado', false).is('grupo_id', null)
       .order('fecha').order('hora_inicio').limit(mio.esLider ? 40 : 12),
     puestoIds.length
       ? admin.from('programa_asignaciones').select('programa_id, rol_servicio_id, persona:personas(nombre_completo)').in('rol_servicio_id', puestoIds)
