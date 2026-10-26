@@ -123,3 +123,63 @@ export async function registrarMovimiento(data: {
   revalidatePath(`/finanzas/actividades/${data.actividad_id}`)
   return { success: true }
 }
+
+// ---------- Editar y eliminar (permisos de Finanzas: editar / eliminar) ----------
+
+const FECHA = /^\d{4}-\d{2}-\d{2}$/
+const TIPOS_APORTE = ['diezmo', 'ofrenda', 'pacto', 'otro']
+
+function refrescarFinanzas() {
+  revalidatePath('/finanzas', 'layout')
+  revalidatePath('/mi', 'layout')
+}
+
+export async function actualizarAporte(id: string, data: {
+  persona_id: string; tipo: string; monto: string; fecha: string; concepto?: string; fondo_id?: string; medio?: string
+}) {
+  const monto = parseFloat(String(data.monto).replace(',', '.'))
+  if (!TIPOS_APORTE.includes(data.tipo)) return { error: 'Elige el tipo de aporte.' }
+  if (isNaN(monto) || monto <= 0) return { error: 'El monto debe ser mayor a 0.' }
+  if (!FECHA.test(data.fecha)) return { error: 'La fecha es obligatoria.' }
+  const supabase = await createClient()
+  const { data: filas, error } = await supabase.from('aportes').update({
+    persona_id: data.persona_id || null, tipo: data.tipo, monto: Math.round(monto * 100) / 100, fecha: data.fecha,
+    concepto: data.concepto?.trim() || null, fondo_id: data.fondo_id || null, medio: medioValido(data.medio),
+  }).eq('id', id).select('id')
+  if (error || !filas?.length) return { error: 'No tienes permiso para editar aportes o no se pudo guardar.' }
+  refrescarFinanzas()
+  return { success: true }
+}
+
+export async function eliminarAporte(id: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('aportes').delete().eq('id', id).select('id')
+  if (error || !data?.length) return { error: 'No tienes permiso para eliminar aportes.' }
+  refrescarFinanzas()
+  return { success: true }
+}
+
+export async function actualizarGasto(id: string, data: {
+  concepto: string; monto: string; fecha: string; categoria: string; descripcion?: string; fondo_id?: string; medio?: string
+}) {
+  const monto = parseFloat(String(data.monto).replace(',', '.'))
+  if (!data.concepto?.trim()) return { error: 'El concepto es obligatorio.' }
+  if (isNaN(monto) || monto <= 0) return { error: 'El monto debe ser mayor a 0.' }
+  if (!FECHA.test(data.fecha)) return { error: 'La fecha es obligatoria.' }
+  const supabase = await createClient()
+  const { data: filas, error } = await supabase.from('gastos').update({
+    concepto: data.concepto.trim(), monto: Math.round(monto * 100) / 100, fecha: data.fecha, categoria: data.categoria,
+    descripcion: data.descripcion?.trim() || null, fondo_id: data.fondo_id || null, medio: medioValido(data.medio),
+  }).eq('id', id).select('id')
+  if (error || !filas?.length) return { error: 'No tienes permiso para editar gastos o no se pudo guardar.' }
+  refrescarFinanzas()
+  return { success: true }
+}
+
+export async function eliminarGasto(id: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('gastos').delete().eq('id', id).select('id')
+  if (error || !data?.length) return { error: 'No tienes permiso para eliminar gastos.' }
+  refrescarFinanzas()
+  return { success: true }
+}

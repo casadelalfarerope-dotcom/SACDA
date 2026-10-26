@@ -68,7 +68,7 @@ export default async function GastosPage({
       {(gastos ?? []).length === 0 ? <Vacio titulo="Sin gastos" texto="Aún no hay registros con este filtro." /> : (
         <Grupo titulo="Últimos 100">
           {(gastos ?? []).map((g, i) => (
-            <Fila key={g.id} primero={i === 0}
+            <Fila key={g.id} primero={i === 0} href={`/finanzas/gastos/${g.id}`}
               inicio={<span className="block w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: catColor[g.categoria] ?? '#8e8e93' }} />}
               titulo={g.concepto}
               subtitulo={`${etiquetaCategoriaGasto(g.categoria)} · ${etiquetaMedio(g.medio)} · ${formatDate(g.fecha)}`}

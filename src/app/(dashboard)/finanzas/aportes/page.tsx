@@ -67,7 +67,7 @@ export default async function AportesPage({
       {(aportes ?? []).length === 0 ? <Vacio titulo="Sin aportes" texto="Aún no hay registros con este filtro." /> : (
         <Grupo titulo="Últimos 100">
           {(aportes ?? []).map((a, i) => (
-            <Fila key={a.id} primero={i === 0}
+            <Fila key={a.id} primero={i === 0} href={`/finanzas/aportes/${a.id}`}
               inicio={<span className="block w-2.5 h-2.5 rounded-full" aria-hidden="true" style={{ background: tipoColor[a.tipo] ?? '#8e8e93' }} />}
               titulo={(a.personas as { nombre_completo: string } | null)?.nombre_completo ?? 'Anónimo'}
               subtitulo={`${etiquetaTipoAporte(a.tipo)} · ${etiquetaMedio(a.medio)} · ${formatDate(a.fecha)}${a.concepto ? ` · ${a.concepto}` : ''}`}
