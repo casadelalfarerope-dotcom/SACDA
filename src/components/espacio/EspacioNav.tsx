@@ -6,10 +6,11 @@ import { usePathname } from 'next/navigation'
 import { Home, Mic2, ShoppingBag, Wallet, School, CalendarDays, HeartHandshake, GraduationCap, Loader2, type LucideIcon } from 'lucide-react'
 import { IconoModulo } from '@/components/ui/IconoApp'
 
-export type ModuloEspacio = 'inicio' | 'servicio' | 'capacitacion' | 'visitas' | 'solicitudes' | 'aportes' | 'academia' | 'calendario'
+export type ModuloEspacio = 'inicio' | 'agenda' | 'servicio' | 'capacitacion' | 'visitas' | 'solicitudes' | 'aportes' | 'academia' | 'calendario'
 
 const MODULOS: Record<ModuloEspacio, { href: string; label: string; icon: LucideIcon; color: string; rutas: string[] }> = {
   inicio:      { href: '/mi',             label: 'Inicio',      icon: Home,        color: '#a35d2d', rutas: [] },
+  agenda:      { href: '/mi/calendario',  label: 'Calendario',  icon: CalendarDays, color: '#ff3b30', rutas: [] },
   servicio:    { href: '/mi/ministerios', label: 'Ministerios', icon: Mic2,        color: '#ff2d55', rutas: ['/mi/tareas', '/mi/servicio'] },
   capacitacion: { href: '/mi/capacitacion', label: 'Capacitación', icon: GraduationCap, color: '#32ade6', rutas: [] },
   visitas:     { href: '/mi/visitas',     label: 'Visitas',     icon: HeartHandshake,       color: '#30b0c7', rutas: [] },

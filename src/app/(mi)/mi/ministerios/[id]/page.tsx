@@ -1,5 +1,6 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Mic2, PiggyBank, MessageCircle, ExternalLink, Users, ClipboardList, GraduationCap, CheckCircle2 } from 'lucide-react'
+import { Mic2, PiggyBank, CalendarDays, MessageCircle, ExternalLink, Users, ClipboardList, GraduationCap, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { contextoEspacio, misMinisterios } from '@/lib/espacio'
@@ -15,7 +16,9 @@ import { NuevaTareaForm, NuevoTutorialForm } from '@/components/espacio/Formular
 import MarcarVistoBtn from '@/components/servidores/MarcarVistoBtn'
 import { estadoTarea } from '@/lib/etiquetas'
 import { saldosFondos, soles } from '@/lib/fondos'
+import { reuniones } from '@/lib/agenda'
 
+const sumarDias = (f: string, n: number) => { const d = new Date(f + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10) }
 const fechaCorta = (f: string, h: string | null) => `${formatDate(f)}${h ? ` · ${h.slice(0, 5)}` : ''}`
 
 export default async function MiMinisterioPage({ params }: { params: Promise<{ id: string }> }) {
@@ -63,6 +66,7 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
     ? await admin.from('fondos').select('id, nombre, meta').eq('grupo_id', id).eq('activo', true).order('nombre')
     : { data: [] }
   const saldos = fondosGrupo?.length ? await saldosFondos(admin) : null
+  const proximasReuniones = (await reuniones(admin, { grupoIds: [id] }, hoy, sumarDias(hoy, 30))).slice(0, 3)
 
   const tareasVisibles = (tareasGrupo ?? []).filter((t) => mio.esLider || t.asignado_id === ctx.personaId)
   const vistos = new Set((progreso ?? []).map((p) => p.tutorial_id))
@@ -83,6 +87,19 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
     <Pagina ancho="estrecho" titulo={mio.nombre} volver={{ href: '/mi/ministerios', texto: 'Mis ministerios' }}
       subtitulo={mio.esLider ? 'Eres el líder de este ministerio' : mio.padre ? `Subgrupo de ${mio.padre}` : undefined}>
       {grupo.descripcion && <p className="text-[15px]" style={{ color: 'var(--foreground)' }}>{grupo.descripcion}</p>}
+
+      <Grupo titulo="Agenda del ministerio" accion={<Link href={`/mi/ministerios/${id}/agenda`} className="text-[15px] normal-case" style={{ color: 'var(--accent)' }}>{mio.gestiona ? 'Ver y crear' : 'Ver todo'}</Link>}>
+        {proximasReuniones.map((r, i) => (
+          <Fila key={r.evento_id + r.fecha} primero={i === 0} href={`/mi/ministerios/${id}/agenda`}
+            inicio={<IconoModulo icon={CalendarDays} color="#ff3b30" tamano={36} />}
+            titulo={r.titulo} subtitulo={[formatDate(r.fecha_real), r.hora?.slice(0, 5), r.lugar].filter(Boolean).join(' · ')}
+            detalle={r.fecha_real === hoy ? <Badge variant="warning">Hoy</Badge> : undefined} />
+        ))}
+        {!proximasReuniones.length && (
+          <Fila primero href={`/mi/ministerios/${id}/agenda`} titulo={<span style={{ color: 'var(--muted)' }}>
+            {mio.gestiona ? 'Programa ensayos, devocionales o reuniones' : 'No hay reuniones próximas'}</span>} />
+        )}
+      </Grupo>
 
       {!!fondosGrupo?.length && (
         <Grupo titulo="Fondo del ministerio" pie="Registra lo que entra (ventas, ofrendas de la reunión) y lo que se gasta.">

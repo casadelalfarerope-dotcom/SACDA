@@ -20,7 +20,7 @@ function sumarDias(fecha: string, dias: number) {
 export async function diasConLista(db: SupabaseClient, desde: string, hasta: string): Promise<DiaConLista[]> {
   const { data: eventos } = await db.from('eventos')
     .select('id, titulo, tipo, hora_inicio, hora_fin, lugar, tipo_recurrencia, fecha_unica, fecha_inicio_serie, fecha_fin_serie, dias_semana, semana_del_mes, dia_semana_mes')
-    .eq('requiere_asistencia', true)
+    .eq('requiere_asistencia', true).is('grupo_id', null) // los del ministerio tienen su propia lista
   if (!eventos?.length) return []
   const { data: excepciones } = await db.from('evento_excepciones')
     .select('evento_id, fecha_original, tipo_excepcion, fecha_nueva, titulo_override, hora_nueva_inicio')

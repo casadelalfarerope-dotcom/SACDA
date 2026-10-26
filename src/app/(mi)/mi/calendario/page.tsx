@@ -1,0 +1,120 @@
+import Link from 'next/link'
+import { ChevronLeft, ChevronRight, CalendarDays, Users, Mic2, Church } from 'lucide-react'
+import { createServiceClient } from '@/lib/supabase/service'
+import { contextoEspacio, misMinisterios } from '@/lib/espacio'
+import { reuniones } from '@/lib/agenda'
+import { misTurnos } from '@/lib/programas'
+import { hoyLima } from '@/lib/utils'
+import Badge from '@/components/ui/Badge'
+import { IconoModulo } from '@/components/ui/IconoApp'
+import { Pagina, Grupo, Fila, Vacio } from '@/components/ui/ios'
+
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+const INICIALES = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
+
+type Tipo = 'iglesia' | 'ministerio' | 'turno'
+type Item = { tipo: Tipo; clave: string; titulo: string; detalle: string; hora: string | null; href?: string }
+const ESTILO: Record<Tipo, { color: string; icono: typeof Church; texto: string }> = {
+  iglesia:    { color: '#a35d2d', icono: Church, texto: 'Iglesia' },
+  ministerio: { color: '#ff3b30', icono: Users,  texto: 'Mi ministerio' },
+  turno:      { color: '#ff2d55', icono: Mic2,   texto: 'Me toca servir' },
+}
+
+// Calendario personal: actividades de la iglesia, reuniones de mis ministerios y mis turnos.
+export default async function MiCalendarioPage({ searchParams }: { searchParams: Promise<{ mes?: string }> }) {
+  const ctx = await contextoEspacio()
+  const hoy = hoyLima()
+  const { mes: mesParam } = await searchParams
+  const [anio, mes] = (/^\d{4}-\d{2}$/.test(mesParam ?? '') ? mesParam! : hoy.slice(0, 7)).split('-').map(Number) as [number, number]
+  const diasMes = new Date(Date.UTC(anio, mes, 0)).getUTCDate()
+  const primero = `${anio}-${String(mes).padStart(2, '0')}-01`
+  const ultimo = `${anio}-${String(mes).padStart(2, '0')}-${diasMes}`
+  const mover = (d: number) => { const f = new Date(Date.UTC(anio, mes - 1 + d, 1)); return `${f.getUTCFullYear()}-${String(f.getUTCMonth() + 1).padStart(2, '0')}` }
+
+  const admin = createServiceClient()
+  const ministerios = await misMinisterios(ctx.personaId)
+  const nombreMin = new Map(ministerios.map((m) => [m.id, m.nombre]))
+  const [deIglesia, deMinisterios, turnos] = await Promise.all([
+    reuniones(admin, 'iglesia', primero, ultimo),
+    reuniones(admin, { grupoIds: ministerios.map((m) => m.id) }, primero, ultimo),
+    misTurnos(admin, ctx.personaId),
+  ])
+
+  const porDia = new Map<string, Item[]>()
+  const agregar = (f: string, it: Item) => { if (!porDia.has(f)) porDia.set(f, []); porDia.get(f)!.push(it) }
+  for (const r of deIglesia) agregar(r.fecha_real, { tipo: 'iglesia', clave: r.evento_id + r.fecha, titulo: r.titulo, detalle: r.lugar ?? 'Toda la iglesia', hora: r.hora?.slice(0, 5) ?? null })
+  for (const r of deMinisterios) agregar(r.fecha_real, {
+    tipo: 'ministerio', clave: r.evento_id + r.fecha, titulo: r.titulo,
+    detalle: [nombreMin.get(r.grupo_id!), r.lugar].filter(Boolean).join(' · '), hora: r.hora?.slice(0, 5) ?? null,
+    href: `/mi/ministerios/${r.grupo_id}/agenda`,
+  })
+  for (const t of turnos.filter((t) => t.programa.fecha >= primero && t.programa.fecha <= ultimo)) agregar(t.programa.fecha, {
+    tipo: 'turno', clave: t.id, titulo: `${t.puesto.nombre} · ${t.grupo.nombre}`, detalle: t.programa.titulo,
+    hora: t.programa.hora_inicio?.slice(0, 5) ?? null, href: `/mi/ministerios/${t.grupo.id}`,
+  })
+  for (const l of porDia.values()) l.sort((a, b) => (a.hora ?? '').localeCompare(b.hora ?? ''))
+
+  const inicioSemana = new Date(Date.UTC(anio, mes - 1, 1)).getUTCDay()
+  const celdas: (number | null)[] = [...Array(inicioSemana).fill(null), ...Array.from({ length: diasMes }, (_, i) => i + 1)]
+  const fechaDe = (d: number) => `${anio}-${String(mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  // Del mes actual se muestran solo los días que faltan; de otros meses, todos.
+  const dias = [...porDia.keys()].sort().filter((f) => hoy.slice(0, 7) !== `${anio}-${String(mes).padStart(2, '0')}` || f >= hoy)
+
+  return (
+    <Pagina ancho="estrecho" titulo="Calendario" subtitulo="Actividades de la iglesia, de tus ministerios y tus turnos">
+      <section aria-label={`${MESES[mes - 1]} ${anio}`} className="rounded-2xl border p-4 space-y-3" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="flex items-center justify-between">
+          <Link href={`/mi/calendario?mes=${mover(-1)}`} aria-label="Mes anterior" className="p-2 -m-1 rounded-full hover:bg-[color:var(--fill)]" style={{ color: 'var(--accent)' }}><ChevronLeft size={20} /></Link>
+          <h2 className="text-[17px] font-semibold" style={{ color: 'var(--foreground)' }}>{MESES[mes - 1]} {anio}</h2>
+          <Link href={`/mi/calendario?mes=${mover(1)}`} aria-label="Mes siguiente" className="p-2 -m-1 rounded-full hover:bg-[color:var(--fill)]" style={{ color: 'var(--accent)' }}><ChevronRight size={20} /></Link>
+        </div>
+        <div className="grid grid-cols-7 text-center gap-y-1">
+          {INICIALES.map((d, i) => <span key={i} className="text-[12px] font-semibold" style={{ color: 'var(--muted)' }} aria-hidden="true">{d}</span>)}
+          {celdas.map((d, i) => {
+            if (!d) return <span key={i} />
+            const f = fechaDe(d)
+            const items = porDia.get(f) ?? []
+            const esHoy = f === hoy
+            const tipos = (['iglesia', 'ministerio', 'turno'] as Tipo[]).filter((t) => items.some((x) => x.tipo === t))
+            return (
+              <span key={i} className="flex flex-col items-center gap-0.5 py-1">
+                <span className="w-8 h-8 flex items-center justify-center rounded-full text-[15px] tabular-nums"
+                  style={{ background: esHoy ? 'var(--destructive)' : undefined, color: esHoy ? '#fff' : 'var(--foreground)', fontWeight: items.length ? 650 : 400 }}>
+                  {d}
+                </span>
+                <span className="flex gap-0.5 h-1.5" aria-hidden="true">
+                  {tipos.map((t) => <span key={t} className="w-1.5 h-1.5 rounded-full" style={{ background: ESTILO[t].color }} />)}
+                </span>
+              </span>
+            )
+          })}
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center text-[12px]" style={{ color: 'var(--muted)' }}>
+          {(['iglesia', 'ministerio', 'turno'] as Tipo[]).map((t) => (
+            <span key={t} className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: ESTILO[t].color }} /> {ESTILO[t].texto}</span>
+          ))}
+        </div>
+      </section>
+
+      {!dias.length && <Vacio icono={<CalendarDays size={44} />} titulo={`Nada más en ${MESES[mes - 1].toLowerCase()}`} texto="Revisa el mes siguiente con la flecha." />}
+
+      {dias.map((f) => {
+        const d = new Date(`${f}T12:00:00Z`)
+        return (
+          <Grupo key={f} titulo={`${f === hoy ? 'Hoy · ' : ''}${DIAS[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]!.toLowerCase()}`}>
+            {porDia.get(f)!.map((x, i) => {
+              const E = ESTILO[x.tipo]
+              return (
+                <Fila key={x.tipo + x.clave} primero={i === 0} href={x.href}
+                  inicio={<IconoModulo icon={E.icono} color={E.color} tamano={36} />}
+                  titulo={x.titulo} subtitulo={[x.hora, x.detalle].filter(Boolean).join(' · ')}
+                  detalle={x.tipo === 'turno' ? <Badge variant="warning">Sirves</Badge> : undefined} />
+              )
+            })}
+          </Grupo>
+        )
+      })}
+    </Pagina>
+  )
+}

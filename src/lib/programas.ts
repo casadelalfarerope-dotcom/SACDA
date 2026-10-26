@@ -19,7 +19,7 @@ export async function asegurarProgramas(admin: SupabaseClient) {
 
   const { data: eventos } = await admin.from('eventos')
     .select('id, titulo, tipo, hora_inicio, hora_fin, lugar, tipo_recurrencia, fecha_unica, fecha_inicio_serie, fecha_fin_serie, dias_semana, semana_del_mes, dia_semana_mes')
-    .eq('tipo', 'servicio')
+    .eq('tipo', 'servicio').is('grupo_id', null)
 
   const ids = (eventos ?? []).map((e) => e.id as string)
   const [{ data: excepciones }, { data: existentes }] = await Promise.all([

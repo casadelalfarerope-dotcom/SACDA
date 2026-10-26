@@ -13,7 +13,7 @@ const DIAS_SEMANA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
 export default async function CalendarioPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string; anio?: string }>
+  searchParams: Promise<{ mes?: string; anio?: string; min?: string }>
 }) {
   const params = await searchParams
   const hoy = new Date()
@@ -26,7 +26,7 @@ export default async function CalendarioPage({
   const supabase = await createClient()
 
   const [{ data: eventos }, { data: excepciones }, { data: programas }, { data: personas }] = await Promise.all([
-    supabase.from('eventos').select('*').or(
+    supabase.from('eventos').select('*, grupo:grupos(nombre)').or(
       `tipo_recurrencia.neq.ninguna,and(tipo_recurrencia.eq.ninguna,fecha_unica.gte.${desde.toISOString().split('T')[0]},fecha_unica.lte.${hasta.toISOString().split('T')[0]})`
     ),
     supabase.from('evento_excepciones').select('*')
@@ -54,6 +54,12 @@ export default async function CalendarioPage({
     publicados: ((p.programa_ministerios ?? []) as { estado: string }[]).filter((m) => m.estado === 'publicado').length,
   }]))
 
+  // Eventos de un ministerio (ensayos, devocionales…): se etiquetan y se pueden ocultar.
+  const ocultarMinisterios = params.min === 'no'
+  const ministerioDe = new Map((eventos ?? []).filter((e) => e.grupo_id)
+    .map((e) => [e.id as string, (e.grupo as { nombre: string } | null)?.nombre ?? 'Ministerio']))
+  const eventosVisibles = (eventos ?? []).filter((e) => !ocultarMinisterios || !e.grupo_id)
+
   // Generar todas las instancias del mes
   const excepcionesPorEvento: Record<string, typeof excepciones> = {}
   for (const exc of excepciones ?? []) {
@@ -63,11 +69,11 @@ export default async function CalendarioPage({
 
   // Los días cancelados también se muestran (tachados) para poder deshacer el cambio.
   const cancelados = (excepciones ?? []).filter((x) => x.tipo_excepcion === 'cancelado').flatMap((x) => {
-    const ev = (eventos ?? []).find((e) => e.id === x.evento_id)
+    const ev = eventosVisibles.find((e) => e.id === x.evento_id)
     return ev ? [{ fecha: new Date(x.fecha_original + 'T12:00:00'), titulo: ev.titulo, hora_inicio: ev.hora_inicio, lugar: ev.lugar, evento_id: ev.id, fecha_original: x.fecha_original as string, excepcion: 'cancelado' }] : []
   })
   const tipoExcepcion = new Map((excepciones ?? []).map((x) => [`${x.evento_id}|${x.fecha_original}`, x.tipo_excepcion as string]))
-  const todasInstancias = [...(eventos ?? []).flatMap((ev) =>
+  const todasInstancias = [...eventosVisibles.flatMap((ev) =>
     generarInstancias(ev, excepcionesPorEvento[ev.id] ?? [], desde, hasta)
   ), ...cancelados].sort((a, b) => a.fecha.getTime() - b.fecha.getTime())
 
@@ -164,6 +170,12 @@ export default async function CalendarioPage({
         </div>
       </section>
 
+      {ministerioDe.size > 0 && (
+        <Link href={`/calendario?mes=${mes}&anio=${anio}${ocultarMinisterios ? '' : '&min=no'}`} className="inline-block text-[14px] px-1" style={{ color: 'var(--accent)' }}>
+          {ocultarMinisterios ? 'Mostrar también los eventos de los ministerios' : 'Ocultar los eventos de los ministerios'}
+        </Link>
+      )}
+
       {fechasConEventos.length === 0 ? (
         <Vacio titulo="Sin eventos este mes" texto="Crea un evento con el botón +." />
       ) : (
@@ -186,7 +198,7 @@ export default async function CalendarioPage({
                     inicio={<span className="block w-1 h-9 rounded-full" aria-hidden="true"
                       style={{ background: cancelado ? 'var(--muted)' : cambio ? 'var(--warning)' : 'var(--accent)' }} />}
                     titulo={cancelado ? <span className="line-through" style={{ color: 'var(--muted)' }}>{inst.titulo}</span> : inst.titulo}
-                    subtitulo={cancelado ? 'Cancelado este día' : [inst.lugar,
+                    subtitulo={cancelado ? 'Cancelado este día' : [ministerioDe.has(inst.evento_id) ? `Solo ${ministerioDe.get(inst.evento_id)}` : null, inst.lugar,
                       cambio === 'reprogramado' ? (inst.fecha_original !== inst.fecha.toISOString().slice(0, 10) ? `Movido desde el ${inst.fecha_original.slice(8, 10)}/${inst.fecha_original.slice(5, 7)}` : 'Hora cambiada') : cambio === 'modificado' ? 'Con cambios' : null,
                       programa && (programa.publicados ? `Servidores: ${programa.publicados} ${programa.publicados === 1 ? 'ministerio publicó' : 'ministerios publicaron'}` : 'Servidores sin publicar')]
                       .filter(Boolean).join(' · ') || undefined}

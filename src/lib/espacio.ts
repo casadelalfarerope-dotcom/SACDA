@@ -70,7 +70,8 @@ export function enlaceEspacio(url: string | null): string | undefined {
   return undefined
 }
 
-export interface MiMinisterio { id: string; nombre: string; padre: string | null; esLider: boolean }
+// gestiona: lidera el ministerio o su ministerio padre (crea eventos y pasa lista).
+export interface MiMinisterio { id: string; nombre: string; padre: string | null; esLider: boolean; gestiona: boolean }
 
 // Ministerios (y subgrupos) que la persona integra o lidera.
 export async function misMinisterios(personaId: string): Promise<MiMinisterio[]> {
@@ -82,7 +83,12 @@ export async function misMinisterios(personaId: string): Promise<MiMinisterio[]>
       .eq('encargado_id', personaId).eq('activo', true),
   ])
   type G = { id: string; nombre: string; activo: boolean; encargado_id: string | null; grupo_padre_id: string | null }
-  const todos = [...(miembro ?? []).map((m) => m.grupo as unknown as G), ...((lidera ?? []) as unknown as G[])]
+  // Subgrupos de los ministerios que lidera (el líder del padre también los gestiona).
+  const liderados = (lidera ?? []).map((g) => g.id as string)
+  const { data: hijos } = liderados.length
+    ? await supabase.from('grupos').select('id, nombre, activo, encargado_id, grupo_padre_id').in('grupo_padre_id', liderados).eq('activo', true)
+    : { data: [] }
+  const todos = [...(miembro ?? []).map((m) => m.grupo as unknown as G), ...((lidera ?? []) as unknown as G[]), ...((hijos ?? []) as unknown as G[])]
   // Nombres de los ministerios "padre" de los subgrupos.
   const padreIds = [...new Set(todos.map((g) => g?.grupo_padre_id).filter(Boolean))] as string[]
   const { data: padres } = padreIds.length ? await supabase.from('grupos').select('id, nombre').in('id', padreIds) : { data: [] }
@@ -90,7 +96,11 @@ export async function misMinisterios(personaId: string): Promise<MiMinisterio[]>
   const mapa = new Map<string, MiMinisterio>()
   for (const g of todos) {
     if (!g?.activo || mapa.has(g.id)) continue
-    mapa.set(g.id, { id: g.id, nombre: g.nombre, padre: g.grupo_padre_id ? nombrePadre.get(g.grupo_padre_id) ?? null : null, esLider: g.encargado_id === personaId })
+    const esLider = g.encargado_id === personaId
+    mapa.set(g.id, {
+      id: g.id, nombre: g.nombre, padre: g.grupo_padre_id ? nombrePadre.get(g.grupo_padre_id) ?? null : null,
+      esLider, gestiona: esLider || (!!g.grupo_padre_id && liderados.includes(g.grupo_padre_id)),
+    })
   }
   return [...mapa.values()].sort((a, b) => Number(b.esLider) - Number(a.esLider) || a.nombre.localeCompare(b.nombre))
 }
