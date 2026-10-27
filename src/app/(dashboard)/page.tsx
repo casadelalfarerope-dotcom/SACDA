@@ -4,7 +4,7 @@ import { Cake, ChevronRight, UserPlus, UserX, Users, UserCheck, Church, Calendar
 import { diasParaCumpleanios } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
 import { IconoModulo } from '@/components/ui/IconoApp'
-import { procesarCumpleaniosProximos, avisarCumpleaniosDeHoy } from '@/app/actions/notificaciones-auto'
+import { procesarCumpleaniosProximos } from '@/app/actions/notificaciones-auto'
 
 function Widget({ label, value, icon, color, href }: {
   label: string; value: number; icon: LucideIcon; color: string; href: string
@@ -58,7 +58,6 @@ export default async function DashboardPage() {
   ])
 
   procesarCumpleaniosProximos().catch(console.error)
-  avisarCumpleaniosDeHoy().catch(console.error)
 
   const nombre = (cuenta?.persona as unknown as { nombre_completo: string } | null)?.nombre_completo.split(' ')[0]
   const fecha = new Intl.DateTimeFormat('es-PE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Lima' }).format(new Date())

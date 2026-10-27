@@ -32,6 +32,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (pathname.startsWith('/auth/') || pathname === '/privacidad') return supabaseResponse
+  // Tareas programadas de Vercel: se protegen en su propia ruta.
+  if (pathname.startsWith('/api/cron/')) return supabaseResponse
 
   if (pathname.startsWith('/login') || pathname.startsWith('/recuperar')) {
     if (user) {
