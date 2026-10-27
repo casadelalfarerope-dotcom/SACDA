@@ -120,7 +120,7 @@ export default function PuestosMinisterio({ grupoId, puestos, integrantes, event
           </label>
         </div>
         <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
-          <b>Rota</b>: el sistema sugiere al siguiente de la lista en cada culto. <b>Fijo</b>: sugiere a los mismos del culto anterior.
+          <b>Rota</b>: el sistema sugiere al siguiente de la lista en cada {eventoId ? 'fecha' : 'culto'}. <b>Fijo</b>: sugiere a los mismos {eventoId ? 'de la vez anterior' : 'del culto anterior'}.
         </p>
         <Button type="submit" size="sm" loading={pendiente}>Agregar puesto</Button>
       </form>
