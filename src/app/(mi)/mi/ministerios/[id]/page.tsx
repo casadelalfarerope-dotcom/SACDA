@@ -16,7 +16,8 @@ import { NuevaTareaForm, NuevoTutorialForm } from '@/components/espacio/Formular
 import MarcarVistoBtn from '@/components/servidores/MarcarVistoBtn'
 import { estadoTarea } from '@/lib/etiquetas'
 import { saldosFondos, soles } from '@/lib/fondos'
-import { reuniones } from '@/lib/agenda'
+import { reuniones, integrantesDe } from '@/lib/agenda'
+import SelectorRol from '@/components/ministerios/SelectorRol'
 
 const sumarDias = (f: string, n: number) => { const d = new Date(f + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10) }
 const fechaCorta = (f: string, h: string | null) => `${formatDate(f)}${h ? ` · ${h.slice(0, 5)}` : ''}`
@@ -31,7 +32,7 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
   const admin = createServiceClient()
   const supabase = await createClient()
   const hoy = hoyLima()
-  if (mio.esLider) await asegurarProgramas(admin)
+  if (mio.gestiona) await asegurarProgramas(admin)
 
   const [{ data: grupo }, { data: miembros }, { data: subgrupos }, { data: materiales }, { data: puestos }] = await Promise.all([
     admin.from('grupos').select('nombre, clave, descripcion, enlace_whatsapp, encargado_id, lider:personas!grupos_encargado_id_fkey(nombre_completo, foto_url)').eq('id', id).single(),
@@ -48,7 +49,7 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
   // Próximos cultos con el avance de este ministerio.
   const [{ data: programas }, { data: asignaciones }, { data: estados }] = await Promise.all([
     admin.from('programas').select('id, titulo, fecha, hora_inicio').gte('fecha', hoy).eq('cancelado', false).is('grupo_id', null)
-      .order('fecha').order('hora_inicio').limit(mio.esLider ? 40 : 12),
+      .order('fecha').order('hora_inicio').limit(mio.gestiona ? 40 : 12),
     puestoIds.length
       ? admin.from('programa_asignaciones').select('programa_id, rol_servicio_id, persona:personas(nombre_completo)').in('rol_servicio_id', puestoIds)
       : Promise.resolve({ data: [] as never[] }),
@@ -68,6 +69,10 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
   const saldos = fondosGrupo?.length ? await saldosFondos(admin) : null
   const proximasReuniones = (await reuniones(admin, { grupoIds: [id] }, hoy, sumarDias(hoy, 30))).slice(0, 3)
 
+  // Integrantes con su rol (líderes primero, luego ayudantes).
+  const orden = { lider: 0, ayudante: 1 } as Record<string, number>
+  const equipo = (await integrantesDe(admin, id)).sort((a, b) => (orden[a.rol ?? ''] ?? 2) - (orden[b.rol ?? ''] ?? 2) || a.nombre_completo.localeCompare(b.nombre_completo))
+
   const tareasVisibles = (tareasGrupo ?? []).filter((t) => mio.esLider || t.asignado_id === ctx.personaId)
   const vistos = new Set((progreso ?? []).map((p) => p.tutorial_id))
 
@@ -85,7 +90,7 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
 
   return (
     <Pagina ancho="estrecho" titulo={mio.nombre} volver={{ href: '/mi/ministerios', texto: 'Mis ministerios' }}
-      subtitulo={mio.esLider ? 'Eres el líder de este ministerio' : mio.padre ? `Subgrupo de ${mio.padre}` : undefined}>
+      subtitulo={mio.esLider ? 'Eres líder de este ministerio' : mio.esAyudante ? 'Eres ayudante del líder' : mio.padre ? `Subgrupo de ${mio.padre}` : undefined}>
       {grupo.descripcion && <p className="text-[15px]" style={{ color: 'var(--foreground)' }}>{grupo.descripcion}</p>}
 
       <Grupo titulo="Agenda del ministerio" accion={<Link href={`/mi/ministerios/${id}/agenda`} className="text-[15px] normal-case" style={{ color: 'var(--accent)' }}>{mio.gestiona ? 'Ver y crear' : 'Ver todo'}</Link>}>
@@ -115,7 +120,7 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
         </Grupo>
       )}
 
-      {mio.esLider ? (
+      {mio.gestiona ? (
         <section className="space-y-2" aria-labelledby="prog-titulo">
           <div className="flex flex-wrap items-end justify-between gap-2 px-4">
             <h2 id="prog-titulo" className="text-[13px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Programación</h2>
@@ -207,16 +212,17 @@ export default async function MiMinisterioPage({ params }: { params: Promise<{ i
       </Grupo>
       {mio.esLider && <Tarjeta titulo="Compartir un tutorial"><NuevoTutorialForm grupoId={id} /></Tarjeta>}
 
-      <Grupo titulo={`Integrantes (${integrantes.length + (lider && !integrantes.some((m) => m.id === grupo.encargado_id) ? 1 : 0)})`}>
-        {lider && (
-          <Fila primero inicio={<Avatar nombre={lider.nombre_completo} fotoUrl={lider.foto_url} size="sm" />}
-            titulo={lider.nombre_completo} detalle={<Badge variant="info">Líder</Badge>} />
-        )}
-        {integrantes.filter((m) => m.id !== grupo.encargado_id).map((m, i) => (
-          <Fila key={m.id} primero={!lider && i === 0} inicio={<Avatar nombre={m.nombre_completo} fotoUrl={m.foto_url} size="sm" />}
-            titulo={m.nombre_completo} subtitulo={m.rol ?? undefined} />
+      <Grupo titulo={`Integrantes (${equipo.length})`}
+        pie={mio.esLider ? 'Como en WhatsApp: puedes nombrar a otros líderes o ayudantes. Los ayudantes crean eventos, pasan lista y programan turnos.' : undefined}>
+        {equipo.map((m, i) => (
+          <Fila key={m.id} primero={i === 0} inicio={<Avatar nombre={m.nombre_completo} fotoUrl={m.foto_url} size="sm" />}
+            titulo={m.nombre_completo}
+            detalle={mio.esLider
+              ? <SelectorRol grupoId={id} personaId={m.id} rol={m.rol} nombre={m.nombre_completo} />
+              : m.rol === 'lider' ? <Badge variant="info">Líder</Badge> : m.rol === 'ayudante' ? <Badge variant="muted">Ayudante</Badge> : undefined} />
         ))}
       </Grupo>
+
 
       {!!subgrupos?.length && (
         <Grupo titulo="Subgrupos">

@@ -6,6 +6,7 @@ import { Pagina, Grupo, Fila, Tarjeta, BotonEnlace } from '@/components/ui/ios'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import AgregarMiembroForm from '@/components/ministerios/AgregarMiembroForm'
+import SelectorRol from '@/components/ministerios/SelectorRol'
 import RemoverMiembroBtn from '@/components/ministerios/RemoverMiembroBtn'
 import PuestosMinisterio from '@/components/programas/PuestosMinisterio'
 
@@ -95,8 +96,13 @@ export default async function DetalleGrupoPage({
             return (
               <Fila key={m.id} primero={i === 0}
                 inicio={persona ? <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" /> : undefined}
-                titulo={persona?.nombre_completo ?? '—'} subtitulo={m.rol_en_grupo ?? undefined}
-                detalle={<RemoverMiembroBtn miembroId={m.id} grupoId={id} />} />
+                titulo={persona?.nombre_completo ?? '—'}
+                subtitulo={m.persona_id === grupo.encargado_id ? 'Líder de contacto' : undefined}
+                detalle={<span className="flex items-center gap-1.5">
+                  <SelectorRol grupoId={id} personaId={m.persona_id as string} nombre={persona?.nombre_completo ?? ''}
+                    rol={(m.rol_en_grupo === 'lider' || m.rol_en_grupo === 'ayudante' ? m.rol_en_grupo : null)} />
+                  <RemoverMiembroBtn miembroId={m.id} grupoId={id} />
+                </span>} />
             )
           })}
           {!miembros?.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>Sin miembros aún</span>} />}

@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
 import { enviarEmail, tplTareaAsignada, tplArteAprobado } from '@/lib/email'
-import { integrantesMinisterio } from '@/lib/ministerios'
+import { responsablesDe, integrantesMinisterio } from '@/lib/ministerios'
 
 export async function crearTarea(data: {
   tipo: string
@@ -94,6 +94,18 @@ export async function entregarTarea(tarea_id: string, url_archivo: string, notas
     .update({ estado: 'entregado' })
     .eq('id', tarea_id)
   if (updErr) return { error: 'No se pudo actualizar el estado.' }
+
+  // Aviso a los líderes del ministerio para que revisen la entrega.
+  const admin = createServiceClient()
+  const { data: t } = await admin.from('tareas').select('titulo, grupo_id, asignado:personas!tareas_asignado_id_fkey(nombre_completo)').eq('id', tarea_id).single()
+  if (t?.grupo_id) {
+    const quien = (t.asignado as unknown as { nombre_completo: string } | null)?.nombre_completo ?? 'Alguien'
+    const lideres = await responsablesDe(admin, t.grupo_id as string)
+    if (lideres.length) await admin.from('notificaciones').insert(lideres.map((persona_id) => ({
+      persona_id, tipo: 'general', titulo: 'Entregaron una tarea',
+      cuerpo: `${quien} entregó "${t.titulo}". Revísala para aprobarla o pedir cambios.`, url: `/mi/tareas/${tarea_id}`,
+    })))
+  }
 
   revalidatePath(`/tareas/${tarea_id}`)
   revalidatePath('/tareas')

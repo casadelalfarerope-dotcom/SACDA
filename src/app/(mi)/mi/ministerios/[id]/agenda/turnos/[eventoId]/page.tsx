@@ -56,7 +56,10 @@ export default async function TurnosEventoPage({ params }: { params: Promise<{ i
         </section>
       )}
 
-      <section className="space-y-1.5" aria-labelledby="puestos-evento">
+      {!mio.esLider && !puestos?.length && (
+        <p className="px-1 text-[14px]" style={{ color: 'var(--muted)' }}>Este evento aún no tiene puestos. Los define un líder del ministerio.</p>
+      )}
+      {mio.esLider && <section className="space-y-1.5" aria-labelledby="puestos-evento">
         <h2 id="puestos-evento" className="px-4 text-[13px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted)' }}>Puestos de este evento</h2>
         {!puestos?.length && (
           <p className="px-4 text-[14px]" style={{ color: 'var(--muted)' }}>
@@ -69,7 +72,7 @@ export default async function TurnosEventoPage({ params }: { params: Promise<{ i
             id: p.id, nombre: p.nombre, cantidad: p.cantidad, modo: p.modo, requiere_material: p.requiere_material,
             candidatos: ((p.puesto_candidatos ?? []) as { persona_id: string; orden: number }[]).sort((a, b) => a.orden - b.orden).map((c) => c.persona_id),
           }))} />
-      </section>
+      </section>}
     </Pagina>
   )
 }

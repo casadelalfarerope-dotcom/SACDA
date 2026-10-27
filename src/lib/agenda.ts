@@ -40,16 +40,22 @@ export async function reuniones(db: SupabaseClient, filtro: { grupoIds: string[]
   ).sort((a, b) => (a.fecha_real + (a.hora ?? '')).localeCompare(b.fecha_real + (b.hora ?? '')))
 }
 
-// Integrantes del ministerio (y su líder), ordenados por nombre.
+export type RolGrupo = 'lider' | 'ayudante' | null
+
+// Integrantes del ministerio (con sus líderes y ayudantes), ordenados por nombre.
 export async function integrantesDe(db: SupabaseClient, grupoId: string) {
   const [{ data: miembros }, { data: grupo }] = await Promise.all([
-    db.from('grupo_miembros').select('persona:personas(id, nombre_completo, foto_url)').eq('grupo_id', grupoId).eq('activo', true),
-    db.from('grupos').select('lider:personas!grupos_encargado_id_fkey(id, nombre_completo, foto_url)').eq('id', grupoId).single(),
+    db.from('grupo_miembros').select('rol_en_grupo, persona:personas(id, nombre_completo, foto_url)').eq('grupo_id', grupoId).eq('activo', true),
+    db.from('grupos').select('encargado_id, lider:personas!grupos_encargado_id_fkey(id, nombre_completo, foto_url)').eq('id', grupoId).single(),
   ])
-  type P = { id: string; nombre_completo: string; foto_url: string | null }
-  const lista = (miembros ?? []).map((m) => m.persona as unknown as P).filter(Boolean)
-  const lider = grupo?.lider as unknown as P | null
-  if (lider && !lista.some((p) => p.id === lider.id)) lista.push(lider)
+  type P = { id: string; nombre_completo: string; foto_url: string | null; rol: RolGrupo }
+  const lista: P[] = (miembros ?? []).filter((m) => m.persona).map((m) => ({
+    ...(m.persona as unknown as Omit<P, 'rol'>),
+    rol: (m.rol_en_grupo === 'lider' || m.rol_en_grupo === 'ayudante' ? m.rol_en_grupo : null) as RolGrupo,
+  }))
+  const lider = grupo?.lider as unknown as Omit<P, 'rol'> | null
+  if (lider && !lista.some((p) => p.id === lider.id)) lista.push({ ...lider, rol: 'lider' })
+  for (const p of lista) if (p.id === grupo?.encargado_id) p.rol = 'lider'
   return lista.sort((a, b) => a.nombre_completo.localeCompare(b.nombre_completo))
 }
 

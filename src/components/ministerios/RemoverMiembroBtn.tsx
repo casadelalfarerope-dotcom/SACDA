@@ -12,13 +12,14 @@ export default function RemoverMiembroBtn({ miembroId, grupoId }: { miembroId: s
   async function handleRemover() {
     if (!confirm('¿Remover este miembro del grupo?')) return
     setLoading(true)
-    await removerMiembro(miembroId, grupoId)
+    const res = await removerMiembro(miembroId, grupoId)
+    if (res.error) alert(res.error)
     router.refresh()
     setLoading(false)
   }
 
   return (
-    <button onClick={handleRemover} disabled={loading}
+    <button onClick={handleRemover} disabled={loading} aria-label="Quitar del ministerio"
       className="p-1.5 rounded-lg transition-opacity hover:opacity-70 disabled:opacity-30"
       style={{ color: 'var(--muted)' }}>
       <X size={15} />

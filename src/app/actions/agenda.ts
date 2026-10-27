@@ -16,14 +16,14 @@ function refrescar(grupoId: string) {
 }
 
 // Quién está actuando y si puede gestionar la agenda del ministerio:
-// su líder, el líder del ministerio padre, o Administración/Coordinación.
+// sus líderes y ayudantes, el líder del ministerio padre, o Administración/Coordinación.
 async function gestor(grupoId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
   const [{ data: cuenta }, { data: lider }, { data: admin }] = await Promise.all([
     supabase.from('cuentas').select('persona_id').eq('id', user.id).single(),
-    supabase.rpc('es_lider_o_padre', { p_grupo: grupoId }),
+    supabase.rpc('es_gestor_de', { p_grupo: grupoId }),
     supabase.rpc('tiene_permiso', { p_modulo: 'ministerios', p_accion: 'editar' }),
   ])
   if (lider !== true && admin !== true) return null

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Link as LinkIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { contextoEspacio } from '@/lib/espacio'
+import { contextoEspacio, misMinisterios } from '@/lib/espacio'
 import { estadoTarea } from '@/lib/etiquetas'
 import { formatDate } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
@@ -21,7 +21,7 @@ export default async function MiTareaPage({ params }: { params: Promise<{ id: st
     .eq('id', id).maybeSingle()
   if (!tarea) notFound()
   const grupo = tarea.grupo as unknown as { id: string; nombre: string; encargado_id: string | null } | null
-  const esLider = grupo?.encargado_id === ctx.personaId
+  const esLider = !!grupo && !!(await misMinisterios(ctx.personaId)).find((m) => m.id === grupo.id)?.esLider
   const esMia = tarea.asignado_id === ctx.personaId
   if (!esLider && !esMia) notFound()
 
