@@ -7,6 +7,10 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Segmentado } from '@/components/ui/ios'
 import { crearPuesto, actualizarPuesto, eliminarPuesto, guardarCandidatos } from '@/app/actions/servidores'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
+import Select from '@/components/ui/Select'
+
+const CANTIDADES = Array.from({ length: 10 }, (_, n) => ({ value: String(n + 1), label: String(n + 1) }))
 
 export interface PuestoEditable {
   id: string
@@ -70,12 +74,9 @@ export default function PuestosMinisterio({ grupoId, puestos, integrantes, event
                     onChange={(modo) => ejecutar(() => actualizarPuesto(p.id, grupoId, { modo }))} />
                   <label className="inline-flex items-center gap-2 text-[14px]" style={{ color: 'var(--foreground)' }}>
                     Personas
-                    <select value={p.cantidad} disabled={pendiente} aria-label={`Personas para ${p.nombre}`}
+                    <Select variante="pildora" value={String(p.cantidad)} disabled={pendiente} aria-label={`Personas para ${p.nombre}`}
                       onChange={(e) => ejecutar(() => actualizarPuesto(p.id, grupoId, { cantidad: Number(e.target.value) }))}
-                      className="h-8 px-2 rounded-[8px] text-[14px] outline-none border border-transparent"
-                      style={{ background: 'var(--fill)', color: 'var(--foreground)' }}>
-                      {Array.from({ length: 10 }, (_, n) => n + 1).map((n) => <option key={n} value={n}>{n}</option>)}
-                    </select>
+                      options={CANTIDADES} />
                   </label>
                   <label className="inline-flex items-center gap-2 text-[14px]" style={{ color: 'var(--foreground)' }}>
                     <input type="checkbox" checked={p.requiere_material} disabled={pendiente}
@@ -109,10 +110,8 @@ export default function PuestosMinisterio({ grupoId, puestos, integrantes, event
           <Segmentado etiqueta="Modo del nuevo puesto" opciones={MODOS} valor={nuevo.modo} onChange={(modo) => setNuevo({ ...nuevo, modo })} />
           <label className="inline-flex items-center gap-2 text-[14px]" style={{ color: 'var(--foreground)' }}>
             Personas
-            <select value={nuevo.cantidad} onChange={(e) => setNuevo({ ...nuevo, cantidad: Number(e.target.value) })}
-              className="h-8 px-2 rounded-[8px] text-[14px] outline-none border border-transparent" style={{ background: 'var(--fill)', color: 'var(--foreground)' }}>
-              {Array.from({ length: 10 }, (_, n) => n + 1).map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
+            <Select variante="pildora" value={String(nuevo.cantidad)} aria-label="Personas para el nuevo puesto"
+              onChange={(e) => setNuevo({ ...nuevo, cantidad: Number(e.target.value) })} options={CANTIDADES} />
           </label>
           <label className="inline-flex items-center gap-2 text-[14px]" style={{ color: 'var(--foreground)' }}>
             <input type="checkbox" checked={nuevo.requiere_material} onChange={(e) => setNuevo({ ...nuevo, requiere_material: e.target.checked })} />
@@ -160,12 +159,8 @@ function Candidatos({ inicial, integrantes, pendiente, onGuardar }: {
         ))}
       </ol>
       {resto.length > 0 && (
-        <select aria-label="Agregar a la lista" value="" onChange={(e) => e.target.value && setIds([...ids, e.target.value])}
-          className="h-8 px-2.5 rounded-full text-[14px] outline-none border border-transparent"
-          style={{ background: 'var(--surface)', color: 'var(--accent)' }}>
-          <option value="">+ Agregar persona</option>
-          {resto.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-        </select>
+        <BuscadorPersona agregar compacto personas={resto} placeholder="Agregar persona a la lista…"
+          onChange={(id) => id && setIds([...ids, id])} />
       )}
       {!integrantes.length && <p className="text-[13px]" style={{ color: 'var(--muted)' }}>Primero agrega integrantes al ministerio.</p>}
       <div><Button size="sm" loading={pendiente} onClick={() => onGuardar(ids)}>Guardar lista</Button></div>

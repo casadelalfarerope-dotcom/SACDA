@@ -5,6 +5,7 @@ import Badge from '@/components/ui/Badge'
 import { Pagina, Grupo, Fila, SegmentadoEnlaces, BotonEnlace, Vacio } from '@/components/ui/ios'
 import { calcularEdad } from '@/lib/utils'
 import type { EstadoPersona } from '@/types/database'
+import Select from '@/components/ui/Select'
 
 const ESTADOS = [
   { valor: '', texto: 'Todos' },
@@ -60,12 +61,8 @@ export default async function CongregantesPage({
               className="w-full h-10 pl-9 pr-3 rounded-[10px] text-[15px] outline-none border border-transparent"
               style={{ background: 'var(--fill)', color: 'var(--foreground)' }} />
           </div>
-          <select name="ministerio" aria-label="Filtrar por ministerio" defaultValue={params.ministerio ?? ''}
-            className="h-10 px-3 rounded-[10px] text-[15px] outline-none border border-transparent cursor-pointer"
-            style={{ background: 'var(--fill)', color: 'var(--foreground)' }}>
-            <option value="">Todos los ministerios</option>
-            {(grupos ?? []).map((g) => <option key={g.id} value={g.id}>{g.nombre}</option>)}
-          </select>
+          <Select name="ministerio" defaultValue={params.ministerio ?? ''} aria-label="Filtrar por ministerio" placeholder="Todos los ministerios"
+          options={(grupos ?? []).map((g) => ({ value: g.id, label: g.nombre }))} />
           {params.estado && <input type="hidden" name="estado" value={params.estado} />}
           <button type="submit" className="h-10 px-5 rounded-full text-[14px] font-semibold"
             style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>

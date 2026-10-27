@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Plus, ChevronLeft, ChevronRight, Cake } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Cake, Mic2 } from 'lucide-react'
+import Badge from '@/components/ui/Badge'
+import { misTurnos } from '@/lib/programas'
 import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila, BotonEnlace, Vacio } from '@/components/ui/ios'
 import { generarInstancias } from '@/lib/calendario'
@@ -13,7 +15,7 @@ const DIAS_SEMANA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
 export default async function CalendarioPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string; anio?: string; min?: string }>
+  searchParams: Promise<{ mes?: string; anio?: string; min?: string; dia?: string }>
 }) {
   const params = await searchParams
   const hoy = new Date()
@@ -24,6 +26,10 @@ export default async function CalendarioPage({
   const hasta = new Date(anio, mes + 1, 0)
 
   const supabase = await createClient()
+  const elegido = /^\d{4}-\d{2}-\d{2}$/.test(params.dia ?? '') ? params.dia! : null
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: cuenta } = user ? await supabase.from('cuentas').select('persona_id').eq('id', user.id).maybeSingle() : { data: null }
+  const misTurnosMes = cuenta?.persona_id ? await misTurnos(supabase, cuenta.persona_id as string) : []
 
   const [{ data: eventos }, { data: excepciones }, { data: programas }, { data: personas }] = await Promise.all([
     supabase.from('eventos').select('*, grupo:grupos(nombre)').or(
@@ -100,6 +106,45 @@ export default async function CalendarioPage({
   const navBtn = 'w-9 h-9 flex items-center justify-center rounded-full transition-[filter] hover:brightness-95'
   const navEstilo = { background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }
 
+  const turnosDe = (f: string) => misTurnosMes.filter((t) => t.programa.fecha === f)
+  const diaGrupo = (f: string, detalle = false) => {
+            const d = new Date(`${f}T12:00:00`)
+            return (
+              <Grupo key={f} titulo={`${detalle ? 'Detalle · ' : ''}${DIAS_SEMANA[d.getDay()]} ${d.getDate()} de ${MESES[mes]}`}>
+                {turnosDe(f).map((t, k) => (
+                  <Fila key={t.id} primero={k === 0} href={`/mi/ministerios/${t.grupo.id}`}
+                    inicio={<IconoModulo icon={Mic2} color="#ff2d55" />}
+                    titulo={`Te toca servir: ${t.puesto.nombre}`} subtitulo={`${t.grupo.nombre} · ${t.programa.titulo}`}
+                    detalle={<Badge variant="warning">Sirves</Badge>} />
+                ))}
+                {cumplePorFecha[f]?.map((c, k) => (
+                  <Fila key={c.id} primero={k === 0 && !turnosDe(f).length} href={`/congregantes/${c.id}`}
+                    inicio={<IconoModulo icon={Cake} color="#e0559a" />}
+                    titulo={`Cumpleaños de ${c.nombre}`} subtitulo={c.edad > 0 ? `Cumple ${c.edad} años` : undefined} />
+                ))}
+                {(porFecha[f] ?? []).map((inst, k) => {
+                  const programa = programaDe.get(`${inst.evento_id}|${inst.fecha_original}`)
+                  const cambio = tipoExcepcion.get(`${inst.evento_id}|${inst.fecha_original}`)
+                  const cancelado = cambio === 'cancelado'
+                  return (
+                  <Fila key={k} primero={k === 0 && !cumplePorFecha[f]?.length && !turnosDe(f).length} href={`/calendario/evento/${inst.evento_id}?fecha=${inst.fecha_original}`}
+                    inicio={<span className="block w-1 h-9 rounded-full" aria-hidden="true"
+                      style={{ background: cancelado ? 'var(--muted)' : cambio ? 'var(--warning)' : 'var(--accent)' }} />}
+                    titulo={cancelado ? <span className="line-through" style={{ color: 'var(--muted)' }}>{inst.titulo}</span> : inst.titulo}
+                    subtitulo={cancelado ? 'Cancelado este día' : [ministerioDe.has(inst.evento_id) ? `Solo ${ministerioDe.get(inst.evento_id)}` : null, inst.lugar,
+                      cambio === 'reprogramado' ? (inst.fecha_original !== inst.fecha.toISOString().slice(0, 10) ? `Movido desde el ${inst.fecha_original.slice(8, 10)}/${inst.fecha_original.slice(5, 7)}` : 'Hora cambiada') : cambio === 'modificado' ? 'Con cambios' : null,
+                      programa && (programa.publicados ? `Servidores: ${programa.publicados} ${programa.publicados === 1 ? 'ministerio publicó' : 'ministerios publicaron'}` : 'Servidores sin publicar')]
+                      .filter(Boolean).join(' · ') || undefined}
+                    detalle={inst.hora_inicio ? <span className="tabular-nums">{inst.hora_inicio.slice(0, 5)}</span> : 'Todo el día'} />
+                  )
+                })}
+                {detalle && !turnosDe(f).length && !cumplePorFecha[f]?.length && !porFecha[f]?.length && (
+                  <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>No hay nada programado este día</span>} />
+                )}
+              </Grupo>
+            )
+  }
+
   return (
     <Pagina titulo={<>{MESES[mes]} <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{anio}</span></>}
       acciones={<>
@@ -130,11 +175,15 @@ export default async function CalendarioPage({
             const esHoy = hoy.getDate() === dia && hoy.getMonth() === mes && hoy.getFullYear() === anio
             const finDeSemana = (primerDia + i) % 7 === 0 || (primerDia + i) % 7 === 6
             return (
-              <div key={dia} className="flex flex-col items-center min-h-[52px] md:min-h-[76px] px-0.5"
+              <Link key={dia} href={`/calendario?mes=${mes}&anio=${anio}${ocultarMinisterios ? '&min=no' : ''}&dia=${fechaStr}#detalle`} scroll={false}
+                aria-current={fechaStr === elegido ? 'date' : undefined}
+                className="flex flex-col items-center min-h-[52px] md:min-h-[76px] px-0.5 py-0.5 rounded-xl hover:bg-[color:var(--fill)]"
+                style={fechaStr === elegido ? { background: 'color-mix(in srgb, var(--accent) 10%, transparent)' } : undefined}
                 aria-label={`${dia} de ${MESES[mes]}${instDia.length ? `, ${instDia.length} evento${instDia.length > 1 ? 's' : ''}` : ''}${cumpleDia.length ? `, ${cumpleDia.length} cumpleaños` : ''}`}>
                 <span className="w-8 h-8 flex items-center justify-center rounded-full text-[15px] tabular-nums"
                   style={esHoy
                     ? { background: '#ff3b30', color: '#fff', fontWeight: 700 }
+                    : fechaStr === elegido ? { color: 'var(--accent)', fontWeight: 700 }
                     : { color: finDeSemana ? 'var(--muted)' : 'var(--foreground)', fontWeight: 500 }}>
                   {dia}
                 </span>
@@ -164,11 +213,13 @@ export default async function CalendarioPage({
                     </span>
                   )}
                 </span>
-              </div>
+              </Link>
             )
           })}
         </div>
       </section>
+
+      {elegido && <section id="detalle" className="scroll-mt-20">{diaGrupo(elegido, true)}</section>}
 
       {ministerioDe.size > 0 && (
         <Link href={`/calendario?mes=${mes}&anio=${anio}${ocultarMinisterios ? '' : '&min=no'}`} className="inline-block text-[14px] px-1" style={{ color: 'var(--accent)' }}>
@@ -180,34 +231,7 @@ export default async function CalendarioPage({
         <Vacio titulo="Sin eventos este mes" texto="Crea un evento con el botón +." />
       ) : (
         <div className="space-y-5">
-          {fechasConEventos.map((f) => {
-            const d = new Date(`${f}T12:00:00`)
-            return (
-              <Grupo key={f} titulo={`${DIAS_SEMANA[d.getDay()]} ${d.getDate()} de ${MESES[mes]}`}>
-                {cumplePorFecha[f]?.map((c, k) => (
-                  <Fila key={c.id} primero={k === 0} href={`/congregantes/${c.id}`}
-                    inicio={<IconoModulo icon={Cake} color="#e0559a" />}
-                    titulo={`Cumpleaños de ${c.nombre}`} subtitulo={c.edad > 0 ? `Cumple ${c.edad} años` : undefined} />
-                ))}
-                {(porFecha[f] ?? []).map((inst, k) => {
-                  const programa = programaDe.get(`${inst.evento_id}|${inst.fecha_original}`)
-                  const cambio = tipoExcepcion.get(`${inst.evento_id}|${inst.fecha_original}`)
-                  const cancelado = cambio === 'cancelado'
-                  return (
-                  <Fila key={k} primero={k === 0 && !cumplePorFecha[f]?.length} href={`/calendario/evento/${inst.evento_id}?fecha=${inst.fecha_original}`}
-                    inicio={<span className="block w-1 h-9 rounded-full" aria-hidden="true"
-                      style={{ background: cancelado ? 'var(--muted)' : cambio ? 'var(--warning)' : 'var(--accent)' }} />}
-                    titulo={cancelado ? <span className="line-through" style={{ color: 'var(--muted)' }}>{inst.titulo}</span> : inst.titulo}
-                    subtitulo={cancelado ? 'Cancelado este día' : [ministerioDe.has(inst.evento_id) ? `Solo ${ministerioDe.get(inst.evento_id)}` : null, inst.lugar,
-                      cambio === 'reprogramado' ? (inst.fecha_original !== inst.fecha.toISOString().slice(0, 10) ? `Movido desde el ${inst.fecha_original.slice(8, 10)}/${inst.fecha_original.slice(5, 7)}` : 'Hora cambiada') : cambio === 'modificado' ? 'Con cambios' : null,
-                      programa && (programa.publicados ? `Servidores: ${programa.publicados} ${programa.publicados === 1 ? 'ministerio publicó' : 'ministerios publicaron'}` : 'Servidores sin publicar')]
-                      .filter(Boolean).join(' · ') || undefined}
-                    detalle={inst.hora_inicio ? <span className="tabular-nums">{inst.hora_inicio.slice(0, 5)}</span> : 'Todo el día'} />
-                  )
-                })}
-              </Grupo>
-            )
-          })}
+          {fechasConEventos.map((f) => diaGrupo(f))}
         </div>
       )}
     </Pagina>

@@ -1,48 +1,28 @@
 'use client'
 import { hoyLima } from '@/lib/utils'
 
-import { useState, useTransition, useId } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { crearVisita } from '@/app/actions/miembros'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Pagina } from '@/components/ui/ios'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 interface Persona { id: string; nombre_completo: string }
 
-const selectStyle = {
-  background: 'var(--surface-secondary)',
-  border: '1px solid var(--border)',
-  color: 'var(--foreground)',
-}
-
-function PersonaSelect({ label, required, value, onChange, personas, placeholder }: {
+function PersonaSelect({ label, required, value, onChange, personas }: {
   label: string
   required?: boolean
   value: string
   onChange: (v: string) => void
   personas: Persona[]
-  placeholder: string
+  placeholder?: string
 }) {
-  const id = useId()
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
-        {label} {required && <span style={{ color: 'var(--error)' }}>*</span>}
-      </label>
-      <select id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-        style={selectStyle}>
-        <option value="">{placeholder}</option>
-        {personas.map((p) => (
-          <option key={p.id} value={p.id}>{p.nombre_completo}</option>
-        ))}
-      </select>
-    </div>
+    <BuscadorPersona label={label} required={required} value={value} onChange={(id) => onChange(id)}
+      personas={personas.map((p) => ({ id: p.id, nombre: p.nombre_completo }))} />
   )
 }
 

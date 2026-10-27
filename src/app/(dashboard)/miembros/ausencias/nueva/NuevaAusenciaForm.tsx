@@ -7,17 +7,13 @@ import { registrarAusencia } from '@/app/actions/miembros'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Pagina } from '@/components/ui/ios'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 interface Persona { id: string; nombre_completo: string }
 
-const selectStyle = {
-  background: 'var(--surface-secondary)',
-  border: '1px solid var(--border)',
-  color: 'var(--foreground)',
-}
-
 export default function NuevaAusenciaForm({ personas }: { personas: Persona[] }) {
   const router = useRouter()
+  const opciones = personas.map((p) => ({ id: p.id, nombre: p.nombre_completo }))
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
   const [form, setForm] = useState({
@@ -43,20 +39,9 @@ export default function NuevaAusenciaForm({ personas }: { personas: Persona[] })
         style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
 
         <div>
-          <label htmlFor="nueva-nuevaaus-1" className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
-            Miembro ausente <span style={{ color: 'var(--error)' }}>*</span>
-          </label>
-          <select id="nueva-nuevaaus-1"
-            value={form.persona_id}
-            onChange={(e) => setForm((p) => ({ ...p, persona_id: e.target.value }))}
-            required
-            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-            style={selectStyle}>
-            <option value="">Selecciona un miembro...</option>
-            {personas.map((p) => (
-              <option key={p.id} value={p.id}>{p.nombre_completo}</option>
-            ))}
-          </select>
+          <BuscadorPersona label="Miembro ausente" required autoFocus
+            personas={opciones} value={form.persona_id}
+            onChange={(id) => setForm((p) => ({ ...p, persona_id: id }))} />
         </div>
 
         <div>
@@ -83,19 +68,9 @@ export default function NuevaAusenciaForm({ personas }: { personas: Persona[] })
         </div>
 
         <div>
-          <label htmlFor="nueva-nuevaaus-4" className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
-            Encargado de seguimiento (opcional)
-          </label>
-          <select id="nueva-nuevaaus-4"
-            value={form.seguimiento_por}
-            onChange={(e) => setForm((p) => ({ ...p, seguimiento_por: e.target.value }))}
-            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-            style={selectStyle}>
-            <option value="">Sin asignar</option>
-            {personas.map((p) => (
-              <option key={p.id} value={p.id}>{p.nombre_completo}</option>
-            ))}
-          </select>
+          <BuscadorPersona label="Encargado de seguimiento (opcional)" vacio="Sin asignar"
+            personas={opciones} value={form.seguimiento_por}
+            onChange={(id) => setForm((p) => ({ ...p, seguimiento_por: id }))} />
         </div>
 
         {error && (

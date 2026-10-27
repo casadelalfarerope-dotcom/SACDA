@@ -5,6 +5,8 @@ import { useState, useTransition } from 'react'
 import { UserPlus } from 'lucide-react'
 import { asignarRol } from '@/app/actions/roles'
 import Button from '@/components/ui/Button'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
+import Select from '@/components/ui/Select'
 
 interface Persona { id: string; nombre_completo: string }
 interface Rol { id: string; nombre: string }
@@ -51,20 +53,12 @@ export default function AsignarRolForm({ personas, roles }: { personas: Persona[
       className="flex flex-wrap items-end gap-3 p-4 rounded-2xl border animate-fade"
       style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
       <div className="flex-1 min-w-40">
-        <label htmlFor="roles-asignarr-1" className="block text-xs mb-1" style={{ color: 'var(--muted)' }}>Persona</label>
-        <select id="roles-asignarr-1" value={personaId} onChange={(e) => setPersonaId(e.target.value)} required
-          className="w-full px-3 py-2 rounded-xl text-sm outline-none" style={sel}>
-          <option value="">Selecciona...</option>
-          {personas.map((p) => <option key={p.id} value={p.id}>{p.nombre_completo}</option>)}
-        </select>
+        <BuscadorPersona label="Persona" required compacto value={personaId} onChange={setPersonaId}
+          personas={personas.map((p) => ({ id: p.id, nombre: p.nombre_completo }))} />
       </div>
       <div className="flex-1 min-w-40">
-        <label htmlFor="roles-asignarr-2" className="block text-xs mb-1" style={{ color: 'var(--muted)' }}>Rol</label>
-        <select id="roles-asignarr-2" value={rolId} onChange={(e) => setRolId(e.target.value)} required
-          className="w-full px-3 py-2 rounded-xl text-sm outline-none capitalize" style={sel}>
-          <option value="">Selecciona...</option>
-          {roles.map((r) => <option key={r.id} value={r.id}>{r.nombre.replace(/_/g, ' ')}</option>)}
-        </select>
+        <Select label="Rol" required value={rolId} onChange={(e) => setRolId(e.target.value)} placeholder="Selecciona"
+          options={roles.map((r) => ({ value: r.id, label: r.nombre.replace(/_/g, ' ') }))} />
       </div>
       <div className="flex gap-2">
         <Button type="button" variant="secondary" size="sm" onClick={() => { setAbierto(false); setMsg(null) }}>

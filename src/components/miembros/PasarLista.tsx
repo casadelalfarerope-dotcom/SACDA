@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input'
 import Avatar from '@/components/ui/Avatar'
 import Button from '@/components/ui/Button'
 import { marcarVino, cerrarListaAhora, registrarPersonaNueva } from '@/app/actions/asistencia'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 export interface PersonaLista { id: string; nombre: string; foto: string | null; nuevo?: boolean }
 
@@ -110,12 +111,9 @@ export default function PasarLista({ eventoId, fecha, fechaReal, personas, prese
           <Input label="Nombre completo *" autoFocus value={nueva.nombre} onChange={(e) => setNueva({ ...nueva, nombre: e.target.value })} placeholder="Ej. María García López" />
           <Input label="Teléfono / WhatsApp" type="tel" inputMode="tel" value={nueva.telefono} onChange={(e) => setNueva({ ...nueva, telefono: e.target.value })} placeholder="+51 999 888 777" />
           <div className="space-y-1.5">
-            <label htmlFor="invitado-por" className="block text-[13px] font-medium" style={{ color: 'var(--muted)' }}>¿Quién la invitó?</label>
-            <select id="invitado-por" value={nueva.invitado_por} onChange={(e) => setNueva({ ...nueva, invitado_por: e.target.value })}
-              className="w-full h-11 px-3.5 rounded-[10px] text-[15px] outline-none border border-transparent" style={{ background: 'var(--fill)', color: 'var(--foreground)' }}>
-              <option value="">Nadie / no sabe</option>
-              {lista.filter((p) => !p.nuevo).map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-            </select>
+            <BuscadorPersona label="¿Quién la invitó?" vacio="Nadie / no sabe" value={nueva.invitado_por}
+              personas={lista.filter((p) => !p.nuevo).map((p) => ({ id: p.id, nombre: p.nombre }))}
+              onChange={(id) => setNueva({ ...nueva, invitado_por: id })} />
           </div>
           <div className="flex gap-2">
             <Button type="submit" size="sm" loading={pendiente}>Registrar y marcar que vino</Button>

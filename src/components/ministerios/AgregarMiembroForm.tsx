@@ -4,32 +4,18 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { UserPlus } from 'lucide-react'
 import { agregarMiembro } from '@/app/actions/ministerios'
-import { createClient } from '@/lib/supabase/client'
-import type { Persona } from '@/types/database'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 export default function AgregarMiembroForm({ grupoId }: { grupoId: string }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [personas, setPersonas] = useState<Persona[]>([])
   const [personaId, setPersonaId] = useState('')
   const [rol, setRol] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function loadPersonas() {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('personas')
-      .select('id, nombre_completo, estado, foto_url, fecha_nacimiento, dni, telefono, email, direccion, ministerio, notas, created_by, created_at, updated_at')
-      .eq('estado', 'activo')
-      .order('nombre_completo')
-      .limit(300)
-    setPersonas(data ?? [])
-  }
-
-  async function handleOpen() {
+  function handleOpen() {
     setOpen(true)
-    await loadPersonas()
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -63,17 +49,7 @@ export default function AgregarMiembroForm({ grupoId }: { grupoId: string }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-3 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
       <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Agregar miembro</p>
-      <select
-        value={personaId}
-        onChange={(e) => setPersonaId(e.target.value)}
-        required
-        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none"
-        style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-        <option value="">Seleccionar persona...</option>
-        {personas.map((p) => (
-          <option key={p.id} value={p.id}>{p.nombre_completo}</option>
-        ))}
-      </select>
+      <BuscadorPersona label="Persona" value={personaId} onChange={setPersonaId} autoFocus />
       <input
         value={rol}
         onChange={(e) => setRol(e.target.value)}

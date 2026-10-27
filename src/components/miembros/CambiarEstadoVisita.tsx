@@ -3,6 +3,7 @@
 import { useTransition } from 'react'
 import { actualizarSeguimientoVisita } from '@/app/actions/miembros'
 import type { EstadoSeguimiento } from '@/types/database'
+import Select from '@/components/ui/Select'
 
 const opciones: { value: EstadoSeguimiento; label: string }[] = [
   { value: 'pendiente', label: 'Pendiente' },
@@ -24,23 +25,12 @@ export default function CambiarEstadoVisita({
   const [isPending, startTransition] = useTransition()
 
   return (
-    <select
-      value={estadoActual}
-      disabled={isPending}
+    <Select variante="pildora" value={estadoActual} disabled={isPending} aria-label="Estado"
       onChange={(e) => {
         const nuevo = e.target.value as EstadoSeguimiento
         startTransition(async () => { await actualizarSeguimientoVisita(id, { estado: nuevo, volvio }) })
       }}
-      className="text-xs px-2 py-1 rounded-xl border outline-none disabled:opacity-50 transition-opacity"
-      style={{
-        background: 'var(--surface-secondary)',
-        borderColor: 'var(--border)',
-        color: colores[estadoActual] ?? 'var(--foreground)',
-        fontWeight: 500,
-      }}>
-      {opciones.map((o) => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
+      style={{ color: colores[estadoActual] ?? 'var(--foreground)' }}
+      options={opciones} />
   )
 }

@@ -7,6 +7,7 @@ import { registrarMovimiento } from '@/app/actions/finanzas'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import SelectorMedio from './SelectorMedio'
+import Select from '@/components/ui/Select'
 
 export default function AgregarMovimientoForm({ actividadId }: { actividadId: string }) {
   const router = useRouter()
@@ -38,11 +39,8 @@ export default function AgregarMovimientoForm({ actividadId }: { actividadId: st
     <form onSubmit={handle} className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label htmlFor="finanzas-agregarm-1" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Tipo</label>
-          <select id="finanzas-agregarm-1" name="tipo" required className="w-full px-3 py-2 rounded-xl border text-sm outline-none" style={sel}>
-            <option value="ingreso">Ingreso</option>
-            <option value="egreso">Egreso</option>
-          </select>
+          <Select label="Tipo" name="tipo" required
+              options={[{ value: 'ingreso', label: 'Ingreso' }, { value: 'egreso', label: 'Egreso' }]} />
         </div>
         <div>
           <label htmlFor="finanzas-agregarm-2" className="block text-xs font-medium mb-1" style={{ color: 'var(--muted)' }}>Monto (S/.)</label>

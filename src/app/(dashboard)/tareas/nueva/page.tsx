@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { Pagina } from '@/components/ui/ios'
+import Select from '@/components/ui/Select'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 export default function NuevaTareaPage() {
   const router = useRouter()
@@ -48,16 +50,8 @@ export default function NuevaTareaPage() {
       <form onSubmit={handle} className="space-y-4">
         <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <div>
-            <label htmlFor="nueva-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
-              Tipo <span style={{ color: 'var(--error)' }}>*</span>
-            </label>
-            <select id="nueva-page-1" name="tipo" defaultValue={tipoInicial} required
-              className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
-              <option value="diseno">Diseño gráfico</option>
-              <option value="solicitud_venta">Solicitud de venta</option>
-              <option value="capacitacion">Capacitación</option>
-              <option value="otro">Otro</option>
-            </select>
+            <Select label="Tipo" name="tipo" defaultValue={tipoInicial} required
+              options={[{ value: 'diseno', label: 'Diseño gráfico' }, { value: 'solicitud_venta', label: 'Solicitud de venta' }, { value: 'capacitacion', label: 'Capacitación' }, { value: 'otro', label: 'Otro' }]} />
           </div>
           <Input name="titulo" label="Título" placeholder="Arte para el culto del domingo" required />
           <div>
@@ -67,11 +61,8 @@ export default function NuevaTareaPage() {
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
-            <label htmlFor="nueva-page-3" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Asignar a</label>
-            <select id="nueva-page-3" name="asignado_id" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
-              <option value="">Sin asignar</option>
-              {personas.map((p) => <option key={p.id} value={p.id}>{p.nombre_completo}</option>)}
-            </select>
+            <BuscadorPersona label="Asignar a" name="asignado_id" vacio="Sin asignar"
+              personas={personas.map((p) => ({ id: p.id, nombre: p.nombre_completo }))} />
           </div>
           <div>
             <label htmlFor="nueva-page-4" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Fecha límite</label>

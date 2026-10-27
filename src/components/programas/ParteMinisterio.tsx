@@ -6,6 +6,7 @@ import { X, Sparkles, Send, Undo2, Repeat, Link as LinkIcon } from 'lucide-react
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { agregarAsignacion, eliminarAsignacion, llenarSugerencias, repetirAnterior, publicarMinisterio, despublicarMinisterio } from '@/app/actions/servidores'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 export interface PuestoPrograma {
   id: string
@@ -90,13 +91,10 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
                     ))}
                     {!p.asignados.length && !puedeEditar && <span className="text-[14px]" style={{ color: 'var(--muted)' }}>Sin asignar</span>}
                     {puedeEditar && libres.length > 0 && (
-                      <select aria-label={`Agregar persona a ${p.nombre}`} value="" disabled={pendiente}
-                        onChange={(e) => e.target.value && ejecutar(() => agregarAsignacion({ programa_id: programaId, rol_servicio_id: p.id, persona_id: e.target.value }))}
-                        className="h-8 px-2.5 rounded-full text-[14px] outline-none border border-transparent"
-                        style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)', color: 'var(--accent)' }}>
-                        <option value="">+ Agregar</option>
-                        {libres.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-                      </select>
+                      <div className="w-full sm:w-72">
+                        <BuscadorPersona agregar compacto personas={libres} disabled={pendiente} placeholder={`Agregar a ${p.nombre}…`}
+                          onChange={(id) => id && ejecutar(() => agregarAsignacion({ programa_id: programaId, rol_servicio_id: p.id, persona_id: id }))} />
+                      </div>
                     )}
                   </div>
                 </div>

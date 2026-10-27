@@ -8,18 +8,15 @@ import { crearCeremonia } from '@/app/actions/miembros'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Pagina } from '@/components/ui/ios'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
+import Select from '@/components/ui/Select'
 
 interface Persona { id: string; nombre_completo: string }
 interface Participante { persona_id: string; nombre_externo: string; rol_en_ceremonia: string }
 
-const selectStyle = {
-  background: 'var(--surface-secondary)',
-  border: '1px solid var(--border)',
-  color: 'var(--foreground)',
-}
-
 export default function NuevaCeremoniaForm({ personas }: { personas: Persona[] }) {
   const router = useRouter()
+  const opciones = personas.map((p) => ({ id: p.id, nombre: p.nombre_completo }))
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
   const [form, setForm] = useState({
@@ -72,15 +69,9 @@ export default function NuevaCeremoniaForm({ personas }: { personas: Persona[] }
           <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
             Tipo <span style={{ color: 'var(--error)' }}>*</span>
           </label>
-          <select
-            value={form.tipo}
+          <Select value={form.tipo} aria-label="Tipo de ceremonia"
             onChange={(e) => setForm((p) => ({ ...p, tipo: e.target.value as typeof form.tipo }))}
-            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-            style={selectStyle}>
-            <option value="bautismo">Bautismo</option>
-            <option value="dedicacion">Dedicación</option>
-            <option value="boda">Boda</option>
-          </select>
+            options={[{ value: 'bautismo', label: 'Bautismo' }, { value: 'dedicacion', label: 'Dedicación' }, { value: 'boda', label: 'Boda' }]} />
         </div>
 
         <div>
@@ -161,19 +152,9 @@ export default function NuevaCeremoniaForm({ personas }: { personas: Persona[] }
                 </div>
 
                 <div>
-                  <label className="block text-xs mb-1" style={{ color: 'var(--muted)' }}>
-                    Miembro de la iglesia
-                  </label>
-                  <select
-                    value={pt.persona_id}
-                    onChange={(e) => actualizarParticipante(i, 'persona_id', e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                    style={selectStyle}>
-                    <option value="">Selecciona (si está en el sistema)...</option>
-                    {personas.map((p) => (
-                      <option key={p.id} value={p.id}>{p.nombre_completo}</option>
-                    ))}
-                  </select>
+                  <BuscadorPersona label="Miembro de la iglesia (si está en el sistema)" compacto
+                    personas={opciones} value={pt.persona_id}
+                    onChange={(id) => actualizarParticipante(i, 'persona_id', id)} />
                 </div>
 
                 {!pt.persona_id && (

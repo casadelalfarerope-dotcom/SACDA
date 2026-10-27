@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { Grip, Home, School, LayoutGrid, type LucideIcon } from 'lucide-react'
 import { IconoModulo } from '@/components/ui/IconoApp'
+import Flotante from '@/components/ui/Flotante'
 
 export type Espacio = 'mi' | 'academia' | 'admin'
 
@@ -29,29 +30,20 @@ export function RecordarEspacio({ espacio }: { espacio: Espacio }) {
 export default function SelectorEspacios({ disponibles, actual }: { disponibles: Espacio[]; actual: Espacio }) {
   const pathname = usePathname()
   const [abierto, setAbierto] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const boton = useRef<HTMLButtonElement>(null)
+  const cerrar = useCallback(() => setAbierto(false), [])
 
   useEffect(() => setAbierto(false), [pathname])
-  useEffect(() => {
-    if (!abierto) return
-    const fuera = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setAbierto(false) }
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false) }
-    document.addEventListener('mousedown', fuera)
-    document.addEventListener('keydown', esc)
-    return () => { document.removeEventListener('mousedown', fuera); document.removeEventListener('keydown', esc) }
-  }, [abierto])
 
   if (disponibles.length < 2) return null
 
   return (
-    <div ref={ref} className="relative">
-      <button type="button" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto} aria-haspopup="menu"
+    <div className="relative">
+      <button ref={boton} type="button" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto} aria-haspopup="menu"
         aria-label="Cambiar de espacio" className="p-2 rounded-xl hover:opacity-70" style={{ color: 'var(--foreground)' }}>
         <Grip size={21} />
       </button>
-      {abierto && (
-        <div role="menu" aria-label="Espacios" className="material absolute right-0 mt-2 w-72 rounded-2xl border p-3 z-50 animate-scale"
-          style={{ borderColor: 'var(--border)', boxShadow: 'var(--shadow-float)' }}>
+      <Flotante ancla={boton} abierto={abierto} onCerrar={cerrar} rol="menu" etiqueta="Espacios" ancho={288} alinear="fin" className="p-3">
           <div className="grid grid-cols-3 gap-1">
             {disponibles.map((e) => {
               const { href, label, icon, color } = ESPACIOS[e]
@@ -69,8 +61,7 @@ export default function SelectorEspacios({ disponibles, actual }: { disponibles:
               )
             })}
           </div>
-        </div>
-      )}
+      </Flotante>
     </div>
   )
 }

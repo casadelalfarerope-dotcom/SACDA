@@ -172,20 +172,8 @@ export default function NuevoEventoPage() {
           </label>
           {form.requiere_diseno && (
             <div className="pl-7 animate-fade">
-              <label htmlFor="nuevo-page-2" className="block text-xs mb-1.5" style={{ color: 'var(--muted)' }}>
-                Avisar al diseñador con cuántos días de anticipación
-              </label>
-              <select id="nuevo-page-2"
-                value={form.dias_aviso_diseno}
-                onChange={(e) => setForm((prev) => ({ ...prev, dias_aviso_diseno: e.target.value }))}
-                className="px-3 py-2 rounded-xl border text-sm outline-none"
-                style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                <option value="3">3 días antes</option>
-                <option value="5">5 días antes</option>
-                <option value="7">7 días antes (recomendado)</option>
-                <option value="10">10 días antes</option>
-                <option value="14">14 días antes</option>
-              </select>
+              <Select label="Avisar al diseñador con cuántos días de anticipación" value={form.dias_aviso_diseno} onChange={(e) => setForm((prev) => ({ ...prev, dias_aviso_diseno: e.target.value }))}
+              options={[{ value: '3', label: '3 días antes' }, { value: '5', label: '5 días antes' }, { value: '7', label: '7 días antes (recomendado)' }, { value: '10', label: '10 días antes' }, { value: '14', label: '14 días antes' }]} />
               {form.tipo_recurrencia !== 'ninguna' && (
                 <p className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
                   Para eventos recurrentes, la tarea de diseño se creará manualmente desde cada programa.

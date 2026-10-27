@@ -9,6 +9,7 @@ import Textarea from '@/components/ui/Textarea'
 import Badge from '@/components/ui/Badge'
 import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila, Tarjeta, Vacio, BotonEnlace } from '@/components/ui/ios'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 const ESTADO: Record<string, { label: string; variant: 'muted' | 'success' | 'default' }> = {
   borrador: { label: 'Borrador', variant: 'muted' },
@@ -81,8 +82,8 @@ export default async function AcademiaPage() {
         <FormAccion accion={crearCurso} textoBoton="Crear curso" irA="/academia/cursos/{id}">
           <Input name="nombre" label="Nombre del curso *" placeholder="Ej. Fundamentos de la fe" required />
           <Textarea name="descripcion" label="Descripción" rows={2} />
-          <Select name="profesor_id" label="Profesor" placeholder="Sin asignar"
-            options={(personas ?? []).map((p) => ({ value: p.id, label: p.nombre_completo }))} />
+          <BuscadorPersona name="profesor_id" label="Profesor" vacio="Sin asignar"
+            personas={(personas ?? []).map((p) => ({ id: p.id, nombre: p.nombre_completo }))} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input name="fecha_inicio" type="date" label="Fecha de inicio" />
             <Input name="fecha_fin" type="date" label="Fecha de fin" />

@@ -6,6 +6,7 @@ import { editarTutorial } from '@/app/actions/tutoriales'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { Pagina } from '@/components/ui/ios'
+import Select from '@/components/ui/Select'
 
 interface Rol { id: string; nombre: string }
 
@@ -49,21 +50,12 @@ export default function EditarTutorialForm({
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
-            <label htmlFor="editar-editartu-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Área de servicio</label>
-            <select id="editar-editartu-2" name="rol_servicio_id" defaultValue={tut.rol_servicio_id as string ?? ''}
-              className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
-              <option value="">Sin área específica</option>
-              {roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-            </select>
+            <Select label="Área de servicio" name="rol_servicio_id" defaultValue={tut.rol_servicio_id as string ?? ''} placeholder="Sin área específica"
+              options={roles.map((r) => ({ value: r.id, label: r.nombre }))} />
           </div>
           <div>
-            <label htmlFor="editar-editartu-3" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Destino</label>
-            <select id="editar-editartu-3" name="tipo_destino" defaultValue={tut.tipo_destino as string}
-              className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
-              <option value="general">General</option>
-              <option value="pantalla_principal">Pantalla principal</option>
-              <option value="redes_sociales">Redes sociales</option>
-            </select>
+            <Select label="Destino" name="tipo_destino" defaultValue={tut.tipo_destino as string}
+              options={[{ value: 'general', label: 'General' }, { value: 'pantalla_principal', label: 'Pantalla principal' }, { value: 'redes_sociales', label: 'Redes sociales' }]} />
           </div>
           <Input name="url_contenido" label="Enlace del contenido" defaultValue={tut.url_contenido as string ?? ''} type="url" />
         </div>

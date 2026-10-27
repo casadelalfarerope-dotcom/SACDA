@@ -7,6 +7,7 @@ import Textarea from '@/components/ui/Textarea'
 import Button from '@/components/ui/Button'
 import { crearTarea, asignarTarea } from '@/app/actions/tareas'
 import { crearTutorialMinisterio } from '@/app/actions/tutoriales'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 type Persona = { id: string; nombre: string }
 
@@ -46,12 +47,8 @@ export function NuevaTareaForm({ grupoId, esDiseno, integrantes, hoy }: { grupoI
       <Textarea label="Indicaciones" rows={2} value={datos.descripcion} onChange={(e) => setDatos({ ...datos, descripcion: e.target.value })} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label htmlFor="tarea-asignado" className="block text-[13px] font-medium" style={{ color: 'var(--muted)' }}>Asignar a</label>
-          <select id="tarea-asignado" className={selectClase} style={selectEstilo} value={datos.asignado_id}
-            onChange={(e) => setDatos({ ...datos, asignado_id: e.target.value })}>
-            <option value="">Sin asignar todavía</option>
-            {integrantes.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-          </select>
+          <BuscadorPersona label="Asignar a" vacio="Sin asignar todavía" value={datos.asignado_id}
+            personas={integrantes} onChange={(id) => setDatos({ ...datos, asignado_id: id })} />
         </div>
         <Input label="Fecha límite" type="date" min={hoy} value={datos.fecha_limite} onChange={(e) => setDatos({ ...datos, fecha_limite: e.target.value })} />
       </div>
@@ -71,10 +68,9 @@ export function AsignarTareaForm({ tareaId, integrantes }: { tareaId: string; in
   return (
     <div className="space-y-2">
       <div className="flex flex-col sm:flex-row gap-2">
-        <select aria-label="Persona a asignar" className={selectClase} style={selectEstilo} value={persona} onChange={(e) => setPersona(e.target.value)}>
-          <option value="">Elige a alguien de tu ministerio…</option>
-          {integrantes.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-        </select>
+        <div className="flex-1 min-w-0">
+          <BuscadorPersona personas={integrantes} value={persona} onChange={setPersona} placeholder="Busca a alguien de tu ministerio…" />
+        </div>
         <Button loading={pendiente} disabled={!persona} onClick={() => iniciar(async () => {
           const res = await asignarTarea(tareaId, persona)
           setMensaje(res.error ? { tipo: 'error', texto: res.error } : { tipo: 'ok', texto: 'Asignada. Le avisamos a la persona.' })

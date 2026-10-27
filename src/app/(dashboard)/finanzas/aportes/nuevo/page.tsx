@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
-import { Search, X, Check, ChevronDown, Mail } from 'lucide-react'
+import { X, Check, ChevronDown, Mail } from 'lucide-react'
 import { registrarAporte } from '@/app/actions/finanzas'
 import { createClient } from '@/lib/supabase/client'
 import { hoyLima } from '@/lib/utils'
@@ -12,20 +12,19 @@ import SelectFondo from '@/components/fondos/SelectFondo'
 import { Pagina, Segmentado, Grupo, Fila } from '@/components/ui/ios'
 import { etiquetaTipoAporte, etiquetaMedio, esDigital, type Medio } from '@/lib/etiquetas'
 import SelectorMedio from '@/components/finanzas/SelectorMedio'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 type Persona = { id: string; nombre_completo: string; foto_url: string | null }
 // Sobre sin nombre: se registra sin persona.
 const ANONIMO: Persona = { id: '', nombre_completo: 'Anónimo (sobre sin nombre)', foto_url: null }
 type Tipo = 'diezmo' | 'ofrenda' | 'pacto' | 'otro'
 
-const normalizar = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 const soles = (n: number) => new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(n)
 
 // Registro rápido de aportes: se busca al hermano, se elige el tipo, se escribe
 // el monto y se registra. La pantalla queda lista para el siguiente.
 export default function NuevoAportePage() {
   const [personas, setPersonas] = useState<Persona[]>([])
-  const [busqueda, setBusqueda] = useState('')
   const [persona, setPersona] = useState<Persona | null>(null)
   const [tipo, setTipo] = useState<Tipo>('diezmo')
   const [medio, setMedio] = useState<Medio>('efectivo')
@@ -36,7 +35,6 @@ export default function NuevoAportePage() {
   const [error, setError] = useState('')
   const [registrados, setRegistrados] = useState<{ nombre: string; tipo: Tipo; monto: number; medio: Medio }[]>([])
   const [pendiente, iniciar] = useTransition()
-  const buscador = useRef<HTMLInputElement>(null)
   const campoMonto = useRef<HTMLInputElement>(null)
   const formulario = useRef<HTMLFormElement>(null)
 
@@ -45,16 +43,9 @@ export default function NuevoAportePage() {
       .then(({ data }) => setPersonas((data ?? []) as Persona[]))
   }, [])
 
-  const resultados = useMemo(() => {
-    const q = normalizar(busqueda.trim())
-    if (!q) return []
-    // Coincide si todas las palabras escritas están en el nombre (en cualquier orden).
-    const palabras = q.split(/\s+/)
-    return personas.filter((p) => { const n = normalizar(p.nombre_completo); return palabras.every((w) => n.includes(w)) }).slice(0, 8)
-  }, [busqueda, personas])
-
+  const opciones = useMemo(() => personas.map((p) => ({ id: p.id, nombre: p.nombre_completo, foto_url: p.foto_url })), [personas])
   function elegir(p: Persona) {
-    setPersona(p); setBusqueda(''); setError('')
+    setPersona(p); setError('')
     setTimeout(() => campoMonto.current?.focus(), 0)
   }
 
@@ -68,7 +59,7 @@ export default function NuevoAportePage() {
       if (res.error) { setError(res.error); return }
       setRegistrados((r) => [{ nombre: persona.id ? persona.nombre_completo : 'Anónimo', tipo, monto: Number(monto), medio }, ...r])
       setPersona(null); setMonto(''); setConcepto('')
-      setTimeout(() => buscador.current?.focus(), 0)
+      setTimeout(() => document.getElementById('buscar-hermano')?.focus(), 0)
     })
   }
 
@@ -86,36 +77,15 @@ export default function NuevoAportePage() {
               ? <Avatar nombre={persona.nombre_completo} fotoUrl={persona.foto_url} size="sm" />
               : <span className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--surface)', color: 'var(--muted)' }}><Mail size={16} aria-hidden="true" /></span>}
             <span className="flex-1 min-w-0 text-[16px] font-semibold truncate" style={{ color: 'var(--foreground)' }}>{persona.nombre_completo}</span>
-            <button type="button" onClick={() => { setPersona(null); setTimeout(() => buscador.current?.focus(), 0) }}
+            <button type="button" onClick={() => { setPersona(null); setTimeout(() => document.getElementById('buscar-hermano')?.focus(), 0) }}
               aria-label="Cambiar de hermano" className="w-8 h-8 rounded-full flex items-center justify-center" style={{ color: 'var(--muted)' }}>
               <X size={18} aria-hidden="true" />
             </button>
           </div>
         ) : (
           <div>
-            <label className="relative block">
-              <span className="sr-only">Buscar hermano</span>
-              <Search size={17} aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--muted)' }} />
-              <input ref={buscador} autoFocus type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Escribe el nombre del hermano…" autoComplete="off"
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (resultados[0]) elegir(resultados[0]) } }}
-                className="w-full h-12 pl-10 pr-3 rounded-[12px] text-[16px] outline-none border border-transparent"
-                style={{ background: 'var(--fill)', color: 'var(--foreground)' }} />
-            </label>
-            {busqueda.trim() && (
-              <ul className="mt-2 rounded-[12px] border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
-                {resultados.map((p, i) => (
-                  <li key={p.id} className={i ? 'border-t' : ''} style={{ borderColor: 'var(--border)' }}>
-                    <button type="button" onClick={() => elegir(p)}
-                      className="w-full flex items-center gap-3 px-3 min-h-[48px] text-left hover:bg-[color:var(--fill)]">
-                      <Avatar nombre={p.nombre_completo} fotoUrl={p.foto_url} size="sm" />
-                      <span className="text-[15px]" style={{ color: 'var(--foreground)' }}>{p.nombre_completo}</span>
-                    </button>
-                  </li>
-                ))}
-                {!resultados.length && <li className="px-3 py-3 text-[14px]" style={{ color: 'var(--muted)' }}>Nadie coincide. Revisa el nombre o regístralo en Personas.</li>}
-              </ul>
-            )}
+            <BuscadorPersona id="buscar-hermano" autoFocus agregar personas={opciones} placeholder="Escribe el nombre del hermano…"
+              onChange={(id) => { const p = personas.find((x) => x.id === id); if (p) elegir(p) }} />
             <button type="button" onClick={() => elegir(ANONIMO)}
               className="mt-2 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[14px] font-medium"
               style={{ color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }}>

@@ -7,6 +7,7 @@ import { crearBien } from '@/app/actions/inventario'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { Pagina } from '@/components/ui/ios'
+import Select from '@/components/ui/Select'
 
 const CATEGORIAS = [
   { value: 'instrumento',   label: 'Instrumento' },
@@ -50,22 +51,12 @@ export default function NuevoBienPage() {
           <Input name="nombre" label="Nombre" placeholder="Parlante JBL, Guitarra, Cámara..." required />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="nuevo-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Categoría</label>
-              <select id="nuevo-page-1" name="categoria" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none capitalize" style={sel}>
-                <option value="">Sin categoría</option>
-                {CATEGORIAS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
+              <Select label="Categoría" name="categoria" placeholder="Sin categoría"
+              options={CATEGORIAS.map((c) => ({ value: c.value, label: c.label }))} />
             </div>
             <div>
-              <label htmlFor="nuevo-page-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
-                Estado <span style={{ color: 'var(--error)' }}>*</span>
-              </label>
-              <select id="nuevo-page-2" name="estado" required className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
-                <option value="bueno">Bueno</option>
-                <option value="regular">Regular</option>
-                <option value="malo">Malo</option>
-                <option value="baja">De baja</option>
-              </select>
+              <Select label="Estado" name="estado" required
+              options={[{ value: 'bueno', label: 'Bueno' }, { value: 'regular', label: 'Regular' }, { value: 'malo', label: 'Malo' }, { value: 'baja', label: 'De baja' }]} />
             </div>
           </div>
           <Input name="numero_serie" label="Número de serie (opcional)" placeholder="SN-12345..." />

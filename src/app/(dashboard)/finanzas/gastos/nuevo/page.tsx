@@ -11,6 +11,7 @@ import SelectorMedio from '@/components/finanzas/SelectorMedio'
 
 import { CATEGORIAS_GASTO } from '@/lib/etiquetas'
 import { Pagina } from '@/components/ui/ios'
+import Select from '@/components/ui/Select'
 
 export default function NuevoGastoPage() {
   const router = useRouter()
@@ -47,12 +48,8 @@ export default function NuevoGastoPage() {
           <SelectorMedio etiqueta="¿Cómo se pagó?" />
           <SelectFondo label="¿De qué fondo sale?" />
           <div>
-            <label htmlFor="nuevo-page-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
-              Categoría <span style={{ color: 'var(--error)' }}>*</span>
-            </label>
-            <select id="nuevo-page-1" name="categoria" required className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
-              {CATEGORIAS_GASTO.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
+            <Select label="Categoría" name="categoria" required
+              options={CATEGORIAS_GASTO.map((c) => ({ value: c.value, label: c.label }))} />
           </div>
           <div>
             <label htmlFor="nuevo-page-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>

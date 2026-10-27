@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { House } from 'lucide-react'
 import { programarVisita } from '@/app/actions/asistencia'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 // Botón en cada ausencia para programar una visita pastoral a la casa del hermano.
 export default function ProgramarVisita({ personaId, ausenciaId, motivoSugerido, personas, hoy }: {
@@ -36,10 +37,7 @@ export default function ProgramarVisita({ personaId, ausenciaId, motivoSugerido,
       })
     }}>
       <input type="date" value={fecha} min={hoy} onChange={(e) => setFecha(e.target.value)} aria-label="Fecha de la visita" className={campo} style={{ background: 'var(--fill)', color: 'var(--foreground)' }} />
-      <select value={responsable} onChange={(e) => setResponsable(e.target.value)} aria-label="Quién irá" className={campo} style={{ background: 'var(--fill)', color: 'var(--foreground)' }}>
-        <option value="">¿Quién irá?</option>
-        {personas.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-      </select>
+      <div className="w-full"><BuscadorPersona compacto personas={personas} value={responsable} onChange={setResponsable} placeholder="¿Quién irá? Escribe su nombre…" /></div>
       <button type="submit" disabled={pendiente} className="h-9 px-3 rounded-full text-[13px] font-semibold" style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}>Programar</button>
       <button type="button" onClick={() => setAbierto(false)} className="text-[13px]" style={{ color: 'var(--muted)' }}>Cancelar</button>
       {error && <span role="alert" className="text-[12px] w-full" style={{ color: 'var(--error)' }}>{error}</span>}

@@ -5,6 +5,7 @@ import { misTurnos } from '@/lib/programas'
 import { estadoTarea } from '@/lib/etiquetas'
 import { formatDate, hoyLima } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
+import { avisarCumpleaniosDeHoy } from '@/app/actions/notificaciones-auto'
 import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila } from '@/components/ui/ios'
 
@@ -17,6 +18,7 @@ export default async function MiInicioPage() {
   const ctx = await contextoEspacio()
   const supabase = await createClient()
   const hoy = hoyLima()
+  avisarCumpleaniosDeHoy().catch(console.error)
 
   const [turnos, { data: tareas }, { data: solicitudes }] = await Promise.all([
     misTurnos(supabase, ctx.personaId),

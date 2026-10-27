@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
+import BuscadorPersona from '@/components/ui/BuscadorPersona'
 
 interface GrupoFormProps {
   grupos: { id: string; nombre: string }[]
@@ -106,15 +107,11 @@ export default function GrupoForm({ grupos, personas, onSubmit, initialData }: G
           options={grupos.map((g) => ({ value: g.id, label: g.nombre }))}
         />
       </div>
-      <Select
-        label="Líder"
-        value={form.encargado_id}
-        onChange={(e) => set('encargado_id', e.target.value)}
-        placeholder="Sin líder"
-        options={personas.map((p) => ({ value: p.id, label: p.nombre_completo }))}
-      />
+      <BuscadorPersona label="Líder de contacto" vacio="Sin líder" value={form.encargado_id}
+        onChange={(id) => set('encargado_id', id)}
+        personas={personas.map((p) => ({ id: p.id, nombre: p.nombre_completo }))} />
       <p className="text-[13px] -mt-3" style={{ color: 'var(--muted)' }}>
-        El líder programa a su ministerio en cada culto desde Mi espacio. Un ministerio tiene un solo líder.
+        El líder programa a su ministerio en cada culto desde Mi espacio. Luego puedes nombrar más líderes y ayudantes desde la ficha del ministerio.
       </p>
       <Input
         label="Enlace de WhatsApp (opcional)"

@@ -6,6 +6,7 @@ import { editarBien } from '@/app/actions/inventario'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { Pagina } from '@/components/ui/ios'
+import Select from '@/components/ui/Select'
 
 const CATEGORIAS = [
   { value: 'instrumento',  label: 'Instrumento' },
@@ -49,22 +50,12 @@ export default function EditarBienForm({ bien }: { bien: Record<string, unknown>
           <Input name="nombre" label="Nombre" defaultValue={bien.nombre as string} required />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="editar-editarbi-1" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Categoría</label>
-              <select id="editar-editarbi-1" name="categoria" defaultValue={bien.categoria as string}
-                className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
-                <option value="">Sin categoría</option>
-                {CATEGORIAS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
+              <Select label="Categoría" name="categoria" defaultValue={bien.categoria as string} placeholder="Sin categoría"
+              options={CATEGORIAS.map((c) => ({ value: c.value, label: c.label }))} />
             </div>
             <div>
-              <label htmlFor="editar-editarbi-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Estado</label>
-              <select id="editar-editarbi-2" name="estado" defaultValue={bien.estado as string} required
-                className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={sel}>
-                <option value="bueno">Bueno</option>
-                <option value="regular">Regular</option>
-                <option value="malo">Malo</option>
-                <option value="baja">De baja</option>
-              </select>
+              <Select label="Estado" name="estado" defaultValue={bien.estado as string} required
+              options={[{ value: 'bueno', label: 'Bueno' }, { value: 'regular', label: 'Regular' }, { value: 'malo', label: 'Malo' }, { value: 'baja', label: 'De baja' }]} />
             </div>
           </div>
           <Input name="numero_serie" label="Número de serie (opcional)" defaultValue={bien.numero_serie as string ?? ''} />

@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { UserRound, LogOut } from 'lucide-react'
 import Avatar from '@/components/ui/Avatar'
 import { createClient } from '@/lib/supabase/client'
+import Flotante from '@/components/ui/Flotante'
 
 // Foto de perfil en la barra superior: Mi perfil y Cerrar sesión. Para cambiar
 // de espacio está la cuadrícula.
@@ -15,17 +16,10 @@ export default function MenuPerfil({ nombre, fotoUrl, email, perfilHref = '/mi/p
   const router = useRouter()
   const pathname = usePathname()
   const [abierto, setAbierto] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const boton = useRef<HTMLButtonElement>(null)
+  const cerrar = useCallback(() => setAbierto(false), [])
 
   useEffect(() => setAbierto(false), [pathname])
-  useEffect(() => {
-    if (!abierto) return
-    const fuera = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setAbierto(false) }
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false) }
-    document.addEventListener('mousedown', fuera)
-    document.addEventListener('keydown', esc)
-    return () => { document.removeEventListener('mousedown', fuera); document.removeEventListener('keydown', esc) }
-  }, [abierto])
 
   async function salir() {
     await createClient().auth.signOut()
@@ -36,14 +30,12 @@ export default function MenuPerfil({ nombre, fotoUrl, email, perfilHref = '/mi/p
   const opcion = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[15px] text-left transition-colors hover:bg-[color:var(--fill)]'
 
   return (
-    <div ref={ref} className="relative">
-      <button type="button" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto} aria-haspopup="menu"
+    <div className="relative">
+      <button ref={boton} type="button" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto} aria-haspopup="menu"
         aria-label="Abrir menú de perfil" className="rounded-full p-0.5 hover:opacity-80">
         <Avatar nombre={nombre} fotoUrl={fotoUrl} size="sm" />
       </button>
-      {abierto && (
-        <div role="menu" className="material absolute right-0 mt-2 w-64 rounded-2xl border p-1.5 z-50 animate-scale"
-          style={{ borderColor: 'var(--border)', boxShadow: 'var(--shadow-float)' }}>
+      <Flotante ancla={boton} abierto={abierto} onCerrar={cerrar} rol="menu" etiqueta="Perfil" ancho={256} alinear="fin">
           <div className="px-3 py-2.5">
             <p className="text-[15px] font-semibold truncate" style={{ color: 'var(--foreground)' }}>{nombre}</p>
             {email && <p className="text-[13px] truncate" style={{ color: 'var(--muted)' }}>{email}</p>}
@@ -56,8 +48,7 @@ export default function MenuPerfil({ nombre, fotoUrl, email, perfilHref = '/mi/p
           <button role="menuitem" type="button" onClick={salir} className={opcion} style={{ color: 'var(--destructive)' }}>
             <LogOut size={18} aria-hidden="true" /> Cerrar sesión
           </button>
-        </div>
-      )}
+      </Flotante>
     </div>
   )
 }

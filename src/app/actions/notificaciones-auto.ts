@@ -87,3 +87,31 @@ export async function procesarCumpleaniosProximos() {
 
   return { ok: true, enviados }
 }
+
+// El día del cumpleaños se avisa a todos los hermanos con cuenta, para que
+// lo saluden. Una sola vez por cumpleañero y año (el enlace del aviso lo marca).
+export async function avisarCumpleaniosDeHoy() {
+  const admin = createServiceClient()
+  const hoy = hoyLima()
+  const { data: personas } = await admin.from('personas').select('id, nombre_completo, fecha_nacimiento')
+    .eq('estado', 'activo').not('fecha_nacimiento', 'is', null)
+  const cumplen = (personas ?? []).filter((p) => diasParaCumpleanios(p.fecha_nacimiento!) === 0)
+  if (!cumplen.length) return { ok: true, enviados: 0 }
+
+  const { data: cuentas } = await admin.from('cuentas').select('persona_id').not('persona_id', 'is', null)
+  const destinatarios = [...new Set((cuentas ?? []).map((c) => c.persona_id as string))]
+  let enviados = 0
+  for (const p of cumplen) {
+    const url = `/mi/calendario?dia=${hoy}#cumple-${p.id}`
+    const { count } = await admin.from('notificaciones').select('id', { count: 'exact', head: true }).eq('url', url)
+    if (count) continue
+    const nombre = p.nombre_completo.split(' ')[0]
+    const filas = destinatarios.filter((id) => id !== p.id).map((persona_id) => ({
+      persona_id, tipo: 'cumpleanios_proximo', titulo: `🎂 Hoy cumple años ${nombre}`,
+      cuerpo: `${p.nombre_completo} está de cumpleaños hoy. ¡No olvides saludarle!`, url,
+    }))
+    if (filas.length) await admin.from('notificaciones').insert(filas)
+    enviados++
+  }
+  return { ok: true, enviados }
+}

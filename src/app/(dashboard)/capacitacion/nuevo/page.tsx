@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { Pagina } from '@/components/ui/ios'
+import Select from '@/components/ui/Select'
 
 export default function NuevoTutorialPage() {
   const router = useRouter()
@@ -53,21 +54,12 @@ export default function NuevoTutorialPage() {
               style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
           </div>
           <div>
-            <label htmlFor="nuevo-page-2" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Área de servicio</label>
-            <select id="nuevo-page-2" name="rol_servicio_id" className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
-              <option value="">Selecciona un área...</option>
-              {roles.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-            </select>
+            <Select label="Área de servicio" name="rol_servicio_id" placeholder="Selecciona un área"
+              options={roles.map((r) => ({ value: r.id, label: r.nombre }))} />
           </div>
           <div>
-            <label htmlFor="nuevo-page-3" className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
-              Destino <span style={{ color: 'var(--error)' }}>*</span>
-            </label>
-            <select id="nuevo-page-3" name="tipo_destino" required className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none" style={selectStyle}>
-              <option value="general">General</option>
-              <option value="pantalla_principal">Pantalla principal</option>
-              <option value="redes_sociales">Redes sociales</option>
-            </select>
+            <Select label="Destino" name="tipo_destino" required
+              options={[{ value: 'general', label: 'General' }, { value: 'pantalla_principal', label: 'Pantalla principal' }, { value: 'redes_sociales', label: 'Redes sociales' }]} />
           </div>
           <Input name="url_contenido" label="Enlace del contenido" placeholder="https://drive.google.com/..." type="url" />
         </div>

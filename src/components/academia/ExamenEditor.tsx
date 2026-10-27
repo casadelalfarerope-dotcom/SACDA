@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowDown, ArrowUp, Copy, Plus, Trash2, X } from 'lucide-react'
 import { guardarExamen, type PreguntaEditable } from '@/app/actions/academia'
 import Button from '@/components/ui/Button'
+import Select from '@/components/ui/Select'
 
 type Tipo = PreguntaEditable['tipo']
 interface Pregunta extends PreguntaEditable { key: string }
@@ -108,12 +109,8 @@ export default function ExamenEditor({ examenId, inicial, temas }: {
         <textarea id="ex-desc" value={descripcion} onChange={(e) => { setDescripcion(e.target.value); setGuardado(false) }}
           rows={2} placeholder="Instrucciones (opcional)" className={campo} style={estiloCampo} />
         <div className="flex flex-wrap items-center gap-3">
-          <label htmlFor="ex-tema" className="text-sm" style={{ color: 'var(--muted)' }}>Tema</label>
-          <select id="ex-tema" value={temaId} onChange={(e) => { setTemaId(e.target.value); setGuardado(false) }}
-            className={`${campo} w-auto flex-1`} style={estiloCampo}>
-            <option value="">Examen general del curso</option>
-            {temas.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-          </select>
+          <Select label="Tema" value={temaId} onChange={(e) => { setTemaId(e.target.value); setGuardado(false) }} placeholder="Examen general del curso"
+              options={temas.map((t) => ({ value: t.id, label: t.label }))} />
           <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Total: {total} pts</span>
         </div>
       </div>
@@ -128,11 +125,8 @@ export default function ExamenEditor({ examenId, inicial, temas }: {
               onChange={(e) => actualizar(i, { enunciado: e.target.value })} className={campo} style={estiloCampo} />
           </div>
           <div className="flex flex-wrap gap-3">
-            <label className="sr-only" htmlFor={`tipo-${p.key}`}>Tipo de la pregunta {i + 1}</label>
-            <select id={`tipo-${p.key}`} value={p.tipo} onChange={(e) => cambiarTipo(i, e.target.value as Tipo)}
-              className={`${campo} w-auto flex-1 min-w-[12rem]`} style={estiloCampo}>
-              {TIPOS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
+            <Select aria-label={`Tipo de la pregunta ${i + 1}`} value={p.tipo} onChange={(e) => cambiarTipo(i, e.target.value as Tipo)}
+          options={TIPOS.map((t) => ({ value: t.value, label: t.label }))} />
             <div className="flex items-center gap-2">
               <label htmlFor={`pts-${p.key}`} className="text-sm" style={{ color: 'var(--muted)' }}>Puntos</label>
               <input id={`pts-${p.key}`} type="number" min={0.5} step={0.5} value={p.puntos}
