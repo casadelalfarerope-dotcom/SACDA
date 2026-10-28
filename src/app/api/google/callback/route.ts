@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url)
   const volver = new URL('/configuracion', req.url)
   const estado = (await cookies()).get('google_estado')?.value
-  if (!estado || estado !== url.searchParams.get('state')) return NextResponse.redirect(`${volver}?google=error`)
+  if (!estado || estado !== url.searchParams.get('state')) return NextResponse.redirect(`${volver}?google=caducado`)
   const code = url.searchParams.get('code')
   if (!code) return NextResponse.redirect(`${volver}?google=cancelado`)
 
@@ -33,8 +33,9 @@ export async function GET(req: Request) {
     })
     await admin.from('google_sync').delete().neq('clave', '')
     after(() => sincronizarGoogle(admin))
-  } catch {
-    return NextResponse.redirect(`${volver}?google=error`)
+  } catch (e) {
+    console.error('[google] conexión fallida:', e)
+    return NextResponse.redirect(`${volver}?google=error&motivo=${encodeURIComponent(e instanceof Error ? e.message.slice(0, 150) : '')}`)
   }
   const res = NextResponse.redirect(`${volver}?google=conectado`)
   res.cookies.delete('google_estado')

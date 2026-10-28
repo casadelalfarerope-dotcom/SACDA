@@ -11,8 +11,8 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { conexion, googleConfigurado } from '@/lib/google'
 import { formatDate } from '@/lib/utils'
 
-export default async function ConfiguracionPage({ searchParams }: { searchParams: Promise<{ google?: string }> }) {
-  const { google: aviso } = await searchParams
+export default async function ConfiguracionPage({ searchParams }: { searchParams: Promise<{ google?: string; motivo?: string }> }) {
+  const { google: aviso, motivo } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -57,7 +57,7 @@ export default async function ConfiguracionPage({ searchParams }: { searchParams
             ? 'Faltan las claves de Google (GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET) en Vercel.'
             : 'La cuenta de la iglesia crea los eventos en su calendario “Casa del Alfarero” e invita a cada hermano según lo que eligió. Se pone al día al guardar cambios y cada mañana.'}>
           {aviso && AVISOS[aviso] && (
-            <Fila primero titulo={<span style={{ color: aviso === 'conectado' ? 'var(--success)' : 'var(--error)' }}>{AVISOS[aviso]}</span>} />
+            <Fila primero titulo={<span style={{ color: aviso === 'conectado' ? 'var(--success)' : 'var(--error)' }}>{AVISOS[aviso]}</span>} subtitulo={motivo || undefined} />
           )}
           <Fila primero={!(aviso && AVISOS[aviso])} inicio={<IconoModulo icon={CalendarSync} color="#4285f4" />}
             titulo={con ? con.correo : 'Sin conectar'}
@@ -80,6 +80,7 @@ const AVISOS: Record<string, string> = {
   conectado: 'Cuenta de Google conectada. Los eventos se están enviando.',
   cancelado: 'Se canceló la conexión con Google.',
   error: 'No se pudo conectar con Google. Inténtalo de nuevo.',
+  caducado: 'La autorización venía de un intento anterior. Pulsa «Conectar cuenta de Google» una sola vez y completa ese intento.',
   'sin-refresh': 'Google no entregó el permiso permanente. Quita el acceso de SACDA en tu cuenta de Google y vuelve a conectar.',
   'sin-permiso': 'Solo Administración puede conectar la cuenta de Google.',
   'sin-claves': 'Faltan las claves de Google en Vercel.',
