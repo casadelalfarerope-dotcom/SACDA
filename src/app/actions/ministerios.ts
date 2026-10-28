@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
+import { programarSyncGoogle } from '@/lib/google-sync'
 
 export async function crearGrupo(data: {
   nombre: string
@@ -60,6 +61,7 @@ export async function editarGrupo(id: string, data: {
 }
 
 export async function agregarMiembro(grupo_id: string, persona_id: string, rol_en_grupo?: string) {
+  programarSyncGoogle()
   if (!grupo_id || !persona_id) return { error: 'Datos incompletos.' }
 
   const supabase = await createClient()
@@ -76,6 +78,7 @@ export async function agregarMiembro(grupo_id: string, persona_id: string, rol_e
 }
 
 export async function removerMiembro(grupo_miembro_id: string, grupo_id: string) {
+  programarSyncGoogle()
   const supabase = await createClient()
   // No se puede dejar al ministerio sin líder.
   const admin = createServiceClient()

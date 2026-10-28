@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { esLiderAcademia, evaluarRecuperacion, personaActual } from '@/lib/academia/servidor'
 import { DIAS_PARA_RENDIR, notaVigesimal } from '@/lib/academia/reglas'
+import { programarSyncGoogle } from '@/lib/google-sync'
 
 type Resultado<T = object> = ({ success: true } & T) | { error: string }
 
@@ -35,6 +36,7 @@ export async function crearCurso(data: {
 }
 
 export async function cambiarEstadoCurso(id: string, estado: 'borrador' | 'activo' | 'finalizado'): Promise<Resultado> {
+  programarSyncGoogle()
   const supabase = await createClient()
   const { error } = await supabase.from('cursos').update({ estado }).eq('id', id)
   if (error) return { error: 'No se pudo cambiar el estado.' }
@@ -44,6 +46,7 @@ export async function cambiarEstadoCurso(id: string, estado: 'borrador' | 'activ
 }
 
 export async function inscribirAlumnos(cursoId: string, personaIds: string[]): Promise<Resultado> {
+  programarSyncGoogle()
   if (!personaIds.length) return { error: 'Selecciona al menos un alumno.' }
   const supabase = await createClient()
   const { error } = await supabase.from('curso_inscripciones').upsert(
@@ -57,6 +60,7 @@ export async function inscribirAlumnos(cursoId: string, personaIds: string[]): P
 }
 
 export async function retirarAlumno(cursoId: string, personaId: string): Promise<Resultado> {
+  programarSyncGoogle()
   const supabase = await createClient()
   const { error } = await supabase.from('curso_inscripciones').update({ activo: false })
     .eq('curso_id', cursoId).eq('persona_id', personaId)
@@ -80,6 +84,7 @@ export async function crearTema(cursoId: string, data: { titulo: string; resumen
 }
 
 export async function editarTema(id: string, data: { titulo: string; resumen?: string }): Promise<Resultado> {
+  programarSyncGoogle()
   if (!data.titulo?.trim()) return { error: 'El título del tema es obligatorio.' }
   const supabase = await createClient()
   const { error } = await supabase.from('temas')
@@ -92,6 +97,7 @@ export async function editarTema(id: string, data: { titulo: string; resumen?: s
 export async function crearSesion(temaId: string, data: {
   fecha: string; hora_inicio?: string; hora_fin?: string; enlace_reunion?: string; grabacion_url?: string
 }): Promise<Resultado> {
+  programarSyncGoogle()
   if (!data.fecha) return { error: 'La fecha es obligatoria.' }
   const supabase = await createClient()
   const { error } = await supabase.from('sesiones').insert({
@@ -110,6 +116,7 @@ export async function crearSesion(temaId: string, data: {
 export async function editarSesion(id: string, data: {
   fecha: string; hora_inicio?: string; hora_fin?: string; enlace_reunion?: string; grabacion_url?: string
 }): Promise<Resultado> {
+  programarSyncGoogle()
   if (!data.fecha) return { error: 'La fecha es obligatoria.' }
   const supabase = await createClient()
   const { error } = await supabase.from('sesiones').update({
@@ -125,6 +132,7 @@ export async function editarSesion(id: string, data: {
 }
 
 export async function eliminarSesion(id: string, temaId: string): Promise<Resultado> {
+  programarSyncGoogle()
   const supabase = await createClient()
   const { error } = await supabase.from('sesiones').delete().eq('id', id)
   if (error) return { error: 'No se pudo eliminar la sesión.' }

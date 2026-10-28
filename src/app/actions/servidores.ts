@@ -6,6 +6,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { sugerirMinisterio, asignacionesAnteriores, asegurarProgramas } from '@/lib/programas'
 import { hoyLima } from '@/lib/utils'
 import { formatDate } from '@/lib/utils'
+import { programarSyncGoogle } from '@/lib/google-sync'
 
 // Los permisos los decide la base de datos: quien tiene el módulo Servidores
 // o el líder del ministerio dueño del puesto. Si no puede, la operación no
@@ -20,6 +21,7 @@ function revalidar(programaId?: string) {
 const SIN_PERMISO = 'No tienes permiso para cambiar este ministerio.'
 
 export async function agregarAsignacion(data: { programa_id: string; rol_servicio_id: string; persona_id: string }) {
+  programarSyncGoogle()
   if (!data.rol_servicio_id || !data.persona_id) return { error: 'Elige el puesto y la persona.' }
   const supabase = await createClient()
   const { error } = await supabase.from('programa_asignaciones').insert({
@@ -31,6 +33,7 @@ export async function agregarAsignacion(data: { programa_id: string; rol_servici
 }
 
 export async function eliminarAsignacion(id: string, programa_id: string) {
+  programarSyncGoogle()
   const supabase = await createClient()
   const { data, error } = await supabase.from('programa_asignaciones').delete().eq('id', id).select('id')
   if (error || !data?.length) return { error: 'No se pudo quitar la asignación.' }
@@ -49,6 +52,7 @@ export async function subirMaterial(id: string, url: string, programa_id: string
 
 // Llena los puestos vacíos de un ministerio con la sugerencia (fijos o rotación).
 export async function llenarSugerencias(programaId: string, grupoId: string) {
+  programarSyncGoogle()
   const supabase = await createClient()
   const sugerencias = await sugerirMinisterio(supabase, programaId, grupoId)
   if (!sugerencias.length) return { error: 'No hay sugerencias: revisa que el ministerio tenga puestos e integrantes, o que no esté ya completo.' }
@@ -62,6 +66,7 @@ export async function llenarSugerencias(programaId: string, grupoId: string) {
 
 // Repite a las personas del culto anterior (ministerios que casi no varían).
 export async function repetirAnterior(programaId: string, grupoId: string) {
+  programarSyncGoogle()
   const supabase = await createClient()
   const filas = await asignacionesAnteriores(supabase, programaId, grupoId)
   if (!filas.length) return { error: 'No hay un culto anterior con este ministerio asignado, o ya está completo.' }
@@ -76,6 +81,7 @@ export async function repetirAnterior(programaId: string, grupoId: string) {
 // Completa con sugerencia, en orden de fecha, los cultos de los próximos días
 // que el ministerio aún no llenó. No publica: el líder revisa y publica.
 export async function completarProximos(grupoId: string, dias = 31, eventoId?: string) {
+  programarSyncGoogle()
   const supabase = await createClient()
   const hoy = hoyLima()
   const hasta = new Date(hoy + 'T12:00:00Z')
@@ -102,6 +108,7 @@ export async function completarProximos(grupoId: string, dias = 31, eventoId?: s
 
 // Publica la parte de un ministerio y avisa a sus asignados. No requiere aprobación.
 export async function publicarMinisterio(programaId: string, grupoId: string) {
+  programarSyncGoogle()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Tu sesión expiró.' }
@@ -137,6 +144,7 @@ export async function publicarMinisterio(programaId: string, grupoId: string) {
 
 // Vuelve a borrador para corregir (los avisos ya enviados no se retiran).
 export async function despublicarMinisterio(programaId: string, grupoId: string) {
+  programarSyncGoogle()
   const supabase = await createClient()
   const { data, error } = await supabase.from('programa_ministerios')
     .update({ estado: 'borrador' }).eq('programa_id', programaId).eq('grupo_id', grupoId).select('grupo_id')

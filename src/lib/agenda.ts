@@ -12,9 +12,11 @@ export interface Reunion {
   lugar: string | null
   requiere_asistencia: boolean
   recurrente: boolean
+  modalidad: string
+  enlace: string | null   // para entrar si es virtual (pegado o Meet generado)
 }
 
-const CAMPOS = 'id, titulo, tipo, hora_inicio, hora_fin, lugar, grupo_id, requiere_asistencia, tipo_recurrencia, fecha_unica, fecha_inicio_serie, fecha_fin_serie, dias_semana, semana_del_mes, dia_semana_mes'
+const CAMPOS = 'id, titulo, tipo, hora_inicio, hora_fin, lugar, grupo_id, requiere_asistencia, tipo_recurrencia, fecha_unica, fecha_inicio_serie, fecha_fin_serie, dias_semana, semana_del_mes, dia_semana_mes, modalidad, enlace_reunion, crear_meet'
 
 // Fechas de los eventos (de ministerios o de la iglesia) entre dos días, sin los
 // cancelados. grupoIds: solo esos ministerios; 'iglesia': solo los generales.
@@ -29,15 +31,26 @@ export async function reuniones(db: SupabaseClient, filtro: { grupoIds: string[]
     .select('evento_id, fecha_original, tipo_excepcion, fecha_nueva, titulo_override, hora_nueva_inicio')
     .in('evento_id', eventos.map((e) => e.id))
   const d = new Date(desde + 'T12:00:00Z'), h = new Date(hasta + 'T12:00:00Z')
-  return eventos.flatMap((e) =>
+  const lista = eventos.flatMap((e) =>
     generarInstancias(e as EventoBase, ((excepciones ?? []) as (ExcepcionBase & { evento_id: string })[]).filter((x) => x.evento_id === e.id), d, h)
       .map((i) => ({
         evento_id: e.id as string, grupo_id: e.grupo_id as string | null, fecha: i.fecha_original,
         fecha_real: i.fecha.toISOString().slice(0, 10), titulo: i.titulo, hora: i.hora_inicio,
         hora_fin: e.hora_fin as string | null, lugar: i.lugar, requiere_asistencia: !!e.requiere_asistencia,
         recurrente: e.tipo_recurrencia !== 'ninguna',
+        modalidad: (e.modalidad as string) ?? 'presencial',
+        enlace: e.modalidad !== 'presencial' ? (e.enlace_reunion as string | null) : null,
+        meet: e.modalidad !== 'presencial' && !e.enlace_reunion && !!e.crear_meet,
       })),
   ).sort((a, b) => (a.fecha_real + (a.hora ?? '')).localeCompare(b.fecha_real + (b.hora ?? '')))
+  // Enlaces de Meet que generó Google Calendar.
+  const conMeet = lista.filter((r) => r.meet)
+  if (conMeet.length) {
+    const { data } = await db.from('google_sync').select('clave, enlace_meet').in('clave', conMeet.map((r) => `ev:${r.evento_id}:${r.fecha}`))
+    const meet = new Map((data ?? []).map((x) => [x.clave as string, x.enlace_meet as string | null]))
+    for (const r of conMeet) r.enlace = meet.get(`ev:${r.evento_id}:${r.fecha}`) ?? null
+  }
+  return lista.map(({ meet: _meet, ...r }) => r)
 }
 
 export type RolGrupo = 'lider' | 'ayudante' | null

@@ -1,12 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
-import { Bell, Mail, KeyRound, LogIn, Moon } from 'lucide-react'
+import { Bell, Mail, KeyRound, LogIn, Moon, CalendarSync } from 'lucide-react'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila } from '@/components/ui/ios'
 import PreferenciasForm from './PreferenciasForm'
+import ConexionGoogle from './ConexionGoogle'
+import SeccionGoogle from '@/components/espacio/SeccionGoogle'
+import { createServiceClient } from '@/lib/supabase/service'
+import { conexion, googleConfigurado } from '@/lib/google'
+import { formatDate } from '@/lib/utils'
 
-export default async function ConfiguracionPage() {
+export default async function ConfiguracionPage({ searchParams }: { searchParams: Promise<{ google?: string }> }) {
+  const { google: aviso } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -15,6 +21,8 @@ export default async function ConfiguracionPage() {
     : { data: null }
   const persona = cuenta?.persona as unknown as { nombre_completo: string; email: string | null; foto_url: string | null } | null
   const conGoogle = user?.identities?.some((i) => i.provider === 'google')
+  const { data: esAdmin } = await supabase.rpc('tiene_permiso', { p_modulo: 'roles', p_accion: 'editar' })
+  const con = esAdmin === true ? await conexion(createServiceClient()) : null
 
   return (
     <Pagina ancho="estrecho" titulo="Configuración">
@@ -41,6 +49,24 @@ export default async function ConfiguracionPage() {
           detalle={<Badge variant={persona?.email ? 'success' : 'muted'}>{persona?.email ? 'Activo' : 'Inactivo'}</Badge>} />
       </Grupo>
 
+      {cuenta?.persona_id && <SeccionGoogle personaId={cuenta.persona_id as string} correoCuenta={user?.email ?? null} />}
+
+      {esAdmin === true && (
+        <Grupo titulo="Google Calendar de la iglesia"
+          pie={!googleConfigurado()
+            ? 'Faltan las claves de Google (GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET) en Vercel.'
+            : 'La cuenta de la iglesia crea los eventos en su calendario “Casa del Alfarero” e invita a cada hermano según lo que eligió. Se pone al día al guardar cambios y cada mañana.'}>
+          {aviso && AVISOS[aviso] && (
+            <Fila primero titulo={<span style={{ color: aviso === 'conectado' ? 'var(--success)' : 'var(--error)' }}>{AVISOS[aviso]}</span>} />
+          )}
+          <Fila primero={!(aviso && AVISOS[aviso])} inicio={<IconoModulo icon={CalendarSync} color="#4285f4" />}
+            titulo={con ? con.correo : 'Sin conectar'}
+            subtitulo={con ? (con.ultimo_error ? `Error: ${con.ultimo_error}` : con.ultima_sync ? `Última sincronización: ${formatDate(con.ultima_sync, { time: true })}` : 'Sincronizando por primera vez…') : 'Conecta la cuenta de Google de la iglesia'}
+            detalle={<Badge variant={con && !con.ultimo_error ? 'success' : 'muted'}>{con ? (con.ultimo_error ? 'Con error' : 'Conectada') : 'Inactiva'}</Badge>} />
+          {googleConfigurado() && <Fila><ConexionGoogle conectada={!!con} /></Fila>}
+        </Grupo>
+      )}
+
       <Grupo titulo="Apariencia">
         <Fila primero inicio={<IconoModulo icon={Moon} color="#5856d6" />}>
           <span className="block py-1"><PreferenciasForm /></span>
@@ -48,4 +74,13 @@ export default async function ConfiguracionPage() {
       </Grupo>
     </Pagina>
   )
+}
+
+const AVISOS: Record<string, string> = {
+  conectado: 'Cuenta de Google conectada. Los eventos se están enviando.',
+  cancelado: 'Se canceló la conexión con Google.',
+  error: 'No se pudo conectar con Google. Inténtalo de nuevo.',
+  'sin-refresh': 'Google no entregó el permiso permanente. Quita el acceso de SACDA en tu cuenta de Google y vuelve a conectar.',
+  'sin-permiso': 'Solo Administración puede conectar la cuenta de Google.',
+  'sin-claves': 'Faltan las claves de Google en Vercel.',
 }

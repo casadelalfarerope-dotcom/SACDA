@@ -6,6 +6,7 @@ import Avatar from '@/components/ui/Avatar'
 import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila, Tarjeta } from '@/components/ui/ios'
 import ContactoForm from '@/components/espacio/ContactoForm'
+import SeccionGoogle from '@/components/espacio/SeccionGoogle'
 import PreferenciasForm from '@/app/(dashboard)/configuracion/PreferenciasForm'
 
 export default async function MiPerfilPage() {
@@ -40,6 +41,8 @@ export default async function MiPerfilPage() {
       <Grupo titulo="Cuenta">
         <Fila primero href="/cambiar-contrasena" inicio={<IconoModulo icon={KeyRound} color="#8e8e93" />} titulo="Cambiar contraseña" />
       </Grupo>
+
+      <SeccionGoogle personaId={ctx.personaId} correoCuenta={user?.email ?? null} />
 
       <Grupo titulo="Apariencia">
         <Fila primero inicio={<IconoModulo icon={Moon} color="#5856d6" />}>

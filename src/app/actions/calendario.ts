@@ -7,6 +7,8 @@ import { enviarEmail, tplTareaAsignada } from '@/lib/email'
 import { format, subDays } from 'date-fns'
 import { integrantesMinisterio } from '@/lib/ministerios'
 import { asegurarProgramas } from '@/lib/programas'
+import { programarSyncGoogle } from '@/lib/google-sync'
+import { limpiarModalidad, modalidadBD, type DatosModalidad } from '@/lib/modalidad'
 
 export async function crearEvento(data: {
   titulo: string
@@ -25,8 +27,14 @@ export async function crearEvento(data: {
   requiere_diseno?: boolean
   dias_aviso_diseno?: number
   requiere_asistencia?: boolean
+  modalidad?: string
+  enlace_reunion?: string
+  crear_meet?: boolean
 }) {
+  programarSyncGoogle()
   if (!data.titulo?.trim()) return { error: 'El título es obligatorio.' }
+  const mod = limpiarModalidad(data as Partial<DatosModalidad>)
+  if (mod.error) return { error: mod.error }
 
   if (data.tipo_recurrencia === 'ninguna' && !data.fecha_unica)
     return { error: 'Indica la fecha del evento.' }
@@ -56,6 +64,7 @@ export async function crearEvento(data: {
     requiere_diseno: data.requiere_diseno ?? false,
     dias_aviso_diseno: data.dias_aviso_diseno ?? 7,
     requiere_asistencia: data.requiere_asistencia ?? data.tipo === 'servicio',
+    ...modalidadBD(mod.datos!),
   }).select().single()
 
   if (error) return { error: 'No se pudo crear el evento.' }
@@ -137,6 +146,7 @@ export async function crearExcepcion(data: {
   titulo_override?: string
   notas?: string
 }) {
+  programarSyncGoogle()
   if (!data.evento_id || !data.fecha_original) return { error: 'Datos incompletos.' }
   if (data.tipo_excepcion === 'reprogramado' && !data.fecha_nueva) return { error: 'Elige la nueva fecha.' }
   if (data.tipo_excepcion === 'reprogramado' && data.fecha_nueva === data.fecha_original && !data.hora_nueva_inicio)
@@ -162,6 +172,7 @@ export async function crearExcepcion(data: {
 }
 
 async function trasCambioDeCalendario() {
+  programarSyncGoogle()
   // Los programas de servidores siguen al calendario (cultos nuevos, cancelados o movidos).
   await asegurarProgramas(createServiceClient())
   revalidatePath('/calendario', 'layout')
@@ -191,8 +202,13 @@ export async function editarEvento(id: string, data: {
   dias_semana?: string[]
   fecha_unica?: string
   requiere_asistencia?: boolean
+  modalidad?: string
+  enlace_reunion?: string
+  crear_meet?: boolean
 }) {
   if (!data.titulo?.trim()) return { error: 'El título es obligatorio.' }
+  const mod = limpiarModalidad(data as Partial<DatosModalidad>)
+  if (mod.error) return { error: mod.error }
   if (data.hora_inicio && data.hora_fin && data.hora_fin <= data.hora_inicio) return { error: 'La hora de fin debe ser después de la de inicio.' }
   const supabase = await createClient()
   const { data: actual } = await supabase.from('eventos').select('tipo_recurrencia').eq('id', id).maybeSingle()
@@ -207,6 +223,7 @@ export async function editarEvento(id: string, data: {
     hora_inicio: data.hora_inicio || null,
     hora_fin: data.hora_fin || null,
     lugar: data.lugar?.trim() || null,
+    ...modalidadBD(mod.datos!),
     ...(data.requiere_asistencia !== undefined ? { requiere_asistencia: data.requiere_asistencia } : {}),
     ...(actual.tipo_recurrencia === 'semanal' ? { dias_semana: data.dias_semana } : {}),
     ...(actual.tipo_recurrencia === 'ninguna' ? { fecha_unica: data.fecha_unica } : {}),

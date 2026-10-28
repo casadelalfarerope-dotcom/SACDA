@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Mic2, ClipboardCheck } from 'lucide-react'
+import { Mic2, ClipboardCheck, Video } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate, hoyLima } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila, Tarjeta } from '@/components/ui/ios'
 import { SoloEsteDia, TodaLaSerie } from '@/components/calendario/EditarEvento'
+import { enlaceDelDia } from '@/lib/modalidad'
 
 const RECURRENCIA: Record<string, string> = {
   ninguna: 'Evento de un solo día', semanal: 'Se repite cada semana', mensual_por_dia: 'Se repite cada mes', anual: 'Se repite cada año',
@@ -22,7 +23,7 @@ export default async function EventoPage({ params, searchParams }: { params: Pro
   const supabase = await createClient()
 
   const { data: evento } = await supabase.from('eventos')
-    .select('id, titulo, descripcion, tipo, hora_inicio, hora_fin, lugar, tipo_recurrencia, dias_semana, semana_del_mes, dia_semana_mes, fecha_unica, fecha_inicio_serie, fecha_fin_serie, requiere_asistencia')
+    .select('id, titulo, descripcion, tipo, hora_inicio, hora_fin, lugar, tipo_recurrencia, dias_semana, semana_del_mes, dia_semana_mes, fecha_unica, fecha_inicio_serie, fecha_fin_serie, requiere_asistencia, modalidad, enlace_reunion, crear_meet')
     .eq('id', id).maybeSingle()
   if (!evento) notFound()
 
@@ -41,6 +42,7 @@ export default async function EventoPage({ params, searchParams }: { params: Pro
     : evento.tipo_recurrencia === 'mensual_por_dia'
       ? `El ${ORDINAL[evento.semana_del_mes as number] ?? ''} ${DIA[evento.dia_semana_mes as string] ?? ''} de cada mes`
       : RECURRENCIA[evento.tipo_recurrencia]
+  const enlace = await enlaceDelDia(supabase, evento, fechaOriginal ?? evento.fecha_unica)
   const hora = (h: string | null) => h ? h.slice(0, 5) : null
   const fechaDelDia = excepcion?.fecha_nueva ?? fechaOriginal
 
@@ -51,6 +53,11 @@ export default async function EventoPage({ params, searchParams }: { params: Pro
 
       <Grupo>
         <Fila primero titulo="Repetición" detalle={<span className="text-[14px]">{repeticion}</span>} />
+        {evento.modalidad !== 'presencial' && (
+          <Fila titulo={evento.modalidad === 'mixto' ? 'Presencial y virtual' : 'Reunión virtual'}
+            subtitulo={enlace ? undefined : evento.crear_meet ? 'El enlace de Meet aparecerá cuando se envíe a Google Calendar.' : 'Sin enlace todavía.'}
+            detalle={enlace ? <a href={enlace} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[14px] font-semibold" style={{ color: 'var(--accent)' }}><Video size={15} aria-hidden="true" /> Entrar</a> : undefined} />
+        )}
         {evento.fecha_fin_serie && <Fila titulo="Termina" detalle={formatDate(evento.fecha_fin_serie)} />}
         {excepcion && (
           <Fila titulo="Este día" detalle={<Badge variant={excepcion.tipo_excepcion === 'cancelado' ? 'error' : 'warning'}>

@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import Avatar from '@/components/ui/Avatar'
 import { Segmentado } from '@/components/ui/ios'
+import CamposModalidad, { MODALIDAD_INICIAL } from '@/components/calendario/CamposModalidad'
 import { DIAS_SEMANA } from '@/lib/agenda'
 import { crearEventoMinisterio, cancelarReunion, eliminarEventoMinisterio, marcarAsistenciaMinisterio } from '@/app/actions/agenda'
 
@@ -21,6 +22,7 @@ export function NuevoEventoMinisterio({ grupoId, hoy }: { grupoId: string; hoy: 
   const [repetir, setRepetir] = useState<'una' | 'semanal'>('una')
   const [dias, setDias] = useState<string[]>([])
   const [lista, setLista] = useState(true)
+  const [mod, setMod] = useState(MODALIDAD_INICIAL)
   const [error, setError] = useState('')
   const [aviso, setAviso] = useState('')
   const [pendiente, iniciar] = useTransition()
@@ -33,11 +35,11 @@ export function NuevoEventoMinisterio({ grupoId, hoy }: { grupoId: string; hoy: 
         const res = await crearEventoMinisterio({
           grupo_id: grupoId, titulo: datos.titulo, lugar: datos.lugar, descripcion: datos.descripcion,
           hora_inicio: datos.hora_inicio, hora_fin: datos.hora_fin, repetir: repetir === 'semanal',
-          fecha: datos.fecha, dias_semana: dias, desde: datos.desde, hasta: datos.hasta, requiere_asistencia: lista,
+          fecha: datos.fecha, dias_semana: dias, desde: datos.desde, hasta: datos.hasta, requiere_asistencia: lista, ...mod,
         })
         if (res.error) { setError(res.error); return }
         setAviso('Evento creado. Se avisó a los integrantes.')
-        setDatos(vacio); setDias([])
+        setDatos(vacio); setDias([]); setMod(MODALIDAD_INICIAL)
         router.refresh()
       })
     }}>
@@ -75,6 +77,7 @@ export function NuevoEventoMinisterio({ grupoId, hoy }: { grupoId: string; hoy: 
         <Input label="Hora de fin" type="time" {...campo('hora_fin')} />
       </div>
       <Input label="Lugar (opcional)" {...campo('lugar')} placeholder="Ej. Templo, casa de la hna. Rosa" />
+      <CamposModalidad valor={mod} onChange={setMod} />
       <Input label="Detalle (opcional)" {...campo('descripcion')} placeholder="Ej. Traer la Biblia" />
       <label className="flex items-start gap-2.5 text-[14px]" style={{ color: 'var(--foreground)' }}>
         <input type="checkbox" checked={lista} onChange={(e) => setLista(e.target.checked)} className="mt-1" />

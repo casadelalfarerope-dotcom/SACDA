@@ -8,6 +8,7 @@ import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { Segmentado } from '@/components/ui/ios'
 import { crearExcepcion, eliminarExcepcion, editarEvento, terminarSerie, reanudarSerie, eliminarEvento } from '@/app/actions/calendario'
+import CamposModalidad, { type DatosModalidad } from '@/components/calendario/CamposModalidad'
 
 type Resultado = { error?: string; success?: boolean }
 
@@ -124,6 +125,7 @@ export function TodaLaSerie({ evento, hoy }: {
     hora_inicio: string | null; hora_fin: string | null; lugar: string | null
     tipo_recurrencia: string; dias_semana: string[] | null; fecha_unica: string | null; fecha_fin_serie: string | null
     requiere_asistencia: boolean
+    modalidad: DatosModalidad['modalidad']; enlace_reunion: string | null; crear_meet: boolean
   }
   hoy: string
 }) {
@@ -136,13 +138,14 @@ export function TodaLaSerie({ evento, hoy }: {
     requiere_asistencia: evento.requiere_asistencia,
   })
   const [fin, setFin] = useState(evento.fecha_fin_serie ?? '')
+  const [mod, setMod] = useState<DatosModalidad>({ modalidad: evento.modalidad, enlace_reunion: evento.enlace_reunion ?? '', crear_meet: evento.crear_meet })
   const esSerie = evento.tipo_recurrencia !== 'ninguna'
 
   return (
     <div className="space-y-5">
       <form className="space-y-3" noValidate onSubmit={(e) => {
         e.preventDefault()
-        ejecutar(() => editarEvento(evento.id, { ...f, tipo: f.tipo }), esSerie ? 'Listo: se actualizaron todos los días.' : 'Listo: se actualizó el evento.')
+        ejecutar(() => editarEvento(evento.id, { ...f, ...mod, tipo: f.tipo }), esSerie ? 'Listo: se actualizaron todos los días.' : 'Listo: se actualizó el evento.')
       }}>
         <Input label="Nombre *" value={f.titulo} maxLength={120} onChange={(e) => setF({ ...f, titulo: e.target.value })} />
         <Select label="Tipo" value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value as typeof f.tipo })} options={[
@@ -185,6 +188,7 @@ export function TodaLaSerie({ evento, hoy }: {
           </span>
         </label>
         <Input label="Lugar" value={f.lugar} onChange={(e) => setF({ ...f, lugar: e.target.value })} placeholder="Ej. Templo principal" />
+        <CamposModalidad valor={mod} onChange={setMod} />
         <Button type="submit" loading={pendiente}>Guardar cambios{esSerie ? ' de la serie' : ''}</Button>
       </form>
 

@@ -4,12 +4,15 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { integrantesDe } from '@/lib/agenda'
+import { programarSyncGoogle } from '@/lib/google-sync'
+import { limpiarModalidad, modalidadBD, type DatosModalidad } from '@/lib/modalidad'
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/
 const HORA = /^\d{2}:\d{2}$/
 const DIAS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
 
 function refrescar(grupoId: string) {
+  programarSyncGoogle()
   revalidatePath('/mi', 'layout')
   revalidatePath('/calendario')
   revalidatePath(`/mi/ministerios/${grupoId}`, 'layout')
@@ -48,6 +51,9 @@ export async function crearEventoMinisterio(datos: {
   desde?: string
   hasta?: string
   requiere_asistencia: boolean
+  modalidad?: string
+  enlace_reunion?: string
+  crear_meet?: boolean
 }) {
   const titulo = datos.titulo.trim()
   if (titulo.length < 3) return { error: 'Escribe un título (por ejemplo: “Ensayo de la banda”).' }
@@ -59,6 +65,9 @@ export async function crearEventoMinisterio(datos: {
     if (!FECHA.test(datos.desde ?? '')) return { error: 'Elige desde qué fecha empieza.' }
     if (datos.hasta && (!FECHA.test(datos.hasta) || datos.hasta < datos.desde!)) return { error: 'La fecha de término debe ser después del inicio.' }
   } else if (!FECHA.test(datos.fecha ?? '')) return { error: 'Elige la fecha.' }
+
+  const mod = limpiarModalidad(datos as Partial<DatosModalidad>)
+  if (mod.error) return { error: mod.error }
 
   const quien = await gestor(datos.grupo_id)
   if (!quien) return { error: 'Solo el líder del ministerio puede crear sus eventos.' }
@@ -75,6 +84,7 @@ export async function crearEventoMinisterio(datos: {
     fecha_fin_serie: datos.repetir ? datos.hasta || null : null,
     fecha_unica: datos.repetir ? null : datos.fecha,
     requiere_asistencia: datos.requiere_asistencia,
+    ...modalidadBD(mod.datos!),
   }).select('id').single()
   if (error || !evento) return { error: 'No se pudo crear el evento.' }
 

@@ -8,13 +8,14 @@ import { hoyLima } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila, Vacio } from '@/components/ui/ios'
+import EnlaceReunion from '@/components/calendario/EnlaceReunion'
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const INICIALES = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
 
 type Tipo = 'iglesia' | 'ministerio' | 'turno' | 'cumple'
-type Item = { tipo: Tipo; clave: string; titulo: string; detalle: string; hora: string | null; href?: string }
+type Item = { tipo: Tipo; clave: string; titulo: string; detalle: string; hora: string | null; href?: string; enlace?: string | null }
 const ESTILO: Record<Tipo, { color: string; icono: typeof Church; texto: string }> = {
   iglesia:    { color: '#a35d2d', icono: Church, texto: 'Iglesia' },
   ministerio: { color: '#ff3b30', icono: Users,  texto: 'Mi ministerio' },
@@ -46,11 +47,11 @@ export default async function MiCalendarioPage({ searchParams }: { searchParams:
 
   const porDia = new Map<string, Item[]>()
   const agregar = (f: string, it: Item) => { if (!porDia.has(f)) porDia.set(f, []); porDia.get(f)!.push(it) }
-  for (const r of deIglesia) agregar(r.fecha_real, { tipo: 'iglesia', clave: r.evento_id + r.fecha, titulo: r.titulo, detalle: r.lugar ?? 'Toda la iglesia', hora: r.hora?.slice(0, 5) ?? null })
+  for (const r of deIglesia) agregar(r.fecha_real, { tipo: 'iglesia', clave: r.evento_id + r.fecha, titulo: r.titulo, detalle: r.lugar ?? (r.modalidad === 'virtual' ? 'Virtual' : 'Toda la iglesia'), hora: r.hora?.slice(0, 5) ?? null, enlace: r.enlace })
   for (const r of deMinisterios) agregar(r.fecha_real, {
     tipo: 'ministerio', clave: r.evento_id + r.fecha, titulo: r.titulo,
     detalle: [nombreMin.get(r.grupo_id!), r.lugar].filter(Boolean).join(' · '), hora: r.hora?.slice(0, 5) ?? null,
-    href: `/mi/ministerios/${r.grupo_id}/agenda`,
+    href: `/mi/ministerios/${r.grupo_id}/agenda`, enlace: r.enlace,
   })
   for (const t of turnos.filter((t) => t.programa.fecha >= primero && t.programa.fecha <= ultimo)) agregar(t.programa.fecha, {
     tipo: 'turno', clave: t.id, titulo: `${t.puesto.nombre} · ${t.grupo.nombre}`, detalle: t.programa.titulo,
@@ -126,10 +127,12 @@ export default async function MiCalendarioPage({ searchParams }: { searchParams:
               {items.map((x, i) => {
                 const E = ESTILO[x.tipo]
                 return (
-                  <Fila key={x.tipo + x.clave} primero={i === 0} href={x.href}
+                  <Fila key={x.tipo + x.clave} primero={i === 0} href={x.enlace ? undefined : x.href}
                     inicio={<span id={x.tipo === 'cumple' ? `cumple-${x.clave}` : undefined}><IconoModulo icon={E.icono} color={E.color} tamano={36} /></span>}
                     titulo={x.titulo} subtitulo={[x.hora, x.detalle].filter(Boolean).join(' · ')}
-                    detalle={x.tipo === 'turno' ? <Badge variant="warning">Sirves</Badge> : <span className="text-[12px]">{E.texto}</span>} />
+                    detalle={x.tipo === 'turno' ? <Badge variant="warning">Sirves</Badge> : <span className="text-[12px]">{E.texto}</span>}>
+                    {x.enlace && <EnlaceReunion href={x.enlace} />}
+                  </Fila>
                 )
               })}
               {!items.length && <Fila primero titulo={<span style={{ color: 'var(--muted)' }}>No hay nada programado este día</span>} />}

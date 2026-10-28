@@ -10,6 +10,7 @@ import Avatar from '@/components/ui/Avatar'
 import { IconoModulo } from '@/components/ui/IconoApp'
 import { Pagina, Grupo, Fila, Vacio, Tarjeta } from '@/components/ui/ios'
 import { NuevoEventoMinisterio, AccionesReunion } from '@/components/agenda/FormulariosAgenda'
+import EnlaceReunion from '@/components/calendario/EnlaceReunion'
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
@@ -76,11 +77,12 @@ export default async function AgendaMinisterioPage({ params }: { params: Promise
           const esHoy = r.fecha_real === hoy
           return (
             <Fila key={r.evento_id + r.fecha} primero={i === 0}
-              href={mio.gestiona && esHoy && r.requiere_asistencia ? enlaceLista(r.evento_id, r.fecha) : undefined}
+              href={mio.gestiona && esHoy && r.requiere_asistencia && !r.enlace ? enlaceLista(r.evento_id, r.fecha) : undefined}
               inicio={<IconoModulo icon={CalendarDays} color="#ff3b30" tamano={36} />}
               titulo={r.titulo}
               subtitulo={[diaLargo(r.fecha_real), horario(r.hora, r.hora_fin), r.lugar].filter(Boolean).join(' · ')}
               detalle={esHoy ? <Badge variant="warning">{mio.gestiona && r.requiere_asistencia ? 'Pasar lista' : 'Hoy'}</Badge> : undefined}>
+              {r.enlace && <EnlaceReunion href={r.enlace} />}
               {mio.gestiona && (
                 <span className="flex flex-wrap items-center gap-x-3">
                   <Link href={`/mi/ministerios/${id}/agenda/turnos/${r.evento_id}`} className="text-[13px] font-medium mt-1.5" style={{ color: 'var(--accent)' }}>

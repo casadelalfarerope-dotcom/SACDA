@@ -7,6 +7,7 @@ import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { crearEvento } from '@/app/actions/calendario'
 import { Pagina } from '@/components/ui/ios'
+import CamposModalidad, { MODALIDAD_INICIAL } from '@/components/calendario/CamposModalidad'
 
 const DIAS_OPCIONES = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo']
 const DIAS_LABEL: Record<string, string> = {
@@ -37,6 +38,7 @@ export default function NuevoEventoPage() {
   })
   // Los cultos de servicio toman asistencia por defecto (se puede desmarcar).
   const [asistenciaTocada, setAsistenciaTocada] = useState(false)
+  const [mod, setMod] = useState(MODALIDAD_INICIAL)
 
   function set(field: string, value: string) {
     setForm((prev) => ({
@@ -60,6 +62,7 @@ export default function NuevoEventoPage() {
     setError(null)
     const result = await crearEvento({
       ...form,
+      ...mod,
       semana_del_mes: form.semana_del_mes ? parseInt(form.semana_del_mes) : undefined,
       dias_aviso_diseno: parseInt(form.dias_aviso_diseno) || 7,
     })
@@ -146,6 +149,7 @@ export default function NuevoEventoPage() {
           <Input label="Hora de fin" type="time" value={form.hora_fin} onChange={(e) => set('hora_fin', e.target.value)} />
         </div>
         <Input label="Lugar" value={form.lugar} onChange={(e) => set('lugar', e.target.value)} placeholder="Ej. Templo principal" />
+        <CamposModalidad valor={mod} onChange={setMod} />
 
         <label className="flex items-start gap-3 cursor-pointer rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--surface-secondary)' }}>
           <input type="checkbox" checked={form.requiere_asistencia} className="w-4 h-4 mt-0.5 rounded" style={{ accentColor: 'var(--accent)' }}
