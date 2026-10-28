@@ -50,17 +50,17 @@ export default function AsignarRolForm({ personas, roles }: { personas: Persona[
 
   return (
     <form onSubmit={handleSubmit}
-      className="flex flex-wrap items-end gap-3 p-4 rounded-2xl border animate-fade"
+      className="grid sm:grid-cols-2 items-start gap-3 p-4 rounded-2xl border animate-fade"
       style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-      <div className="flex-1 min-w-40">
-        <BuscadorPersona label="Persona" required compacto value={personaId} onChange={setPersonaId}
+      <div>
+        <BuscadorPersona label="Persona" required value={personaId} onChange={setPersonaId}
           personas={personas.map((p) => ({ id: p.id, nombre: p.nombre_completo }))} />
       </div>
-      <div className="flex-1 min-w-40">
+      <div>
         <Select label="Rol" required value={rolId} onChange={(e) => setRolId(e.target.value)} placeholder="Selecciona"
           options={roles.map((r) => ({ value: r.id, label: r.nombre.replace(/_/g, ' ') }))} />
       </div>
-      <div className="flex gap-2">
+      <div className="sm:col-span-2 flex justify-end gap-2">
         <Button type="button" variant="secondary" size="sm" onClick={() => { setAbierto(false); setMsg(null) }}>
           Cancelar
         </Button>
@@ -69,7 +69,7 @@ export default function AsignarRolForm({ personas, roles }: { personas: Persona[
         </Button>
       </div>
       {msg && (
-        <p className="w-full text-sm" style={{ color: msg.ok ? 'var(--success)' : 'var(--error)' }}>
+        <p className="sm:col-span-2 text-sm" style={{ color: msg.ok ? 'var(--success)' : 'var(--error)' }}>
           {msg.text}
         </p>
       )}
