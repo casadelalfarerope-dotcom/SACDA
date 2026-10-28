@@ -10,13 +10,14 @@ export const SCOPES = 'https://www.googleapis.com/auth/calendar openid email'
 export function appUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? 'https://mi-sacda.vercel.app'
 }
-export const redirectUri = () => `${appUrl()}/api/google/callback`
+// Se arma con el dominio desde el que se abrió la app, para no depender de variables.
+export const redirectUri = (origen: string) => `${origen}/api/google/callback`
 export const googleConfigurado = () => !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
 
-export function urlAutorizacion(estado: string) {
+export function urlAutorizacion(estado: string, origen: string) {
   const p = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
-    redirect_uri: redirectUri(),
+    redirect_uri: redirectUri(origen),
     response_type: 'code',
     scope: SCOPES,
     access_type: 'offline',
@@ -41,8 +42,8 @@ async function token(params: Record<string, string>) {
   return json as { access_token: string; refresh_token?: string; id_token?: string }
 }
 
-export const canjearCodigo = (code: string) =>
-  token({ code, grant_type: 'authorization_code', redirect_uri: redirectUri() })
+export const canjearCodigo = (code: string, origen: string) =>
+  token({ code, grant_type: 'authorization_code', redirect_uri: redirectUri(origen) })
 export const accesoDesdeRefresh = async (refresh: string) =>
   (await token({ refresh_token: refresh, grant_type: 'refresh_token' })).access_token
 

@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   if (!googleConfigurado()) return NextResponse.redirect(`${volver}?google=sin-claves`)
 
   const estado = randomBytes(16).toString('hex')
-  const res = NextResponse.redirect(urlAutorizacion(estado))
+  const res = NextResponse.redirect(urlAutorizacion(estado, new URL(req.url).origin))
   res.cookies.set('google_estado', estado, { httpOnly: true, secure: true, sameSite: 'lax', maxAge: 600, path: '/' })
   return res
 }

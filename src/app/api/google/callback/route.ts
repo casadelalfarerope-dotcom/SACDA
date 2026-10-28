@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   const { data: cuenta } = await supabase.from('cuentas').select('persona_id').eq('id', user!.id).single()
 
   try {
-    const t = await canjearCodigo(code)
+    const t = await canjearCodigo(code, new URL(req.url).origin)
     if (!t.refresh_token) return NextResponse.redirect(`${volver}?google=sin-refresh`)
     const admin = createServiceClient()
     await admin.from('google_conexion').upsert({
