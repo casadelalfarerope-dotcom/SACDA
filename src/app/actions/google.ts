@@ -56,3 +56,25 @@ export async function desconectarGoogle() {
   revalidatePath('/configuracion')
   return { success: true }
 }
+
+// Administración activa Google Calendar para todos los hermanos activos que
+// tienen correo en su ficha. No toca a quien ya eligió algo (activó o desactivó).
+export async function activarGoogleParaTodos() {
+  if (!(await esAdmin())) return { error: 'No tienes permiso.' }
+  const admin = createServiceClient()
+  const [{ data: personas }, { data: existentes }] = await Promise.all([
+    admin.from('personas').select('id, email').eq('estado', 'activo').not('email', 'is', null),
+    admin.from('google_preferencias').select('persona_id'),
+  ])
+  const ya = new Set((existentes ?? []).map((p) => p.persona_id as string))
+  const nuevas = (personas ?? [])
+    .filter((p) => !ya.has(p.id as string) && CORREO.test(((p.email as string) ?? '').trim()))
+    .map((p) => ({ persona_id: p.id as string, activo: true, correo: (p.email as string).trim().toLowerCase(), tipos: TIPOS_GOOGLE.map((t) => t.value) }))
+  if (nuevas.length) {
+    const { error } = await admin.from('google_preferencias').insert(nuevas)
+    if (error) return { error: 'No se pudo activar.' }
+    programarSyncGoogle()
+  }
+  revalidatePath('/configuracion')
+  return { success: true, activados: nuevas.length, yaElegidos: ya.size }
+}
