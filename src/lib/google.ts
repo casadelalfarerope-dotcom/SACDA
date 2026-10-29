@@ -82,6 +82,7 @@ export async function conexion(admin: SupabaseClient) {
   const { data } = await admin.from('google_conexion').select('*').eq('id', 1).maybeSingle()
   return data as null | {
     correo: string; refresh_token: string; calendario_id: string | null
+    calendario_cultos: string | null; calendario_especiales: string | null
     ultima_sync: string | null; ultimo_error: string | null; bloqueo: string | null; pendiente: boolean
   }
 }

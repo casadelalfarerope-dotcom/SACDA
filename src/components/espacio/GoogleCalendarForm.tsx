@@ -77,9 +77,9 @@ export default function GoogleCalendarForm({ inicial, iglesiaConectada, correoIg
           </fieldset>
 
           <p className="text-[13px]" style={{ color: 'var(--muted)' }}>
-            Para que los eventos aparezcan solos, agrega {correoIglesia ? <strong>{correoIglesia}</strong> : 'el correo de la iglesia'} a
-            tus contactos de Google. Si no aparecen, en Google Calendar ve a Configuración → Eventos de Gmail e invitaciones
-            → “Agregar invitaciones a mi calendario” y elige “De todos”.
+            Para los cultos y eventos especiales te llegará <strong>un correo</strong> de {correoIglesia ?? 'la iglesia'} para
+            agregar su calendario: pulsa «Agregar calendario» una sola vez y desde ahí todo se actualiza solo. Tus turnos,
+            ministerios y clases llegan como invitaciones.
           </p>
 
           <div className="flex justify-end">

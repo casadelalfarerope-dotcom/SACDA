@@ -8,16 +8,28 @@ import type { TipoGoogle } from '@/lib/google-tipos'
 import { Google, ZONA, accesoDesdeRefresh, appUrl, conexion, googleConfigurado } from '@/lib/google'
 
 // Envía a Google Calendar lo que sale en el calendario del sistema:
-// cada día de cada evento es un evento en el calendario de la iglesia, con
-// invitados según lo que cada hermano eligió en su configuración.
+// cada día de cada evento es un evento en la cuenta de la iglesia.
+// - Cultos y eventos especiales: en dos calendarios compartidos, que se
+//   comparten una vez con cada hermano que los eligió.
+// - Ministerio, turnos y Academia: en el calendario "Casa del Alfarero",
+//   invitando solo a quien corresponde.
 // Es idempotente: compara con lo ya enviado (google_sync) y solo crea,
 // actualiza o borra lo que cambió.
 
 const DIAS_ADELANTE = 60
 const DURACION_MIN = 120 // si no hay hora de fin
 
+type Cal = 'principal' | 'cultos' | 'especiales'
+const COMPARTIDOS = [
+  { cal: 'cultos', columna: 'calendario_cultos', nombre: 'Casa del Alfarero · Cultos' },
+  { cal: 'especiales', columna: 'calendario_especiales', nombre: 'Casa del Alfarero · Eventos especiales' },
+] as const
+// El prefijo de la clave dice en qué calendario está el evento.
+const calDeClave = (clave: string): Cal => clave.startsWith('cu:') ? 'cultos' : clave.startsWith('es:') ? 'especiales' : 'principal'
+
 interface Deseado {
   clave: string
+  cal: Cal
   fecha: string
   meet: boolean
   cuerpo: Record<string, unknown>
@@ -63,7 +75,6 @@ async function calcular(admin: SupabaseClient, prefs: Prefs): Promise<Deseado[]>
     for (const id of ids) { const p = prefs.get(id); if (p?.tipos.has(tipo)) set.add(p.correo.toLowerCase()) }
     return [...set].sort().map((email) => ({ email }))
   }
-  const todos = [...prefs.keys()]
   const salida: Deseado[] = []
 
   // 1. Eventos del calendario (de la iglesia y de los ministerios)
@@ -74,21 +85,23 @@ async function calcular(admin: SupabaseClient, prefs: Prefs): Promise<Deseado[]>
   const integrantes = new Map<string, string[]>()
   for (const ev of eventos ?? []) {
     const grupo = ev.grupo_id as string | null
-    let invitados: { email: string }[]
+    // De la iglesia: va al calendario compartido, sin invitados.
+    let invitados: { email: string }[] = []
+    const cal: Cal = grupo ? 'principal' : ev.tipo === 'servicio' ? 'cultos' : 'especiales'
     if (grupo) {
       if (!integrantes.has(grupo)) integrantes.set(grupo, (await integrantesDe(admin, grupo)).map((p) => p.id))
       invitados = correos(integrantes.get(grupo)!, 'ministerio')
-    } else {
-      invitados = correos(todos, ev.tipo === 'servicio' ? 'cultos' : 'especiales')
+      if (!invitados.length) continue
     }
-    if (!invitados.length) continue
+    const prefijo = cal === 'cultos' ? 'cu' : cal === 'especiales' ? 'es' : 'ev'
     const exc = (excepciones ?? []).filter((x) => x.evento_id === ev.id)
     for (const inst of generarInstancias(ev as EventoBase, exc, desde, hasta)) {
       const fecha = ymd(inst.fecha)
       const virtual = ev.modalidad !== 'presencial'
       const enlace = virtual ? (ev.enlace_reunion as string | null) : null
       salida.push({
-        clave: `ev:${ev.id}:${inst.fecha_original}`,
+        clave: `${prefijo}:${ev.id}:${inst.fecha_original}`,
+        cal,
         fecha,
         meet: virtual && !!ev.crear_meet && !enlace,
         cuerpo: {
@@ -97,7 +110,7 @@ async function calcular(admin: SupabaseClient, prefs: Prefs): Promise<Deseado[]>
           description: descripcion([ev.descripcion, enlace && `Enlace de la reunión: ${enlace}`],
             grupo ? `/mi/ministerios/${grupo}/agenda` : `/mi/calendario?dia=${fecha}`),
           ...cuando(fecha, inst.hora_inicio, inst.excepcion || inst.hora_inicio !== ev.hora_inicio ? null : ev.hora_fin),
-          attendees: invitados,
+          ...(grupo ? { attendees: invitados } : {}),
         },
       })
     }
@@ -116,7 +129,7 @@ async function calcular(admin: SupabaseClient, prefs: Prefs): Promise<Deseado[]>
     const invitados = correos([t.persona_id as string], 'turnos')
     if (!invitados.length) continue
     salida.push({
-      clave: `tu:${t.id}`, fecha: prog.fecha, meet: false,
+      clave: `tu:${t.id}`, cal: 'principal', fecha: prog.fecha, meet: false,
       cuerpo: {
         summary: `Sirves: ${puesto.nombre} — ${prog.titulo}`,
         description: descripcion([`Ministerio: ${puesto.grupo.nombre}`], '/mi/servicio'),
@@ -143,7 +156,7 @@ async function calcular(admin: SupabaseClient, prefs: Prefs): Promise<Deseado[]>
     if (!invitados.length) continue
     const enlace = s.enlace_reunion as string | null
     salida.push({
-      clave: `se:${s.id}`, fecha: s.fecha as string, meet: false,
+      clave: `se:${s.id}`, cal: 'principal', fecha: s.fecha as string, meet: false,
       cuerpo: {
         summary: `${curso.nombre}: ${tema!.titulo}`,
         location: enlace ?? undefined,
@@ -154,6 +167,33 @@ async function calcular(admin: SupabaseClient, prefs: Prefs): Promise<Deseado[]>
     })
   }
   return salida
+}
+
+// Comparte cada calendario con quien lo eligió (Google le manda un solo correo)
+// y deja de compartirlo con quien lo quitó.
+async function compartir(admin: SupabaseClient, g: Google, ids: Record<Cal, string>, prefs: Prefs) {
+  const { data: filas } = await admin.from('google_compartidos').select('calendario, correo, regla_id')
+  const tareas: (() => Promise<void>)[] = []
+  for (const c of COMPARTIDOS) {
+    const quieren = new Set([...prefs.values()].filter((p) => p.tipos.has(c.cal)).map((p) => p.correo.toLowerCase()))
+    const tienen = new Map((filas ?? []).filter((f) => f.calendario === c.cal).map((f) => [f.correo as string, f.regla_id as string]))
+    const acl = `/calendars/${encodeURIComponent(ids[c.cal])}/acl`
+    for (const correo of quieren) {
+      if (tienen.has(correo)) continue
+      tareas.push(async () => {
+        const regla = await g.pedir<{ id: string }>('POST', `${acl}?sendNotifications=true`, { role: 'reader', scope: { type: 'user', value: correo } })
+        if (regla) await admin.from('google_compartidos').upsert({ calendario: c.cal, correo, regla_id: regla.id })
+      })
+    }
+    for (const [correo, regla] of tienen) {
+      if (quieren.has(correo)) continue
+      tareas.push(async () => {
+        await g.pedir('DELETE', `${acl}/${encodeURIComponent(regla)}`)
+        await admin.from('google_compartidos').delete().eq('calendario', c.cal).eq('correo', correo)
+      })
+    }
+  }
+  for (let i = 0; i < tareas.length; i += 5) await Promise.all(tareas.slice(i, i + 5).map((t) => t()))
 }
 
 async function ejecutar(admin: SupabaseClient) {
@@ -169,12 +209,27 @@ async function ejecutar(admin: SupabaseClient) {
     await admin.from('google_conexion').update({ calendario_id: cal }).eq('id', 1)
     await admin.from('google_sync').delete().neq('clave', '')
   }
-  const base = `/calendars/${encodeURIComponent(cal)}/events`
+  const ids: Record<Cal, string> = { principal: cal, cultos: '', especiales: '' }
+
+  // Calendarios compartidos de cultos y eventos especiales.
+  for (const c of COMPARTIDOS) {
+    let id = con[c.columna]
+    if (!id || !(await g.pedir('GET', `/calendars/${encodeURIComponent(id)}`))) {
+      const nuevo = await g.pedir<{ id: string }>('POST', '/calendars', { summary: c.nombre, timeZone: ZONA })
+      id = nuevo!.id
+      await admin.from('google_conexion').update({ [c.columna]: id }).eq('id', 1)
+      await admin.from('google_sync').delete().like('clave', `${c.cal === 'cultos' ? 'cu' : 'es'}:%`)
+      await admin.from('google_compartidos').delete().eq('calendario', c.cal)
+    }
+    ids[c.cal] = id
+  }
+  const base = (c: Cal) => `/calendars/${encodeURIComponent(ids[c])}/events`
 
   const { data: filasPref } = await admin.from('google_preferencias').select('persona_id, correo, tipos').eq('activo', true)
   const prefs: Prefs = new Map((filasPref ?? []).filter((p) => p.correo)
     .map((p) => [p.persona_id as string, { correo: p.correo as string, tipos: new Set(p.tipos as string[]) }]))
 
+  await compartir(admin, g, ids, prefs)
   const deseados = await calcular(admin, prefs)
   const hoy = hoyLima()
   const { data: enviados } = await admin.from('google_sync').select('clave, google_event_id, huella').gte('fecha', hoy)
@@ -188,12 +243,12 @@ async function ejecutar(admin: SupabaseClient) {
     if (previo?.huella === h) continue
     tareas.push(async () => {
       let ev: { id: string; hangoutLink?: string } | null = null
-      if (previo) ev = await g.pedir('PATCH', `${base}/${previo.google_event_id}?sendUpdates=none&conferenceDataVersion=1`, d.cuerpo)
+      if (previo) ev = await g.pedir('PATCH', `${base(d.cal)}/${previo.google_event_id}?sendUpdates=none&conferenceDataVersion=1`, d.cuerpo)
       if (!ev) {
         const cuerpo = d.meet
           ? { ...d.cuerpo, conferenceData: { createRequest: { requestId: h.slice(0, 20), conferenceSolutionKey: { type: 'hangoutsMeet' } } } }
           : d.cuerpo
-        ev = await g.pedir('POST', `${base}?sendUpdates=none&conferenceDataVersion=1`, cuerpo)
+        ev = await g.pedir('POST', `${base(d.cal)}?sendUpdates=none&conferenceDataVersion=1`, cuerpo)
       }
       if (!ev) return
       await admin.from('google_sync').upsert({
@@ -206,7 +261,7 @@ async function ejecutar(admin: SupabaseClient) {
   for (const [clave, previo] of previos) {
     if (claves.has(clave)) continue
     tareas.push(async () => {
-      await g.pedir('DELETE', `${base}/${previo.google_event_id}?sendUpdates=none`)
+      await g.pedir('DELETE', `${base(calDeClave(clave))}/${previo.google_event_id}?sendUpdates=none`)
       await admin.from('google_sync').delete().eq('clave', clave)
     })
   }
