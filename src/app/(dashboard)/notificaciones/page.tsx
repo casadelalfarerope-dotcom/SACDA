@@ -50,9 +50,9 @@ export default async function NotificacionesPage() {
       ) : (
         <Grupo>
           {notifs.map((n, i) => {
-            const t = TIPO[n.tipo] ?? TIPO.general!
+            const t = (n.metadata as { quitado?: boolean } | null)?.quitado ? { icon: Undo2, color: '#8e8e93' } : TIPO[n.tipo] ?? TIPO.general!
             return (
-              <Fila key={n.id} href={n.url ?? undefined} primero={i === 0}
+              <Fila key={n.id} href={n.url ? `/api/avisos/${n.id}?a=${encodeURIComponent(n.url)}` : undefined} primero={i === 0}
                 inicio={<IconoModulo icon={t.icon} color={t.color} tamano={36} />}
                 titulo={<span style={{ fontWeight: n.leida ? 450 : 650 }}>{!n.leida && <span className="sr-only">Sin leer: </span>}{n.titulo}</span>}
                 subtitulo={n.cuerpo ?? undefined}

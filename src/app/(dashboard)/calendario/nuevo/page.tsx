@@ -83,17 +83,18 @@ export default function NuevoEventoPage() {
         <Input label="Título *" value={form.titulo} onChange={(e) => set('titulo', e.target.value)} placeholder="Ej. Culto de viernes" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Select label="Tipo de evento" value={form.tipo} onChange={(e) => set('tipo', e.target.value)}
+          <Select label="¿Qué tipo de evento es?" value={form.tipo} onChange={(e) => set('tipo', e.target.value)}
+            hint={form.tipo === 'servicio' ? 'Aparece en Servidores para programar quién sirve.' : 'Santa Cena, aniversarios, retiros…'}
             options={[
-              { value: 'servicio', label: 'Servicio / Culto' },
-              { value: 'actividad_especial', label: 'Actividad especial' },
-              { value: 'evento_unico', label: 'Evento único' },
+              { value: 'servicio', label: 'Culto o servicio' },
+              { value: 'actividad_especial', label: 'Evento especial' },
+              { value: 'evento_unico', label: 'Otro evento' },
             ]} />
-          <Select label="Recurrencia" value={form.tipo_recurrencia} onChange={(e) => set('tipo_recurrencia', e.target.value)}
+          <Select label="¿Se repite?" value={form.tipo_recurrencia} onChange={(e) => set('tipo_recurrencia', e.target.value)}
             options={[
-              { value: 'ninguna', label: 'Sin recurrencia (fecha única)' },
-              { value: 'semanal', label: 'Semanal (ej. viernes y domingo)' },
-              { value: 'mensual_por_dia', label: 'Mensual por día (ej. 1er domingo)' },
+              { value: 'ninguna', label: 'No, es una sola fecha' },
+              { value: 'semanal', label: 'Cada semana (ej. viernes y domingo)' },
+              { value: 'mensual_por_dia', label: 'Cada mes (ej. 1er domingo)' },
             ]} />
         </div>
 

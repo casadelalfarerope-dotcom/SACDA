@@ -10,6 +10,7 @@ export interface Opcion { value: string; label: string }
 interface SelectProps {
   label?: string
   error?: string
+  hint?: string               // ayuda corta debajo del campo
   options: Opcion[]
   placeholder?: string        // opción vacía ("Sin asignar", "Ninguno"…)
   value?: string
@@ -27,7 +28,7 @@ interface SelectProps {
 
 // Selector propio del sistema para listas cortas (estados, tipos, categorías).
 // Para elegir personas usa BuscadorPersona.
-export default function Select({ label, error, options, placeholder, value, defaultValue, onChange, name, id, disabled,
+export default function Select({ label, error, hint, options, placeholder, value, defaultValue, onChange, name, id, disabled,
   required, className, style, variante = 'campo', ...resto }: SelectProps) {
   const autoId = useId()
   const selectId = id ?? autoId
@@ -114,6 +115,7 @@ export default function Select({ label, error, options, placeholder, value, defa
           )
         })}
       </Flotante>
+      {hint && !error && <p className="text-xs" style={{ color: 'var(--muted)' }}>{hint}</p>}
       {error && <p className="text-xs" style={{ color: 'var(--destructive)' }}>{error}</p>}
     </div>
   )

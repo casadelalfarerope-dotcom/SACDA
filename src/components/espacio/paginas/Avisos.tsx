@@ -21,7 +21,7 @@ export default async function AvisosPage() {
       ) : (
         <Grupo>
           {avisos.map((a, i) => (
-            <Fila key={a.id} primero={i === 0} href={ctx.tienePanel ? (a.url ?? undefined) : enlaceEspacio(a.url)}
+            <Fila key={a.id} primero={i === 0} href={abrir(a.id, ctx.tienePanel ? (a.url ?? undefined) : enlaceEspacio(a.url))}
               inicio={<IconoModulo icon={Bell} color={a.leida ? '#8e8e93' : '#af52de'} tamano={36} />}
               titulo={<span style={{ fontWeight: a.leida ? 450 : 650 }}>{!a.leida && <span className="sr-only">Sin leer: </span>}{a.titulo}</span>}
               subtitulo={a.cuerpo ?? undefined}
@@ -35,3 +35,6 @@ export default async function AvisosPage() {
     </Pagina>
   )
 }
+
+// Pasa por /api/avisos para marcarlo como leído al abrirlo.
+const abrir = (id: string, destino?: string) => destino ? `/api/avisos/${id}?a=${encodeURIComponent(destino)}` : undefined

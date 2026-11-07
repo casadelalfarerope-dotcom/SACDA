@@ -30,6 +30,9 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
   const router = useRouter()
   const [pendiente, iniciar] = useTransition()
   const [mensaje, setMensaje] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null)
+  // Cambios que se ven al instante mientras el servidor confirma.
+  const [agregando, setAgregando] = useState<{ puesto: string; nombre: string } | null>(null)
+  const [quitando, setQuitando] = useState<string | null>(null)
 
   function ejecutar(accion: () => Promise<{ error?: string; success?: boolean; cantidad?: number }>, ok?: string) {
     setMensaje(null)
@@ -38,6 +41,7 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
       if (res.error) setMensaje({ tipo: 'error', texto: res.error })
       else if (ok) setMensaje({ tipo: 'ok', texto: ok })
       router.refresh()
+      setAgregando(null); setQuitando(null)
     })
   }
 
@@ -73,7 +77,7 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {p.asignados.map((a) => (
+                    {p.asignados.filter((a) => a.id !== quitando).map((a) => (
                       <span key={a.id} className="inline-flex items-center gap-1 h-8 pl-3 pr-1 rounded-full text-[14px]"
                         style={{ background: 'var(--fill)', color: 'var(--foreground)' }}>
                         {a.nombre}
@@ -83,13 +87,19 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
                         )}
                         {puedeEditar && (
                           <button type="button" aria-label={`Quitar a ${a.nombre} de ${p.nombre}`} disabled={pendiente}
-                            onClick={() => ejecutar(() => eliminarAsignacion(a.id, programaId), publicado ? `Quitaste a ${a.nombre}. Le avisamos del cambio.` : undefined)}
+                            onClick={() => { setQuitando(a.id); ejecutar(() => eliminarAsignacion(a.id, programaId), publicado ? `Quitaste a ${a.nombre}. Le avisamos del cambio.` : undefined) }}
                             className="w-6 h-6 inline-flex items-center justify-center rounded-full hover:opacity-70" style={{ color: 'var(--muted)' }}>
                             <X size={14} />
                           </button>
                         )}
                       </span>
                     ))}
+                    {agregando?.puesto === p.id && (
+                      <span className="inline-flex items-center h-8 px-3 rounded-full text-[14px] animate-fade"
+                        style={{ background: 'var(--fill)', color: 'var(--muted)' }} aria-live="polite">
+                        {agregando.nombre}…
+                      </span>
+                    )}
                     {!p.asignados.length && !puedeEditar && <span className="text-[14px]" style={{ color: 'var(--muted)' }}>Sin asignar</span>}
                     {puedeEditar && !integrantes.length && p.asignados.length < p.cantidad && (
                       <a href={`/ministerios/${grupo.id}`} className="text-[14px]" style={{ color: 'var(--accent)' }}>
@@ -99,8 +109,8 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
                     {puedeEditar && libres.length > 0 && (
                       <div className="w-full sm:w-72">
                         <BuscadorPersona agregar compacto personas={libres} disabled={pendiente} placeholder={`Agregar a ${p.nombre}…`}
-                          onChange={(id) => id && ejecutar(() => agregarAsignacion({ programa_id: programaId, rol_servicio_id: p.id, persona_id: id }),
-                            publicado ? `Agregado a ${p.nombre}. Le avisamos por la app y por correo.` : undefined)} />
+                          onChange={(id) => id && (setAgregando({ puesto: p.id, nombre: libres.find((m) => m.id === id)?.nombre ?? '' }), ejecutar(() => agregarAsignacion({ programa_id: programaId, rol_servicio_id: p.id, persona_id: id }),
+                            publicado ? `Agregado a ${p.nombre}. Le avisamos por la app y por correo.` : undefined))} />
                       </div>
                     )}
                   </div>
