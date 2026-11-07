@@ -79,7 +79,7 @@ export default async function MiembrosPage({ searchParams }: { searchParams: Pro
         <BotonEnlace href="/miembros/visitas-pastorales" variante="tintado"><House size={15} aria-hidden="true" /> Visitas pastorales</BotonEnlace>
       </>}>
 
-      <section aria-labelledby="lista-titulo" className="space-y-3">
+      <section id="asistencia" aria-labelledby="lista-titulo" className="space-y-3 scroll-mt-20">
         <div className="flex flex-wrap items-end justify-between gap-2 px-1">
           <h2 id="lista-titulo" className="text-[22px] font-bold" style={{ color: 'var(--foreground)' }}>
             <ClipboardCheck size={20} aria-hidden="true" className="inline -mt-1 mr-1.5" style={{ color: 'var(--accent)' }} />
@@ -124,6 +124,7 @@ export default async function MiembrosPage({ searchParams }: { searchParams: Pro
         </li>
       </Grupo>
 
+      <div id="cumpleanos" className="scroll-mt-20" />
       <Grupo titulo="Cumpleaños · próximos 30 días">
         {cumpleProximos.map((p, i) => (
           <Fila key={p.id} href={`/congregantes/${p.id}`} primero={i === 0}

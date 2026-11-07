@@ -295,6 +295,7 @@ main :is(a, button).border:not(.rounded-2xl):not(.rounded-3xl):is([style*="backg
 #bienvenida p { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--foreground);
   animation: aparecer 0.5s ease 0.55s both; }
 @keyframes bienvenida-salir { to { opacity: 0; visibility: hidden; } }
+.sin-bienvenida #bienvenida { display: none; }
 @keyframes aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {

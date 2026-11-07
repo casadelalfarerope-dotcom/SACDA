@@ -91,6 +91,11 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
                       </span>
                     ))}
                     {!p.asignados.length && !puedeEditar && <span className="text-[14px]" style={{ color: 'var(--muted)' }}>Sin asignar</span>}
+                    {puedeEditar && !integrantes.length && p.asignados.length < p.cantidad && (
+                      <a href={`/ministerios/${grupo.id}`} className="text-[14px]" style={{ color: 'var(--accent)' }}>
+                        Este ministerio no tiene integrantes. Agrégalos aquí →
+                      </a>
+                    )}
                     {puedeEditar && libres.length > 0 && (
                       <div className="w-full sm:w-72">
                         <BuscadorPersona agregar compacto personas={libres} disabled={pendiente} placeholder={`Agregar a ${p.nombre}…`}
@@ -131,13 +136,6 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
             </Button>
           )}
         </div>
-      )}
-      {puedeEditar && puestos.length > 0 && !mensaje && (
-        <p className="px-4 text-[13px]" style={{ color: 'var(--muted)' }}>
-          {publicado
-            ? 'Ya está publicado: si agregas o quitas a alguien, se le avisa al momento. «Volver a borrador» oculta la programación para corregirla sin avisar.'
-            : 'Nadie recibe aviso mientras sea borrador. Al publicar, cada persona recibe su turno en la app y por correo.'}
-        </p>
       )}
       {mensaje && (
         <p role={mensaje.tipo === 'error' ? 'alert' : 'status'} className="px-4 text-[13px]"

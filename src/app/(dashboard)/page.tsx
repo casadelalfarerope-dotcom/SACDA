@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Cake, ChevronRight, UserPlus, UserX, Users, UserCheck, Church, CalendarPlus, type LucideIcon } from 'lucide-react'
+import { Cake, ChevronRight, UserPlus, UserX, Users, UserCheck, Church, CalendarPlus, ClipboardCheck, type LucideIcon } from 'lucide-react'
 import { diasParaCumpleanios } from '@/lib/utils'
 import Avatar from '@/components/ui/Avatar'
 import { IconoModulo } from '@/components/ui/IconoApp'
@@ -13,7 +13,10 @@ function Widget({ label, value, icon, color, href }: {
     <Link href={href}
       className="rounded-2xl border p-4 flex flex-col gap-3 transition-transform active:scale-[0.98] hover:brightness-[0.98]"
       style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-      <IconoModulo icon={icon} color={color} tamano={30} />
+      <div className="flex items-start justify-between">
+        <IconoModulo icon={icon} color={color} tamano={30} />
+        <ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--muted)' }} />
+      </div>
       <div>
         <p className="text-[30px] leading-none font-bold tabular-nums tracking-tight" style={{ color: 'var(--foreground)' }}>{value}</p>
         <p className="text-[13px] mt-1.5 font-medium" style={{ color: 'var(--muted)' }}>{label}</p>
@@ -23,8 +26,8 @@ function Widget({ label, value, icon, color, href }: {
 }
 
 const ATAJOS: { href: string; label: string; icon: LucideIcon; desde: string; hasta: string }[] = [
-  { href: '/congregantes/nuevo',        label: 'Nuevo congregante',   icon: Users,        desde: '#ff9f0a', hasta: '#c45500' },
-  { href: '/miembros',                  label: 'Pasar lista',         icon: UserPlus,     desde: '#30b0c7', hasta: '#0b6e80' },
+  { href: '/congregantes/nuevo',        label: 'Nuevo congregante',   icon: UserPlus,        desde: '#ff9f0a', hasta: '#c45500' },
+  { href: '/miembros#asistencia',       label: 'Pasar lista',         icon: ClipboardCheck,     desde: '#30b0c7', hasta: '#0b6e80' },
   { href: '/miembros/ausencias',        label: 'Ver quiénes faltaron', icon: UserX,       desde: '#ff375f', hasta: '#c1123d' },
   { href: '/miembros/ceremonias/nueva', label: 'Registrar ceremonia', icon: Church,       desde: '#7d7aff', hasta: '#4a47c4' },
   { href: '/calendario/nuevo',          label: 'Nuevo evento',        icon: CalendarPlus, desde: '#ff6259', hasta: '#c62a20' },
@@ -86,7 +89,7 @@ export default async function DashboardPage() {
         <section aria-labelledby="cumple-t">
           <div className="flex items-end justify-between mb-2 px-1">
             <h2 id="cumple-t" className="text-[20px] font-bold" style={{ color: 'var(--foreground)' }}>Cumpleaños de la semana</h2>
-            <Link href="/miembros" className="text-[15px]" style={{ color: 'var(--accent)' }}>Ver todos</Link>
+            <Link href="/miembros#cumpleanos" className="text-[15px]" style={{ color: 'var(--accent)' }}>Ver todos</Link>
           </div>
           <ul className="rounded-2xl border overflow-hidden" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
             {cumpleanios.map((p, i) => (

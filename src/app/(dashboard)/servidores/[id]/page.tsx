@@ -21,6 +21,12 @@ export default async function ProgramaPage({ params }: { params: Promise<{ id: s
   return (
     <Pagina ancho="estrecho" titulo={programa.titulo} volver={{ href: '/servidores', texto: 'Servidores' }}
       subtitulo={`${formatDate(programa.fecha)}${programa.hora_inicio ? ` · ${programa.hora_inicio.slice(0, 5)}` : ''}${programa.cancelado ? ' · Cancelado en el calendario' : ''}`}>
+      {puedeEditar === true && ministerios.length > 0 && (
+        <p className="text-[15px]" style={{ color: 'var(--muted)' }}>
+          Cada ministerio se llena por separado. Mientras esté en <b>Borrador</b> nadie recibe aviso; al pulsar <b>Publicar</b>,
+          cada persona recibe su turno en la app y por correo. Si cambias a alguien después de publicar, se le avisa al momento.
+        </p>
+      )}
       {!ministerios.length && (
         <Vacio titulo="Ningún ministerio tiene puestos" texto="Define los puestos de cada ministerio (Predicación, Sonido…) desde Ministerios." />
       )}

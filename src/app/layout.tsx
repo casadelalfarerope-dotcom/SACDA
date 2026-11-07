@@ -38,6 +38,8 @@ export default function RootLayout({
     <html lang="es-PE" className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: temaInicial }} />
+        {/* La bienvenida solo al abrir la app, no en cada recarga de la misma sesión. */}
+        <script dangerouslySetInnerHTML={{ __html: "try{if(sessionStorage.getItem('bienvenida'))document.documentElement.classList.add('sin-bienvenida');else sessionStorage.setItem('bienvenida','1')}catch(e){}" }} />
       </head>
       <body>
         {/* Bienvenida al abrir la app: el logo se arma y la pantalla se desvanece sola (solo CSS). */}

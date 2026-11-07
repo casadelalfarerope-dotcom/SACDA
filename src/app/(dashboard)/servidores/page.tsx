@@ -34,7 +34,7 @@ export default async function ServidoresPage() {
     <Pagina titulo="Servidores" subtitulo="Programación de los cultos de los próximos 3 meses"
       acciones={<BotonEnlace href="/calendario" variante="tintado"><CalendarDays size={15} aria-hidden="true" /> Cultos en el calendario</BotonEnlace>}>
       <p className="text-[15px]" style={{ color: 'var(--muted)' }}>
-        Cada culto del calendario tiene su programa. El líder de cada ministerio llena y publica su parte; aquí ves el avance de todos.
+        Cada culto del calendario tiene su programa. El líder de cada ministerio llena y publica su parte; aquí ves el avance de todos: «Pendiente» si ningún ministerio publicó, «2 de 4» si van algunos, «Listo» cuando todos publicaron.
       </p>
 
       {!programas?.length && (
@@ -53,7 +53,7 @@ export default async function ServidoresPage() {
                 detalle={p.cancelado
                   ? <Badge variant="error">Cancelado</Badge>
                   : <Badge variant={totalMinisterios && publicados >= totalMinisterios ? 'success' : publicados ? 'info' : 'muted'}>
-                      {publicados}/{totalMinisterios} publicados
+                      {totalMinisterios && publicados >= totalMinisterios ? 'Listo' : publicados ? `${publicados} de ${totalMinisterios}` : 'Pendiente'}
                     </Badge>} />
             )
           })}
