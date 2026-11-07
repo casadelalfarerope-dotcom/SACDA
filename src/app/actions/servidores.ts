@@ -7,6 +7,9 @@ import { sugerirMinisterio, asignacionesAnteriores, asegurarProgramas } from '@/
 import { hoyLima } from '@/lib/utils'
 import { formatDate } from '@/lib/utils'
 import { programarSyncGoogle } from '@/lib/google-sync'
+import { enviarEmail, tplTurno } from '@/lib/email'
+import { appUrl } from '@/lib/google'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 // Los permisos los decide la base de datos: quien tiene el módulo Servidores
 // o el líder del ministerio dueño del puesto. Si no puede, la operación no
@@ -20,6 +23,62 @@ function revalidar(programaId?: string) {
 
 const SIN_PERMISO = 'No tienes permiso para cambiar este ministerio.'
 
+type FilaTurno = { id: string; persona_id: string; rol_servicio_id: string }
+
+// Avisa (en la app y por correo) a cada persona de su turno. Con quitado,
+// le avisa que ya no está en ese puesto. Un alta se avisa una sola vez.
+async function avisarTurnos(admin: SupabaseClient, programaId: string, filas: FilaTurno[], quitado = false) {
+  if (!filas.length) return
+  const { data: programa } = await admin.from('programas').select('titulo, fecha').eq('id', programaId).single()
+  if (!programa || programa.fecha < hoyLima()) return
+  let pendientes = filas
+  if (!quitado) {
+    const { data: ya } = await admin.from('notificaciones').select('metadata').eq('tipo', 'turno_asignado')
+      .in('metadata->>asignacion_id', filas.map((f) => f.id))
+    const avisadas = new Set((ya ?? []).map((n) => (n.metadata as { asignacion_id?: string }).asignacion_id))
+    pendientes = filas.filter((f) => !avisadas.has(f.id))
+    if (!pendientes.length) return
+  }
+  const [{ data: puestos }, { data: personas }] = await Promise.all([
+    admin.from('roles_servicio').select('id, nombre').in('id', [...new Set(pendientes.map((f) => f.rol_servicio_id))]),
+    admin.from('personas').select('id, nombre_completo, email').in('id', [...new Set(pendientes.map((f) => f.persona_id))]),
+  ])
+  const puesto = new Map((puestos ?? []).map((p) => [p.id as string, p.nombre as string]))
+  const persona = new Map((personas ?? []).map((p) => [p.id as string, p]))
+  const fecha = formatDate(programa.fecha)
+  await admin.from('notificaciones').insert(pendientes.map((f) => ({
+    persona_id: f.persona_id,
+    tipo: 'turno_asignado',
+    titulo: `${quitado ? 'Ya no sirves' : 'Te toca servir'}: ${puesto.get(f.rol_servicio_id) ?? 'Servicio'}`,
+    cuerpo: `${programa.titulo} · ${fecha}`,
+    url: '/mi/servicio',
+    metadata: { asignacion_id: f.id, programa_id: programaId, ...(quitado ? { quitado: true } : {}) },
+  })))
+  await Promise.all(pendientes.map((f) => {
+    const p = persona.get(f.persona_id)
+    if (!p?.email) return null
+    const t = tplTurno(p.nombre_completo as string, quitado, puesto.get(f.rol_servicio_id) ?? 'Servicio', programa.titulo, fecha, `${appUrl()}/mi/servicio`)
+    return enviarEmail(p.email as string, t.subject, t.html)
+  }))
+}
+
+// Si la parte del ministerio ya está publicada, avisa a los que aún no saben.
+async function avisarSiPublicado(programaId: string, grupoId: string) {
+  const admin = createServiceClient()
+  const { data: pm } = await admin.from('programa_ministerios').select('estado')
+    .eq('programa_id', programaId).eq('grupo_id', grupoId).maybeSingle()
+  if (pm?.estado !== 'publicado') return
+  const { data: puestos } = await admin.from('roles_servicio').select('id').eq('grupo_id', grupoId)
+  const ids = (puestos ?? []).map((p) => p.id as string)
+  if (!ids.length) return
+  const { data: filas } = await admin.from('programa_asignaciones').select('id, persona_id, rol_servicio_id')
+    .eq('programa_id', programaId).in('rol_servicio_id', ids)
+  await avisarTurnos(admin, programaId, (filas ?? []) as FilaTurno[])
+}
+
+const grupoDePuesto = async (admin: SupabaseClient, puestoId: string) =>
+  (await admin.from('roles_servicio').select('grupo_id').eq('id', puestoId).single()).data?.grupo_id as string | undefined
+
 export async function agregarAsignacion(data: { programa_id: string; rol_servicio_id: string; persona_id: string }) {
   programarSyncGoogle()
   if (!data.rol_servicio_id || !data.persona_id) return { error: 'Elige el puesto y la persona.' }
@@ -28,6 +87,8 @@ export async function agregarAsignacion(data: { programa_id: string; rol_servici
     programa_id: data.programa_id, rol_servicio_id: data.rol_servicio_id, persona_id: data.persona_id,
   })
   if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudo agregar la asignación.' }
+  const grupo = await grupoDePuesto(createServiceClient(), data.rol_servicio_id)
+  if (grupo) await avisarSiPublicado(data.programa_id, grupo)
   revalidar(data.programa_id)
   return { success: true }
 }
@@ -35,8 +96,12 @@ export async function agregarAsignacion(data: { programa_id: string; rol_servici
 export async function eliminarAsignacion(id: string, programa_id: string) {
   programarSyncGoogle()
   const supabase = await createClient()
-  const { data, error } = await supabase.from('programa_asignaciones').delete().eq('id', id).select('id')
+  const { data, error } = await supabase.from('programa_asignaciones').delete().eq('id', id).select('id, persona_id, rol_servicio_id')
   if (error || !data?.length) return { error: 'No se pudo quitar la asignación.' }
+  // Si ya se le había avisado que servía, se le avisa que ya no.
+  const admin = createServiceClient()
+  const { data: avisado } = await admin.from('notificaciones').select('id').eq('tipo', 'turno_asignado').eq('metadata->>asignacion_id', id).limit(1)
+  if (avisado?.length) await avisarTurnos(admin, programa_id, data as FilaTurno[], true)
   revalidar(programa_id)
   return { success: true }
 }
@@ -60,6 +125,7 @@ export async function llenarSugerencias(programaId: string, grupoId: string) {
     sugerencias.map((s) => ({ programa_id: programaId, rol_servicio_id: s.puesto_id, persona_id: s.persona_id })),
   )
   if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudieron guardar las sugerencias.' }
+  await avisarSiPublicado(programaId, grupoId)
   revalidar(programaId)
   return { success: true, cantidad: sugerencias.length }
 }
@@ -74,6 +140,7 @@ export async function repetirAnterior(programaId: string, grupoId: string) {
     filas.map((s) => ({ programa_id: programaId, rol_servicio_id: s.puesto_id, persona_id: s.persona_id })),
   )
   if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudo repetir la programación.' }
+  await avisarSiPublicado(programaId, grupoId)
   revalidar(programaId)
   return { success: true, cantidad: filas.length }
 }
@@ -127,16 +194,7 @@ export async function publicarMinisterio(programaId: string, grupoId: string) {
   })
   if (error) return { error: error.code === '42501' ? SIN_PERMISO : 'No se pudo publicar.' }
 
-  const { data: programa } = await supabase.from('programas').select('titulo, fecha').eq('id', programaId).single()
-  const nombrePuesto = new Map((puestos ?? []).map((p) => [p.id as string, p.nombre as string]))
-  const admin = createServiceClient()
-  await admin.from('notificaciones').insert(asignados.map((a) => ({
-    persona_id: a.persona_id,
-    tipo: 'turno_asignado',
-    titulo: `Te toca servir: ${nombrePuesto.get(a.rol_servicio_id as string) ?? 'Servicio'}`,
-    cuerpo: `${programa?.titulo ?? 'Culto'} · ${programa ? formatDate(programa.fecha) : ''}`,
-    url: '/mi/ministerios',
-  })))
+  await avisarSiPublicado(programaId, grupoId)
 
   revalidar(programaId)
   return { success: true }

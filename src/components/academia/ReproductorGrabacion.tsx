@@ -71,7 +71,7 @@ function BarraProgreso({ porcentaje }: { porcentaje: number }) {
     <div className="space-y-1">
       <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--surface-secondary)' }}
         role="progressbar" aria-valuenow={porcentaje} aria-valuemin={0} aria-valuemax={100} aria-label="Avance de la grabación">
-        <div className="h-full rounded-full transition-all" style={{ width: `${porcentaje}%`, background: completo ? 'var(--success)' : 'var(--accent)' }} />
+        <div className="h-full rounded-full transition-[width] duration-200 ease-out" style={{ width: `${porcentaje}%`, background: completo ? 'var(--success)' : 'var(--accent)' }} />
       </div>
       <p className="text-xs" style={{ color: completo ? 'var(--success)' : 'var(--muted)' }}>
         {completo ? 'Viste la clase completa ✓' : `Has visto ${porcentaje}% de la clase. Debes llegar al 95%; adelantar el video no cuenta.`}

@@ -120,7 +120,7 @@ export default function LoginPage() {
               required
               autoComplete="email"
               placeholder="nombre@correo.com"
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all border"
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-[color,background-color,border-color,box-shadow,opacity] border"
               style={inputStyle}
             />
           </div>
@@ -142,7 +142,7 @@ export default function LoginPage() {
                 required
                 autoComplete="current-password"
                 placeholder="••••••••"
-                className="w-full px-4 py-3 pr-12 rounded-xl text-sm outline-none transition-all border"
+                className="w-full px-4 py-3 pr-12 rounded-xl text-sm outline-none transition-[color,background-color,border-color,box-shadow,opacity] border"
                 style={inputStyle}
               />
               <button

@@ -36,11 +36,11 @@ export default function SelectorMedio({ valor, onChange, name = 'medio', etiquet
       <input type="hidden" name={name} value={medio} />
       <div role="radiogroup" aria-label="Físico o digital" className="grid grid-cols-2 gap-1 p-0.5 rounded-[10px]" style={{ background: 'var(--fill)' }}>
         <button type="button" role="radio" aria-checked={!digital} onClick={() => cambiar('efectivo')}
-          className="h-9 rounded-[8px] text-[14px] inline-flex items-center justify-center gap-1.5 transition-all" style={boton(!digital)}>
+          className="h-9 rounded-[8px] text-[14px] inline-flex items-center justify-center gap-1.5 transition-[color,background-color,border-color,box-shadow,opacity]" style={boton(!digital)}>
           <Banknote size={16} aria-hidden="true" /> Efectivo
         </button>
         <button type="button" role="radio" aria-checked={digital} onClick={() => cambiar(ultimoDigital)}
-          className="h-9 rounded-[8px] text-[14px] inline-flex items-center justify-center gap-1.5 transition-all" style={boton(digital)}>
+          className="h-9 rounded-[8px] text-[14px] inline-flex items-center justify-center gap-1.5 transition-[color,background-color,border-color,box-shadow,opacity]" style={boton(digital)}>
           <Smartphone size={16} aria-hidden="true" /> Digital
         </button>
       </div>

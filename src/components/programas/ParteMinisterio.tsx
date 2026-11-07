@@ -44,6 +44,7 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
   const asignados = puestos.reduce((n, p) => n + p.asignados.length, 0)
   const necesarios = puestos.reduce((n, p) => n + p.cantidad, 0)
   const completo = asignados >= necesarios
+  const publicado = estado === 'publicado'
 
   return (
     <section className="space-y-1.5" aria-label={`Ministerio ${grupo.nombre}`}>
@@ -67,7 +68,7 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
                     <p className="text-[15px] font-medium" style={{ color: 'var(--foreground)' }}>
                       {p.nombre}
                       <span className="ml-2 text-[13px] font-normal" style={{ color: 'var(--muted)' }}>
-                        {p.asignados.length}/{p.cantidad} · {p.modo === 'fijo' ? 'fijo' : 'rota'}
+                        {p.asignados.length}/{p.cantidad} · {p.modo === 'fijo' ? 'fijo' : 'rotativo'}
                       </span>
                     </p>
                   </div>
@@ -82,7 +83,7 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
                         )}
                         {puedeEditar && (
                           <button type="button" aria-label={`Quitar a ${a.nombre} de ${p.nombre}`} disabled={pendiente}
-                            onClick={() => ejecutar(() => eliminarAsignacion(a.id, programaId))}
+                            onClick={() => ejecutar(() => eliminarAsignacion(a.id, programaId), publicado ? `Quitaste a ${a.nombre}. Le avisamos del cambio.` : undefined)}
                             className="w-6 h-6 inline-flex items-center justify-center rounded-full hover:opacity-70" style={{ color: 'var(--muted)' }}>
                             <X size={14} />
                           </button>
@@ -93,7 +94,8 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
                     {puedeEditar && libres.length > 0 && (
                       <div className="w-full sm:w-72">
                         <BuscadorPersona agregar compacto personas={libres} disabled={pendiente} placeholder={`Agregar a ${p.nombre}…`}
-                          onChange={(id) => id && ejecutar(() => agregarAsignacion({ programa_id: programaId, rol_servicio_id: p.id, persona_id: id }))} />
+                          onChange={(id) => id && ejecutar(() => agregarAsignacion({ programa_id: programaId, rol_servicio_id: p.id, persona_id: id }),
+                            publicado ? `Agregado a ${p.nombre}. Le avisamos por la app y por correo.` : undefined)} />
                       </div>
                     )}
                   </div>
@@ -129,6 +131,13 @@ export default function ParteMinisterio({ programaId, grupo, estado, puestos, in
             </Button>
           )}
         </div>
+      )}
+      {puedeEditar && puestos.length > 0 && !mensaje && (
+        <p className="px-4 text-[13px]" style={{ color: 'var(--muted)' }}>
+          {publicado
+            ? 'Ya está publicado: si agregas o quitas a alguien, se le avisa al momento. «Volver a borrador» oculta la programación para corregirla sin avisar.'
+            : 'Nadie recibe aviso mientras sea borrador. Al publicar, cada persona recibe su turno en la app y por correo.'}
+        </p>
       )}
       {mensaje && (
         <p role={mensaje.tipo === 'error' ? 'alert' : 'status'} className="px-4 text-[13px]"

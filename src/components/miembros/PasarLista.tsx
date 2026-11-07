@@ -138,7 +138,7 @@ export default function PasarLista({ eventoId, fecha, fechaReal, personas, prese
                   {p.nombre}
                   {p.nuevo && <span className="ml-2 text-[11px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}>Nuevo</span>}
                 </span>
-                <span className="inline-flex items-center gap-1 h-8 px-3 rounded-full text-[13px] font-semibold flex-shrink-0 transition-all"
+                <span className="inline-flex items-center gap-1 h-8 px-3 rounded-full text-[13px] font-semibold flex-shrink-0 transition-[color,background-color,border-color,box-shadow,opacity]"
                   style={vino
                     ? { background: 'var(--success)', color: '#fff' }
                     : { background: 'transparent', color: 'var(--muted)', boxShadow: 'inset 0 0 0 1.5px var(--border)' }}>

@@ -82,7 +82,7 @@ export default function ListaAsistencia({ sesionId, alumnos, habilitada }: { ses
                     return (
                       <button key={op} type="button" role="radio" aria-checked={sel} disabled={!habilitada}
                         onClick={() => !sel && marcar(a.id, op)}
-                        className="inline-flex items-center gap-1 h-8 px-3 rounded-[8px] text-[13px] font-semibold transition-all disabled:opacity-50"
+                        className="inline-flex items-center gap-1 h-8 px-3 rounded-[8px] text-[13px] font-semibold transition-[color,background-color,border-color,box-shadow,opacity] disabled:opacity-50"
                         style={{
                           background: sel ? color : 'transparent',
                           color: sel ? '#fff' : 'var(--foreground)',

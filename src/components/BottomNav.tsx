@@ -123,7 +123,7 @@ export default function BottomNav({ modulos }: { modulos: string[] }) {
               <button key={href} type="button" onClick={() => navigate(href)} disabled={pending}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 text-[10.5px] font-medium transition-all',
+                  'flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 text-[10.5px] font-medium transition-[color,background-color,border-color,box-shadow,opacity]',
                   active || pending ? '' : 'opacity-55'
                 )}
                 style={{ color: active || pending ? 'var(--accent)' : 'var(--foreground)' }}>
@@ -137,7 +137,7 @@ export default function BottomNav({ modulos }: { modulos: string[] }) {
           <button type="button" onClick={() => setMasAbierto((v) => !v)}
             aria-expanded={masAbierto}
             className={cn(
-              'flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 text-[10.5px] font-medium transition-all',
+              'flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 text-[10.5px] font-medium transition-[color,background-color,border-color,box-shadow,opacity]',
               masAbierto || masActivo ? '' : 'opacity-55'
             )}
             style={{ color: masAbierto || masActivo ? 'var(--accent)' : 'var(--foreground)' }}>

@@ -110,7 +110,7 @@ export default function NuevoEventoPage() {
               <div className="flex flex-wrap gap-2">
                 {DIAS_OPCIONES.map((dia) => (
                   <button key={dia} type="button" onClick={() => toggleDia(dia)}
-                    className="px-3 py-1.5 rounded-xl text-sm font-medium border transition-all"
+                    className="px-3 py-1.5 rounded-xl text-sm font-medium border transition-[color,background-color,border-color,box-shadow,opacity]"
                     style={{
                       background: form.dias_semana.includes(dia) ? 'var(--accent)' : 'var(--surface-secondary)',
                       color: form.dias_semana.includes(dia) ? '#fff' : 'var(--foreground)',

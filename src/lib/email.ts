@@ -127,3 +127,27 @@ export function tplInvitacion(nombre: string, enlace: string) {
       </div>`,
   }
 }
+
+export function tplTurno(nombrePersona: string, quitado: boolean, puesto: string, culto: string, fecha: string, url: string) {
+  return {
+    subject: quitado ? `Ya no sirves: ${puesto} · ${fecha}` : `Te toca servir: ${puesto} · ${fecha}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <h2 style="color:#9a5528;margin-bottom:8px">${quitado ? 'Cambio en tu turno' : '🙌 Te toca servir'}</h2>
+        <p style="color:#1d1d1f;font-size:16px">
+          Hola <strong>${nombrePersona.split(' ')[0]}</strong>, ${quitado ? 'se cambió la programación y ya no estás en este puesto:' : 'estás programado para servir:'}
+        </p>
+        <div style="background:#f5f5f7;border-radius:12px;padding:16px;margin:16px 0">
+          <p style="margin:0;font-weight:600;color:#1d1d1f">${puesto}</p>
+          <p style="margin:8px 0 0;font-size:13px;color:#86868b">${culto} · ${fecha}</p>
+        </div>
+        <a href="${url}"
+           style="display:inline-block;padding:10px 20px;
+                  background:#9a5528;color:#fff;border-radius:10px;text-decoration:none;font-size:14px">
+          Ver mis turnos
+        </a>
+        <hr style="margin:24px 0;border:none;border-top:1px solid #d2d2d7"/>
+        <p style="color:#86868b;font-size:12px">Casa del Alfarero — Sistema interno</p>
+      </div>`,
+  }
+}

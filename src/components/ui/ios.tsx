@@ -123,7 +123,7 @@ export function SegmentadoEnlaces({ opciones, actual, etiqueta }: {
         const activo = o.valor === actual
         return (
           <Link key={o.valor} href={o.href} aria-current={activo ? 'page' : undefined}
-            className="px-3.5 py-1.5 rounded-[8px] text-[13px] font-semibold whitespace-nowrap transition-all"
+            className="px-3.5 py-1.5 rounded-[8px] text-[13px] font-semibold whitespace-nowrap transition-[color,background-color,border-color,box-shadow,opacity]"
             style={{
               background: activo ? 'var(--surface)' : 'transparent',
               color: 'var(--foreground)',
@@ -179,7 +179,7 @@ export function Segmentado<T extends string>({ opciones, valor, onChange, etique
         const activo = o.valor === valor
         return (
           <button key={o.valor} type="button" role="radio" aria-checked={activo} onClick={() => onChange(o.valor)}
-            className={cn('py-1.5 rounded-[8px] font-semibold whitespace-nowrap transition-all', ancho ? 'flex-1 px-1 text-[12px] sm:text-[13px]' : 'px-3.5 text-[13px]')}
+            className={cn('py-1.5 rounded-[8px] font-semibold whitespace-nowrap transition-[color,background-color,border-color,box-shadow,opacity]', ancho ? 'flex-1 px-1 text-[12px] sm:text-[13px]' : 'px-3.5 text-[13px]')}
             style={{
               background: activo ? 'var(--surface)' : 'transparent',
               color: 'var(--foreground)',
